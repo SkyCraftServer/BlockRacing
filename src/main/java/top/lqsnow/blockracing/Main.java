@@ -10,7 +10,10 @@ import top.lqsnow.blockracing.commands.*;
 import top.lqsnow.blockracing.listeners.BasicListener;
 import top.lqsnow.blockracing.managers.*;
 
-import static org.bukkit.Bukkit.getPluginCommand;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabCompleter;
+import org.bukkit.command.CommandExecutor;
+
 import static org.bukkit.Bukkit.getPluginManager;
 
 
@@ -25,21 +28,23 @@ public class Main extends SimplePlugin {
         // Register events
         getPluginManager().registerEvents(new BasicListener(), this);
 
-        // Register commands
-        getPluginCommand("debug").setExecutor(new Debug());
-        getPluginCommand("debug").setTabCompleter(new Debug());
-        getPluginCommand("menu").setExecutor(new Menu());
-        getPluginCommand("menu").setTabCompleter(new Menu());
-        getPluginCommand("waypoint").setExecutor(new WayPoint());
-        getPluginCommand("locatestructure").setExecutor(new LocateStructure());
-        getPluginCommand("locatestructure").setTabCompleter(new LocateStructure());
-        getPluginCommand("locatebiome").setExecutor(new LocateBiome());
-        getPluginCommand("locatebiome").setTabCompleter(new LocateBiome());
-        getPluginCommand("restartgame").setExecutor(new Restart());
-        getPluginCommand("tp").setExecutor(new Teleport());
-        getPluginCommand("block").setExecutor(new GetBlock());
-        getPluginCommand("block").setTabCompleter(new GetBlock());
-        getPluginCommand("randomteam").setExecutor(new RandomTeam());
+        // Register commands (use helper to avoid NPE if server/another plugin owns the command)
+        registerCommand("debug", new Debug());
+        registerCommand("menu", new Menu());
+        registerCommand("waypoint", new WayPoint());
+        registerCommand("locatestructure", new LocateStructure());
+        registerCommand("locatebiome", new LocateBiome());
+        registerCommand("restartgame", new Restart());
+        registerCommand("tp", new Teleport());
+        registerCommand("block", new GetBlock());
+        registerCommand("randomteam", new RandomTeam());
+
+        // Set tab completers where applicable
+        setTabCompleterIfPossible("debug", new Debug());
+        setTabCompleterIfPossible("menu", new Menu());
+        setTabCompleterIfPossible("locatestructure", new LocateStructure());
+        setTabCompleterIfPossible("locatebiome", new LocateBiome());
+        setTabCompleterIfPossible("block", new GetBlock());
 
         // Save resources
         saveIfAbsent(
@@ -104,5 +109,22 @@ public class Main extends SimplePlugin {
                 saveResource(path, false); // 只在缺失时复制，避免 WARNING
             }
         }
+    }
+
+    // Helper: safely register a command (avoid NPE if command is not owned by this plugin)
+    private void registerCommand(String name, CommandExecutor executor) {
+        PluginCommand cmd = this.getCommand(name);
+        if (cmd == null) {
+            getLogger().warning("Command '" + name + "' not found in plugin.yml or is already owned by the server/another plugin. Skipping registration.");
+            return;
+        }
+        cmd.setExecutor(executor);
+    }
+
+    // Helper: set tab completer when possible
+    private void setTabCompleterIfPossible(String name, TabCompleter completer) {
+        PluginCommand cmd = this.getCommand(name);
+        if (cmd == null) return;
+        cmd.setTabCompleter(completer);
     }
 }

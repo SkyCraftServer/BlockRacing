@@ -244,13 +244,16 @@ public class Block {
             List<String> lines = new ArrayList<>();
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!line.equals("")) lines.add(line);
+                line = line.trim();
+                if (!line.isEmpty() && !line.startsWith("#")) {
+                    lines.add(line);
+                }
             }
             reader.close();
             return lines.toArray(new String[0]);
         } catch (IOException e) {
             Main.getInstance().getLogger().log(Level.SEVERE, "[BlockRacing] Error reading blocks file!", e);
         }
-        return null;
+        return new String[0];
     }
 }
