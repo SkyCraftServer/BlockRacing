@@ -28,6 +28,8 @@ import static top.lqsnow.blockracing.managers.Game.*;
 import static top.lqsnow.blockracing.managers.Gui.*;
 import static top.lqsnow.blockracing.managers.Team.*;
 import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
+import top.lqsnow.blockracing.utils.BiomeTranslation;
+import top.lqsnow.blockracing.utils.WorldTranslation;
 
 public class GameMenu extends Menu {
 
@@ -233,9 +235,9 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
                             
                             ItemStack itemStack;
                             try {
-                                itemStack = ItemCreator.from(icon, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), wayPoint.getWorld().getName(), getCoords(wayPoint), wayPoint.getBlock().getBiome().toString())).make();
+                                itemStack = ItemCreator.from(icon, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), BiomeTranslation.getValue(wayPoint.getBlock().getBiome()))).make();
                             } catch (Exception e) {
-                                itemStack = ItemCreator.from(CompMaterial.FILLED_MAP, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), wayPoint.getWorld().getName(), getCoords(wayPoint), wayPoint.getBlock().getBiome().toString())).make();
+                                itemStack = ItemCreator.from(CompMaterial.FILLED_MAP, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), BiomeTranslation.getValue(wayPoint.getBlock().getBiome()))).make();
                             }
                             return itemStack;
                         } else {
