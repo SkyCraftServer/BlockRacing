@@ -23,7 +23,7 @@ jobs:
       - name: Get build artifact ready
         run: mkdir staging && cp target/*.jar staging
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v6
         with:
           name: Dev Build
           path: staging
