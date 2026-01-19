@@ -1,0 +1,29 @@
+name: Java CI
+
+on:
+  push:
+
+jobs:
+  build:
+    if: startsWith(github.event.head_commit.message, '[CI skip]') == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn package --file pom.xml
+      - name: Get build artifact ready
+        run: mkdir staging && cp target/*.jar staging
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Dev Build
+          path: staging
