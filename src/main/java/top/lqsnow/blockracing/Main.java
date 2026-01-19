@@ -5,7 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.World;
-import org.mineacademy.fo.plugin.SimplePlugin;
+import org.mineacademy.fo.platform.BukkitPlugin;
 import top.lqsnow.blockracing.commands.*;
 import top.lqsnow.blockracing.listeners.BasicListener;
 import top.lqsnow.blockracing.managers.*;
@@ -17,7 +17,7 @@ import org.bukkit.command.CommandExecutor;
 import static org.bukkit.Bukkit.getPluginManager;
 
 
-public class Main extends SimplePlugin {
+public class Main extends BukkitPlugin {
     @Getter
     private static Main instance;
 

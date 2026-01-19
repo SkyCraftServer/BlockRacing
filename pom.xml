@@ -32,9 +32,15 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.kangarko</groupId>
-            <artifactId>Foundation</artifactId>
-            <version>6.9.22</version>
+            <groupId>org.mineacademy</groupId>
+            <artifactId>foundation-bukkit</artifactId>
+            <version>7.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mineacademy</groupId>
+            <artifactId>foundation-core</artifactId>
+            <version>7.0.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -75,7 +81,8 @@
                      
                      ONLY ADD THE LIBRARIES HERE YOU WANT TO BE INCLUDED IN YOUR PLUGIN.JAR
                      -->
-                            <include>com.github.kangarko:Foundation*</include>
+                            <include>org.mineacademy:foundation-bukkit*</include>
+                            <include>org.mineacademy:foundation-core*</include>
                         </includes>
                     </artifactSet>
                     <relocations>
