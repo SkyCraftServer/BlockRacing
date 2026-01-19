@@ -201,6 +201,7 @@ notice:
   restart-cancel: "&c%player%已取消重启申请！"
   game-not-start: "&c游戏未开始！"
   game-has-start: "&c游戏已开始！"
+  cannot-use-command-ingame: "&c游戏已开始，无法使用该命令！"
   tp-player-success: "&a[队伍传送] &f已成功传送至 %player%"
   spectator-tp-player-success: "&e[旁观者传送] &f已成功传送至 %player%"
   player-not-exist: "&c玩家不存在！"

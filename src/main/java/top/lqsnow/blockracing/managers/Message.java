@@ -166,6 +166,7 @@ public enum Message {
     NOTICE_RESTART_CANCEL("notice.restart-cancel"),
     NOTICE_GAME_NOT_START("notice.game-not-start"),
     NOTICE_GAME_HAS_START("notice.game-has-start"),
+    NOTICE_CANNOT_USE_COMMAND_INGAME("notice.cannot-use-command-ingame"),
     NOTICE_TP_PLAYER_SUCCESS("notice.tp-player-success"),
     NOTICE_SPECTATOR_TP_PLAYER_SUCCESS("notice.spectator-tp-player-success"),
     NOTICE_PLAYER_NOT_EXIST("notice.player-not-exist"),

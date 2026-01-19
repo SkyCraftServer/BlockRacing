@@ -12,6 +12,12 @@ import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 public class Reload implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        // Prevent reload during an ongoing game to avoid unexpected issues
+        if (Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+            sender.sendMessage(Message.NOTICE_CANNOT_USE_COMMAND_INGAME.getString());
+            return true;
+        }
+
         // Reload config and messages
         Config.load();
         Message.load();
