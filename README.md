@@ -1,3 +1,13 @@
+本分支修改内容:  
+支持Java 1.21.11  
+调整评分和方块权重逻辑,极速模式不再额外获取积分  
+适应性修改: 在所有世界中将 LOCATOR_BAR 游戏规则设置为 false  
+添加基于队伍的出生点位置及重生逻辑以避免开局游戏过于卡顿  
+添加 MiniMessage 支持以实现颜色格式化  
+添加方块文件验证  
+添加 /breload 命令以重载配置和方块  
+
+
 [English](./docs/en/README-en.md) | [简体中文](./README.md)
 
 [Translation Tutorial](./docs/en/TranslationTutorial-en.md) | [翻译教程](./TranslationTutorial.md)
@@ -6,7 +16,7 @@
 
 这是一个Minecraft多人竞速小游戏，分为两个队伍，先收集完指定方块的队伍获胜。
 
-版本：Java 1.21.5
+版本：Java 1.21.11
 
 # 特色功能
 
