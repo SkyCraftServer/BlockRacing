@@ -12,6 +12,7 @@ import org.mineacademy.fo.menu.button.ButtonMenu;
 import org.mineacademy.fo.menu.button.annotation.Position;
 import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
+    
 
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
@@ -50,7 +51,8 @@ public class GameMenu extends Menu {
         setSize(1 * 9);
 
         // Open team chest menu
-        this.teamChest = new ButtonMenu(new TeamChestSelectMenu(), ItemCreator.of(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Message.MENU_TEAM_CHEST_LORE.getStringList()).make());
+        this.teamChest = new ButtonMenu(new TeamChestSelectMenu(),
+ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Message.MENU_TEAM_CHEST_LORE.getStringList()).make());
 
         // Roll
         this.roll = new Button() {
@@ -62,7 +64,7 @@ public class GameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.TOTEM_OF_UNDYING, Message.MENU_ROLL.getString(), Message.MENU_ROLL_LORE.getString()).make();
+                return ItemCreator.from(CompMaterial.TOTEM_OF_UNDYING, Message.MENU_ROLL.getString(), Message.MENU_ROLL_LORE.getStringList()).make();
             }
         };
 
@@ -76,7 +78,7 @@ public class GameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.COMPASS, Message.MENU_LOCATE.getString(), replacePlaceholders(Message.MENU_LOCATE_LORE.getStringList())).make();
+                return ItemCreator.from(CompMaterial.TOTEM_OF_UNDYING, Message.MENU_ROLL.getString(), Message.MENU_ROLL_LORE.getStringList()).make();
             }
         };
 
@@ -90,7 +92,7 @@ public class GameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.PAPER, Message.MENU_WAYPOINTS.getString(), Message.MENU_WAYPOINTS_LORE.getStringList()).make();
+                return ItemCreator.from(CompMaterial.PAPER, Message.MENU_WAYPOINTS.getString(), Message.MENU_WAYPOINTS_LORE.getStringList()).make();
             }
         };
 
@@ -128,7 +130,7 @@ public class GameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.ENDER_PEARL, Message.MENU_RANDOM_TP.getString(), Message.MENU_RANDOM_TP_LORE.getStringList()).make();
+                return ItemCreator.from(CompMaterial.ENDER_PEARL, Message.MENU_RANDOM_TP.getString(), Message.MENU_RANDOM_TP_LORE.getStringList()).make();
             }
         };
 
@@ -155,7 +157,7 @@ public class GameMenu extends Menu {
 
                     @Override
                     public ItemStack getItem() {
-                        return ItemCreator.of(CompMaterial.CHEST, Message.MENU_TEAM_CHEST_SELECT_CHEST.getString() + (this.getSlot() + 1)).make();
+                        return ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST_SELECT_CHEST.getString() + (this.getSlot() + 1)).make();
                     }
                 };
 
@@ -169,9 +171,9 @@ public class GameMenu extends Menu {
                 }
 
                 @Override
-                public ItemStack getItem() {
-                    return ItemCreator.of(CompMaterial.ARROW, Message.MENU_ALL_RETURN_BACK.getString()).make();
-                }
+                    public ItemStack getItem() {
+                        return ItemCreator.from(CompMaterial.ARROW, Message.MENU_ALL_RETURN_BACK.getString()).make();
+                    }
             };
 
             this.registerButton(back);
@@ -231,14 +233,14 @@ public class GameMenu extends Menu {
                             
                             ItemStack itemStack;
                             try {
-                                itemStack = ItemCreator.of(icon, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), wayPoint.getWorld().getName(), getCoords(wayPoint), wayPoint.getBlock().getBiome().toString())).make();
+                                itemStack = ItemCreator.from(icon, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), wayPoint.getWorld().getName(), getCoords(wayPoint), wayPoint.getBlock().getBiome().toString())).make();
                             } catch (Exception e) {
-                                itemStack = ItemCreator.of(CompMaterial.FILLED_MAP, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), wayPoint.getWorld().getName(), getCoords(wayPoint), wayPoint.getBlock().getBiome().toString())).make();
+                                itemStack = ItemCreator.from(CompMaterial.FILLED_MAP, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), wayPoint.getWorld().getName(), getCoords(wayPoint), wayPoint.getBlock().getBiome().toString())).make();
                             }
                             return itemStack;
                         } else {
                             wayPointIconCache.remove(ith);
-                            return ItemCreator.of(CompMaterial.MAP, Message.MENU_WAYPOINT_EMPTY.getString() + ith, Message.MENU_WAYPOINT_EMPTY_LORE.getStringList()).make();
+                            return ItemCreator.from(CompMaterial.MAP, Message.MENU_WAYPOINT_EMPTY.getString() + ith, Message.MENU_WAYPOINT_EMPTY_LORE.getStringList()).make();
                         }
                     }
 
@@ -255,7 +257,7 @@ public class GameMenu extends Menu {
 
                 @Override
                 public ItemStack getItem() {
-                    return ItemCreator.of(CompMaterial.ARROW, Message.MENU_ALL_RETURN_BACK.getString()).make();
+                    return ItemCreator.from(CompMaterial.ARROW, Message.MENU_ALL_RETURN_BACK.getString()).make();
                 }
             };
             this.registerButton(back);

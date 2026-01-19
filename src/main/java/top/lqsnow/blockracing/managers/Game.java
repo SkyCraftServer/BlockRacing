@@ -19,6 +19,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
+    
 import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.utils.ColorUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
@@ -110,8 +111,8 @@ public class Game {
 
     private static void checkUpdate(Player player) {
         player.resetTitle();
-        if (!Config.CONFIG_VERSION.getString().equals(Main.getVersion())
-                || !Message.MESSAGE_VERSION.getString().equals(Main.getVersion())) {
+        if (!Config.CONFIG_VERSION.getString().equals(Main.getInstance().getDescription().getVersion())
+            || !Message.MESSAGE_VERSION.getString().equals(Main.getInstance().getDescription().getVersion())) {
             if (Message.NOTICE_VERSION_MISMATCH.getString() != null) {
                 player.sendMessage(Message.NOTICE_VERSION_MISMATCH.getString());
                 player.sendTitle(Message.NOTICE_VERSION_MISMATCH_TITLE.getString(),
@@ -246,9 +247,9 @@ public class Game {
         player.setFoodLevel(20);
         player.setSaturation(10);
         player.setGameMode(GameMode.SURVIVAL);
-        player.getInventory().addItem(ItemCreator.of(CompMaterial.STONE_PICKAXE).amount(1).make());
-        player.getInventory().addItem(ItemCreator.of(CompMaterial.STONE_AXE).amount(1).make());
-        player.getInventory().addItem(ItemCreator.of(CompMaterial.STONE_SHOVEL).amount(1).make());
+        player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.STONE_PICKAXE).amount(1).make());
+        player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.STONE_AXE).amount(1).make());
+        player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.STONE_SHOVEL).amount(1).make());
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
@@ -265,8 +266,8 @@ public class Game {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
             }, 1300L); // 延迟发放 避免冲突
             player.getInventory()
-                    .addItem(ItemCreator.of(CompMaterial.IRON_PICKAXE).enchant(Enchantment.SILK_TOUCH, 1).make());
-            player.getInventory().addItem(ItemCreator.of(CompMaterial.GOLDEN_CARROT).amount(64).make());
+                    .addItem(ItemCreator.fromMaterial(CompMaterial.IRON_PICKAXE).enchant(Enchantment.SILK_TOUCH, 1).make());
+            player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.GOLDEN_CARROT).amount(64).make());
 
             ItemStack damagedElytra = new ItemStack(Material.ELYTRA);
             damagedElytra.setDurability((short) (damagedElytra.getType().getMaxDurability() - 1));
@@ -613,7 +614,7 @@ public class Game {
                 if (emptyPos == -1) {
                     continue;
                 }
-                chest.setItem(emptyPos, ItemCreator.of(CompMaterial.valueOf(block)).amount(64).make());
+                chest.setItem(emptyPos, ItemCreator.fromMaterial(CompMaterial.valueOf(block)).amount(64).make());
                 return;
             }
             sendAll(Message.NOTICE_TEAM_CHEST_FULL.getString().replace("%team%", Message.TEAM_BLUE_NAME.getString())
@@ -640,7 +641,7 @@ public class Game {
                 if (emptyPos == -1) {
                     continue;
                 }
-                chest.setItem(emptyPos, ItemCreator.of(CompMaterial.valueOf(block)).amount(64).make());
+                chest.setItem(emptyPos, ItemCreator.fromMaterial(CompMaterial.valueOf(block)).amount(64).make());
                 return;
             }
             sendAll(Message.NOTICE_TEAM_CHEST_FULL.getString().replace("%team%", Message.TEAM_RED_NAME.getString())

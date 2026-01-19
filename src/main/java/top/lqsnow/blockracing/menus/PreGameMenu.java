@@ -70,7 +70,7 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.RED_WOOL, Message.MENU_JOIN_RED.getString()).make();
+                return ItemCreator.from(CompMaterial.RED_WOOL, Message.MENU_JOIN_RED.getString()).make();
             }
         };
 
@@ -83,7 +83,7 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.BLUE_WOOL, Message.MENU_JOIN_BLUE.getString()).make();
+                return ItemCreator.from(CompMaterial.BLUE_WOOL, Message.MENU_JOIN_BLUE.getString()).make();
             }
         };
 
@@ -98,10 +98,8 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.isEnableMediumBlock()) return ItemCreator.of(CompMaterial.GREEN_CONCRETE,
-                        Message.MENU_MEDIUM_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
-                else return ItemCreator.of(CompMaterial.RED_CONCRETE,
-                        Message.MENU_MEDIUM_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
+                if (Setting.isEnableMediumBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_MEDIUM_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
+                else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_MEDIUM_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
         };
 
@@ -116,10 +114,8 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.isEnableHardBlock()) return ItemCreator.of(CompMaterial.GREEN_CONCRETE,
-                        Message.MENU_HARD_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
-                else return ItemCreator.of(CompMaterial.RED_CONCRETE,
-                        Message.MENU_HARD_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
+                if (Setting.isEnableHardBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_HARD_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
+                else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_HARD_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
         };
 
@@ -134,10 +130,8 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.isEnableDyedBlock()) return ItemCreator.of(CompMaterial.GREEN_CONCRETE,
-                        Message.MENU_DYED_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
-                else return ItemCreator.of(CompMaterial.RED_CONCRETE,
-                        Message.MENU_DYED_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
+                if (Setting.isEnableDyedBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_DYED_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
+                else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_DYED_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
         };
 
@@ -152,10 +146,8 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.isEnableEndBlock()) return ItemCreator.of(CompMaterial.GREEN_CONCRETE,
-                        Message.MENU_END_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
-                else return ItemCreator.of(CompMaterial.RED_CONCRETE,
-                        Message.MENU_END_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
+                if (Setting.isEnableEndBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_END_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
+                else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_END_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
         };
 
@@ -170,8 +162,7 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.NAME_TAG, Message.MENU_BLOCK_AMOUNT.getString() + Setting.getBlockAmount(),
-                        Message.MENU_BLOCK_AMOUNT_LORE.getStringList()).make();
+                return ItemCreator.from(CompMaterial.NAME_TAG, Message.MENU_BLOCK_AMOUNT.getString() + Setting.getBlockAmount(), Message.MENU_BLOCK_AMOUNT_LORE.getStringList()).make();
             }
         };
 
@@ -187,10 +178,10 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
-                    return ItemCreator.of(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_NORMAL_MODE.getString(), Message.MENU_NORMAL_MODE_LORE.getStringList()).make();
+                    if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
+                    return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_NORMAL_MODE.getString(), Message.MENU_NORMAL_MODE_LORE.getStringList()).make();
                 } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
-                    return ItemCreator.of(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_NORMAL_MODE.getString(), Message.MENU_NORMAL_MODE_LORE.getStringList()).make();
+                    return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_NORMAL_MODE.getString(), Message.MENU_NORMAL_MODE_LORE.getStringList()).make();
                 }
                 return NO_ITEM;
             }
@@ -209,9 +200,9 @@ public class PreGameMenu extends Menu {
             @Override
             public ItemStack getItem() {
                 if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
-                    return ItemCreator.of(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_RACING_MODE.getString(), Message.MENU_RACING_MODE_LORE.getStringList()).make();
+                    return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_RACING_MODE.getString(), Message.MENU_RACING_MODE_LORE.getStringList()).make();
                 } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
-                    return ItemCreator.of(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_RACING_MODE.getString(), Message.MENU_RACING_MODE_LORE.getStringList()).make();
+                    return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_RACING_MODE.getString(), Message.MENU_RACING_MODE_LORE.getStringList()).make();
                 }
                 return NO_ITEM;
             }
@@ -229,10 +220,8 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.isSpeedMode()) return ItemCreator.of(CompMaterial.GREEN_CONCRETE,
-                        Message.MENU_SPEED_MODE_ENABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
-                else return ItemCreator.of(CompMaterial.YELLOW_CONCRETE,
-                        Message.MENU_SPEED_MODE_DISABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
+                if (Setting.isSpeedMode()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_SPEED_MODE_ENABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
+                else return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SPEED_MODE_DISABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
             }
         };
 
@@ -245,7 +234,7 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.EMERALD, Message.MENU_READY.getString(), Message.MENU_READY_LORE.getStringList()).make();
+                return ItemCreator.from(CompMaterial.EMERALD, Message.MENU_READY.getString(), Message.MENU_READY_LORE.getStringList()).make();
             }
         };
 
@@ -258,7 +247,7 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.of(CompMaterial.DIAMOND, Message.MENU_START.getString(), Message.MENU_START_LORE.getStringList()).make();
+                return ItemCreator.from(CompMaterial.DIAMOND, Message.MENU_START.getString(), Message.MENU_START_LORE.getStringList()).make();
             }
         };
 
@@ -268,22 +257,22 @@ public class PreGameMenu extends Menu {
     @Override
     public ItemStack getItemAt(int slot) {
         if (isGreenBackgroundSlot(slot)) {
-            return ItemCreator.of(CompMaterial.LIME_STAINED_GLASS_PANE, " ").make();
+            return ItemCreator.from(CompMaterial.LIME_STAINED_GLASS_PANE, " ").make();
         }
         if (isBlueBackgroundSlot(slot)) {
-            return ItemCreator.of(CompMaterial.LIGHT_BLUE_STAINED_GLASS_PANE, " ").make();
+            return ItemCreator.from(CompMaterial.LIGHT_BLUE_STAINED_GLASS_PANE, " ").make();
         }
         if (slot == 10 || slot == 16) {
-            return ItemCreator.of(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_SELECT_TEAM.getString()).make();
+            return ItemCreator.from(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_SELECT_TEAM.getString()).make();
         }
         if (slot == 19 || slot == 25) {
-            return ItemCreator.of(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_BLOCK_SETTING.getString()).make();
+            return ItemCreator.from(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_BLOCK_SETTING.getString()).make();
         }
         if (slot == 28 || slot == 34) {
-            return ItemCreator.of(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_SELECT_MODE.getString()).make();
+            return ItemCreator.from(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_SELECT_MODE.getString()).make();
         }
         if (slot == 37 || slot == 43) {
-            return ItemCreator.of(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_READY_AND_START.getString()).make();
+            return ItemCreator.from(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_READY_AND_START.getString()).make();
         }
 
         return super.getItemAt(slot);
