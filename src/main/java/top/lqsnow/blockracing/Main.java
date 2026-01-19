@@ -85,10 +85,13 @@ public class Main extends BukkitPlugin {
             world.setDifficulty(Difficulty.PEACEFUL);
             // overworld
             world.setGameRule(GameRule.KEEP_INVENTORY, true);
+            world.setGameRule(GameRule.LOCATOR_BAR, false);
             // nether
             Bukkit.getWorlds().get(1).setGameRule(GameRule.KEEP_INVENTORY, true);
+            Bukkit.getWorlds().get(1).setGameRule(GameRule.LOCATOR_BAR, false);
             // end
             Bukkit.getWorlds().get(2).setGameRule(GameRule.KEEP_INVENTORY, true);
+            Bukkit.getWorlds().get(2).setGameRule(GameRule.LOCATOR_BAR, false);
             world.setTime(1000);
         }, 5);
 
