@@ -30,3 +30,6 @@ commands:
   block:
     usage: "/block <team> <number>"
     description: "Query block."
+  breload:
+    usage: "/breload"
+    description: "Reload BlockRacing config and block lists."

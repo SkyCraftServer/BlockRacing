@@ -37,6 +37,7 @@ public class Main extends SimplePlugin {
         registerCommand("restartgame", new Restart());
         registerCommand("tp", new Teleport());
         registerCommand("block", new GetBlock());
+        registerCommand("breload", new top.lqsnow.blockracing.commands.Reload());
         registerCommand("randomteam", new RandomTeam());
 
         // Set tab completers where applicable
