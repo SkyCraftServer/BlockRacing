@@ -108,12 +108,12 @@ public class Menu implements CommandExecutor, TabCompleter {
                 freeRandomTPList.remove(player.getName());
             } else {
                 if (redTeamPlayers.contains(player.getName())) {
-                    if (redTeamScore < 2) {
+                    if (redTeamScore < 3) {
                         player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
                         return true;
                     }
                 } else if (blueTeamPlayers.contains(player.getName())) {
-                    if (blueTeamScore < 2) {
+                    if (blueTeamScore < 3) {
                         player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
                         return true;
                     }
@@ -121,10 +121,10 @@ public class Menu implements CommandExecutor, TabCompleter {
                 player.closeInventory();
                 randomTeleport(player, false);
                 if (redTeamPlayers.contains(player.getName())) {
-                    redTeamScore -= 2;
+                    redTeamScore -= 3;
                     sendAll(Message.NOTICE_RANDOM_TP.getString().replace("%player%", Message.TEAM_RED_COLOR.getString() + player.getName()));
                 } else if (blueTeamPlayers.contains(player.getName())) {
-                    blueTeamScore -= 2;
+                    blueTeamScore -= 3;
                     sendAll(Message.NOTICE_RANDOM_TP.getString().replace("%player%", Message.TEAM_BLUE_COLOR.getString() + player.getName()));
                 }
                 Scoreboard.updateScoreboard();

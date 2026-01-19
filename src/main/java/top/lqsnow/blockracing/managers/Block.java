@@ -204,8 +204,8 @@ public class Block {
     public static int calculateEndBlocksWeight(float progress) {
         float prop = (float) endBlocks.size() / blocks.size();
         if (progress <= 1 - prop) {
-            if (progress <= 0.8) return 0;
-            if (progress > 0.8) return (int) (60 * (progress - 0.8) / 0.2);
+            if (progress <= 0.7) return 0;
+            if (progress > 0.7) return (int) (70 * (progress - 0.7) / 0.2);
         } else {
             return 60;
         }

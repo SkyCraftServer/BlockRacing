@@ -535,15 +535,15 @@ public class Game {
 
     private static void setLocateScore() {
         if (Setting.getBlockAmount() <= 20)
-            locateCost = 2;
-        else if (Setting.getBlockAmount() <= 50)
-            locateCost = 3;
-        else if (Setting.getBlockAmount() <= 100)
             locateCost = 5;
-        else if (Setting.getBlockAmount() <= 200)
+        else if (Setting.getBlockAmount() <= 50)
             locateCost = 8;
+        else if (Setting.getBlockAmount() <= 100)
+            locateCost = 16;
+        else if (Setting.getBlockAmount() <= 200)
+            locateCost = 20;
         else
-            locateCost = 10;
+            locateCost = 30;
     }
 
     private static void checkRedInventory() {
@@ -601,10 +601,7 @@ public class Game {
                 .replace("%block%", TranslationUtil.getValue(block)).replace("%player%", player).replaceAll("§.", ""));
         playSound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
         redTeamRemainingBlocks.remove(block);
-        if (Setting.isSpeedMode())
-            redTeamScore += 3;
-        else
-            redTeamScore += 1;
+        redTeamScore += 1;
         redTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
@@ -631,10 +628,7 @@ public class Game {
                 .replace("%block%", TranslationUtil.getValue(block)).replace("%player%", player).replaceAll("§.", ""));
         playSound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
         blueTeamRemainingBlocks.remove(block);
-        if (Setting.isSpeedMode())
-            blueTeamScore += 3;
-        else
-            blueTeamScore += 1;
+        blueTeamScore += 1;
         blueTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
