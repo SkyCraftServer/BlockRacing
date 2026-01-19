@@ -783,10 +783,20 @@ public class Game {
                 .replace("%block%", TranslationUtil.getValue(block)).replace("%player%", player).replaceAll("§.", ""));
         playSound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
         redTeamRemainingBlocks.remove(block);
+        // mark as completed for global tracking
+        redCompletedBlocks.add(block);
         redTeamScore += 1;
         redTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
+        // Only declare victory for this team if, in time mode, that team's
+        // completed list contains all global blocks (i.e. the team alone
+        // has collected every block in the pool).
+        if (isTimeModeActive() && redCompletedBlocks.containsAll(blocks)) {
+            redWin();
+            showRanking();
+            return;
+        }
         // In time mode, when a block is completed (and not in overtime),
         // generate and add a replacement target so teams always have targets.
         if (isTimeModeActive() && !timeModeOvertime) {
@@ -826,10 +836,20 @@ public class Game {
                 .replace("%block%", TranslationUtil.getValue(block)).replace("%player%", player).replaceAll("§.", ""));
         playSound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
         blueTeamRemainingBlocks.remove(block);
+        // mark as completed for global tracking
+        blueCompletedBlocks.add(block);
         blueTeamScore += 1;
         blueTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
+        // Only declare victory for this team if, in time mode, that team's
+        // completed list contains all global blocks (i.e. the team alone
+        // has collected every block in the pool).
+        if (isTimeModeActive() && blueCompletedBlocks.containsAll(blocks)) {
+            blueWin();
+            showRanking();
+            return;
+        }
         // In time mode, when a block is completed (and not in overtime),
         // generate and add a replacement target so teams always have targets.
         if (isTimeModeActive() && !timeModeOvertime) {
