@@ -183,12 +183,10 @@ public class Debug implements CommandExecutor, TabCompleter {
                 completions.add("1");
                 completions.add("2");
                 completions.add("3");
-                completions.add("4");
             } else if (args[0].equalsIgnoreCase("gettranslation")) {
                 completions.add("1");
                 completions.add("2");
                 completions.add("3");
-                completions.add("4");
             } else if (args[0].equalsIgnoreCase("getblock")) {
                 completions.add("remain");
                 completions.add("all");

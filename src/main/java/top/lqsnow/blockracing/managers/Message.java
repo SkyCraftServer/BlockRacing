@@ -19,6 +19,7 @@ public enum Message {
     // scoreboard
     SCOREBOARD_MODE_NORMAL("scoreboard.game-mode.normal"),
     SCOREBOARD_MODE_RACING("scoreboard.game-mode.racing"),
+    SCOREBOARD_MODE_TIME("scoreboard.game-mode.time"),
     SCOREBOARD_MODE_SPEED("scoreboard.game-mode.speed"),
     SCOREBOARD_BLOCKS_EASY("scoreboard.blocks.easy"),
     SCOREBOARD_BLOCKS_MEDIUM("scoreboard.blocks.medium"),
@@ -43,6 +44,8 @@ public enum Message {
     SCOREBOARD_BLOCK_FORMAT("scoreboard.ingame.block-format"),
     SCOREBOARD_DIVIDING_LINE("scoreboard.ingame.dividing-line"),
     SCOREBOARD_BOTTOM_SLOT("scoreboard.ingame.bottom-slot"),
+    SCOREBOARD_TIME_MODE_TIME_LEFT("scoreboard.ingame.time-left"),
+    SCOREBOARD_TIME_MODE_OVERTIME("scoreboard.ingame.overtime"),
     SCOREBOARD_BLOCK_DIFFICULTY_EASY("scoreboard.ingame.block-difficulty.easy"),
     SCOREBOARD_BLOCK_DIFFICULTY_MEDIUM("scoreboard.ingame.block-difficulty.medium"),
     SCOREBOARD_BLOCK_DIFFICULTY_HARD("scoreboard.ingame.block-difficulty.hard"),
@@ -81,10 +84,12 @@ public enum Message {
     MENU_SWITCH_TO("menu.pregame-menu.switch-to"),
     MENU_NORMAL_MODE("menu.pregame-menu.normal-mode"),
     MENU_RACING_MODE("menu.pregame-menu.racing-mode"),
+    MENU_TIME_MODE("menu.pregame-menu.time-mode"),
     MENU_SPEED_MODE_ENABLED("menu.pregame-menu.speed-mode-enabled"),
     MENU_SPEED_MODE_DISABLED("menu.pregame-menu.speed-mode-disabled"),
     MENU_NORMAL_MODE_LORE("menu.pregame-menu.normal-mode-lore"),
     MENU_RACING_MODE_LORE("menu.pregame-menu.racing-mode-lore"),
+    MENU_TIME_MODE_LORE("menu.pregame-menu.time-mode-lore"),
     MENU_SPEED_MODE_LORE("menu.pregame-menu.speed-mode-lore"),
     MENU_SELECT_TEAM("menu.pregame-menu.select-team"),
     MENU_BLOCK_SETTING("menu.pregame-menu.block-setting"),
@@ -179,6 +184,7 @@ public enum Message {
     NOTICE_VERSION_MISMATCH_TITLE("notice.version-mismatch-title"),
     NOTICE_VERSION_MISMATCH_SUBTITLE("notice.version-mismatch-subtitle"),
     NOTICE_TEAM_SHUFFLE("notice.team-shuffle"),
+    NOTICE_OVERTIME_START("notice.overtime-start"),
 
     // other
     MESSAGE_PREFIX("prefix"),

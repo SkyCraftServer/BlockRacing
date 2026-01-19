@@ -27,12 +27,7 @@ public class Scoreboard {
 
     public static void setPreGameScoreboard() {
         // Generate displayed game mode
-        String displayedGameMode = null;
-        if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
-            displayedGameMode = Setting.isSpeedMode() ? String.format("%s + %s", Message.SCOREBOARD_MODE_NORMAL.getString(), Message.SCOREBOARD_MODE_SPEED.getString()) : Message.SCOREBOARD_MODE_NORMAL.getString();
-        } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
-            displayedGameMode = Setting.isSpeedMode() ? String.format("%s + %s", Message.SCOREBOARD_MODE_RACING.getString(), Message.SCOREBOARD_MODE_SPEED.getString()) : Message.SCOREBOARD_MODE_RACING.getString();
-        }
+        String displayedGameMode = resolveDisplayedGameMode();
 
         // Generate blocks
         String blocks = String.format("%s%s%s%s%s", Message.SCOREBOARD_BLOCKS_EASY.getString(), (Setting.isEnableMediumBlock() ? " " + Message.SCOREBOARD_BLOCKS_MEDIUM.getString() : ""), (Setting.isEnableHardBlock() ? " " + Message.SCOREBOARD_BLOCKS_HARD.getString() : ""), (Setting.isEnableDyedBlock() ? " " + Message.SCOREBOARD_BLOCKS_DYED.getString() : ""), (Setting.isEnableEndBlock() ? " " + Message.SCOREBOARD_BLOCKS_END.getString() : ""));
@@ -54,12 +49,23 @@ public class Scoreboard {
 
     public static void setInGameScoreboard() {
         // Generate scoreboard
-        // Set title
         setTitle(Message.SCOREBOARD_INGAME_TITLE.getString());
+
+        if (Game.isTimeModeActive()) {
+            if (Game.isTimeModeOvertime()) {
+                setSlot(15, Message.SCOREBOARD_TIME_MODE_OVERTIME.getString());
+            } else {
+                setSlot(15, Message.SCOREBOARD_TIME_MODE_TIME_LEFT.getString().replace("%time%", Game.getFormattedTimeModeRemaining()));
+            }
+            setSlot(14, "");
+        } else {
+            setSlot(15, "");
+            setSlot(14, "");
+        }
         // Set red team score display
         setSlot(12, Message.SCOREBOARD_RED_SCORE.getString().replace("%score%", String.valueOf(redTeamScore)).replace("%current_block%", String.valueOf(redTeamCurrentBlockAmount)).replace("%total_block%", String.valueOf(redTeamTotalBlockAmount)));
         // Clean red team blocks display
-        for (int i = getCurrentBlocks("red").size(); i < 4; i++) {
+        for (int i = getCurrentBlocks("red").size(); i < 3; i++) {
             int slotIndex = 11 - i;
             setSlot(slotIndex, "");
         }
@@ -73,7 +79,7 @@ public class Scoreboard {
         // Set blue team score display
         setSlot(6, Message.SCOREBOARD_BLUE_SCORE.getString().replace("%score%", String.valueOf(blueTeamScore)).replace("%current_block%", String.valueOf(blueTeamCurrentBlockAmount)).replace("%total_block%", String.valueOf(blueTeamTotalBlockAmount)));
         // Clean blue team blocks display
-        for (int i = getCurrentBlocks("blue").size(); i < 4; i++) {
+        for (int i = getCurrentBlocks("blue").size(); i < 3; i++) {
             int slotIndex = 5 - i;
             setSlot(slotIndex, "");
         }
@@ -99,6 +105,21 @@ public class Scoreboard {
             return String.format(Message.SCOREBOARD_BLOCK_FORMAT.getString().replace("%difficulty%", Message.SCOREBOARD_BLOCK_DIFFICULTY_END.getString()).replace("%block%", TranslationUtil.getValue(block)));
         }
         return null;
+    }
+
+    private static String resolveDisplayedGameMode() {
+        String base;
+        if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
+            base = Message.SCOREBOARD_MODE_NORMAL.getString();
+        } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
+            base = Message.SCOREBOARD_MODE_RACING.getString();
+        } else {
+            base = Message.SCOREBOARD_MODE_TIME.getString();
+        }
+        if (Setting.isSpeedMode()) {
+            base = String.format("%s + %s", base, Message.SCOREBOARD_MODE_SPEED.getString());
+        }
+        return base;
     }
 
     public static void showScoreboard(Player player) {

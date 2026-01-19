@@ -48,6 +48,9 @@ public class PreGameMenu extends Menu {
     @Position(30)
     private final Button racingMode;
 
+    @Position(31)
+    private final Button timeMode;
+
     @Position(33)
     private final Button speedMode;
 
@@ -170,7 +173,7 @@ public class PreGameMenu extends Menu {
         this.normalMode = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
-                if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING))
+                if (!Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL))
                     Setting.setCurrentGameMode(Setting.GameMode.NORMAL);
                 updateMenu(PreGameMenu.this);
                 updateScoreboard();
@@ -180,10 +183,9 @@ public class PreGameMenu extends Menu {
             public ItemStack getItem() {
                     if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
                     return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_NORMAL_MODE.getString(), Message.MENU_NORMAL_MODE_LORE.getStringList()).make();
-                } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
+                } else {
                     return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_NORMAL_MODE.getString(), Message.MENU_NORMAL_MODE_LORE.getStringList()).make();
                 }
-                return NO_ITEM;
             }
         };
 
@@ -191,7 +193,7 @@ public class PreGameMenu extends Menu {
         this.racingMode = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
-                if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL))
+                if (!Setting.getCurrentGameMode().equals(Setting.GameMode.RACING))
                     Setting.setCurrentGameMode(Setting.GameMode.RACING);
                 updateMenu(PreGameMenu.this);
                 updateScoreboard();
@@ -199,14 +201,33 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
-                    return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_RACING_MODE.getString(), Message.MENU_RACING_MODE_LORE.getStringList()).make();
-                } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
+                if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
                     return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_RACING_MODE.getString(), Message.MENU_RACING_MODE_LORE.getStringList()).make();
+                } else {
+                    return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_RACING_MODE.getString(), Message.MENU_RACING_MODE_LORE.getStringList()).make();
                 }
-                return NO_ITEM;
             }
 
+        };
+
+        // Switch to time mode
+        this.timeMode = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (!Setting.getCurrentGameMode().equals(Setting.GameMode.TIME))
+                    Setting.setCurrentGameMode(Setting.GameMode.TIME);
+                updateMenu(PreGameMenu.this);
+                updateScoreboard();
+            }
+
+            @Override
+            public ItemStack getItem() {
+                if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
+                    return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_TIME_MODE.getString(), Message.MENU_TIME_MODE_LORE.getStringList()).make();
+                } else {
+                    return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_TIME_MODE.getString(), Message.MENU_TIME_MODE_LORE.getStringList()).make();
+                }
+            }
         };
 
         // Toggle speed mode

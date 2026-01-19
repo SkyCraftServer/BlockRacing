@@ -1,7 +1,6 @@
 package top.lqsnow.blockracing.managers;
 
 import lombok.Getter;
-import lombok.Setter;
 
 public class Setting {
     @Getter
@@ -17,12 +16,40 @@ public class Setting {
     @Getter
     private static int maxTeamChestNum;
     @Getter
-    private static  int maxTeamWaypointNum;
+    private static int maxTeamWaypointNum;
     @Getter
     private static boolean speedMode;
-    public enum GameMode {NORMAL, RACING}
     @Getter
-    @Setter
+    private static int timeModeDurationMinutes;
+
+    public enum GameMode {
+        NORMAL("normal"),
+        RACING("racing"),
+        TIME("time");
+
+        private final String configValue;
+
+        GameMode(String configValue) {
+            this.configValue = configValue;
+        }
+
+        public String getConfigValue() {
+            return configValue;
+        }
+
+        public static GameMode fromConfig(String raw) {
+            if (raw == null) {
+                return NORMAL;
+            }
+            for (GameMode mode : values()) {
+                if (mode.configValue.equalsIgnoreCase(raw)) {
+                    return mode;
+                }
+            }
+            return NORMAL;
+        }
+    }
+    @Getter
     private static GameMode currentGameMode = GameMode.NORMAL;
 
     public static void getSettings(){
@@ -34,7 +61,15 @@ public class Setting {
         speedMode = Config.SPEED_MODE.getBoolean();
         maxTeamChestNum = Config.MAX_TEAM_CHEST_NUM.getInt();
         maxTeamWaypointNum = Config.MAX_TEAM_WAYPOINT_NUM.getInt();
-        setCurrentGameMode(GameMode.valueOf(Config.GAME_MODE.getString().toUpperCase()));
+        setCurrentGameMode(GameMode.fromConfig(Config.GAME_MODE.getString()));
+
+        int configuredMinutes = Config.TIME_MODE_DURATION.getInt();
+        if (configuredMinutes <= 0) {
+            timeModeDurationMinutes = 90;
+            Config.TIME_MODE_DURATION.setInt(timeModeDurationMinutes);
+        } else {
+            timeModeDurationMinutes = configuredMinutes;
+        }
     }
 
     public static void setEnableMediumBlock(boolean enableMediumBlock) {
@@ -70,6 +105,18 @@ public class Setting {
     public static void setSpeedMode(boolean speedMode) {
         Setting.speedMode = speedMode;
         Config.SPEED_MODE.setBoolean(speedMode);
+    }
+
+    public static void setCurrentGameMode(GameMode mode) {
+        if (mode == null) {
+            mode = GameMode.NORMAL;
+        }
+        Setting.currentGameMode = mode;
+        Config.GAME_MODE.setString(mode.getConfigValue());
+    }
+
+    public static int getTimeModeDurationSeconds() {
+        return timeModeDurationMinutes * 60;
     }
 
     public static void toggleMediumBlock() {

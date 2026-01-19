@@ -26,6 +26,8 @@ import top.lqsnow.blockracing.utils.TranslationUtil;
 
 import java.util.*;
 
+import java.time.Duration;
+
 import static top.lqsnow.blockracing.listeners.BasicListener.editAmountPlayer;
 import static top.lqsnow.blockracing.managers.Block.*;
 import static top.lqsnow.blockracing.managers.Gui.*;
@@ -66,6 +68,39 @@ public class Game {
     public static ArrayList<String> locateCommandPermission = new ArrayList<>();
     public static int locateCost;
     public static Map<String, Integer> collectAmount = new HashMap<>();
+
+    private static BukkitRunnable timeModeTask;
+    private static int timeModeRemainingSeconds;
+    private static int timeModeDurationSeconds;
+    private static boolean timeModeOvertime;
+
+    public static boolean isTimeModeActive() {
+        return Setting.getCurrentGameMode().equals(Setting.GameMode.TIME);
+    }
+
+    public static boolean isTimeModeOvertime() {
+        return timeModeOvertime;
+    }
+
+    public static int getTimeModeRemainingSeconds() {
+        return timeModeRemainingSeconds;
+    }
+
+    public static int getTimeModeDurationSeconds() {
+        return timeModeDurationSeconds;
+    }
+
+    public static String getFormattedTimeModeRemaining() {
+        int seconds = Math.max(0, timeModeRemainingSeconds);
+        Duration duration = Duration.ofSeconds(seconds);
+        long hours = duration.toHours();
+        long minutes = duration.toMinutesPart();
+        long secs = duration.toSecondsPart();
+        if (hours > 0) {
+            return String.format("%02d:%02d:%02d", hours, minutes, secs);
+        }
+        return String.format("%02d:%02d", minutes, secs);
+    }
 
     public static void initChest() {
         int teamChestNum = Setting.getMaxTeamChestNum();
@@ -223,14 +258,108 @@ public class Game {
         startGame();
     }
 
+    private static void prepareTimeModeState() {
+        stopTimeModeCountdown();
+        if (isTimeModeActive()) {
+            timeModeDurationSeconds = Math.max(60, Setting.getTimeModeDurationSeconds());
+            timeModeRemainingSeconds = timeModeDurationSeconds;
+        } else {
+            timeModeDurationSeconds = 0;
+            timeModeRemainingSeconds = 0;
+        }
+        timeModeOvertime = false;
+    }
+
+    private static void startTimeModeCountdownIfNeeded() {
+        if (!isTimeModeActive()) {
+            return;
+        }
+        stopTimeModeCountdown();
+        timeModeTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!getCurrentGameState().equals(GameState.INGAME)) {
+                    stopTimeModeCountdown();
+                    return;
+                }
+                if (timeModeOvertime) {
+                    updateScoreboard();
+                    return;
+                }
+                if (timeModeRemainingSeconds <= 0) {
+                    handleTimeModeCountdownFinished();
+                    return;
+                }
+                timeModeRemainingSeconds--;
+                updateScoreboard();
+                if (timeModeRemainingSeconds == 0) {
+                    handleTimeModeCountdownFinished();
+                }
+            }
+        };
+        timeModeTask.runTaskTimer(Main.getInstance(), 20L, 20L);
+    }
+
+    private static void stopTimeModeCountdown() {
+        if (timeModeTask != null) {
+            timeModeTask.cancel();
+            timeModeTask = null;
+        }
+    }
+
+    private static void handleTimeModeCountdownFinished() {
+        if (!isTimeModeActive() || timeModeOvertime || !getCurrentGameState().equals(GameState.INGAME)) {
+            return;
+        }
+        // Compare collected block counts in time mode rather than time-weighted scores
+        if (redTeamCurrentBlockAmount > blueTeamCurrentBlockAmount) {
+            redWin();
+            showRanking();
+        } else if (blueTeamCurrentBlockAmount > redTeamCurrentBlockAmount) {
+            blueWin();
+            showRanking();
+        } else {
+            beginTimeModeOvertime();
+        }
+    }
+
+    private static void beginTimeModeOvertime() {
+        if (timeModeOvertime) {
+            return;
+        }
+        timeModeOvertime = true;
+        timeModeRemainingSeconds = 0;
+        sendAll(Message.NOTICE_OVERTIME_START.getString());
+        updateScoreboard();
+    }
+
+    private static void finalizeOvertimeWin(boolean redTeam) {
+        if (!isTimeModeActive() || !timeModeOvertime || !getCurrentGameState().equals(GameState.INGAME)) {
+            return;
+        }
+        if (redTeam) {
+            redWin();
+        } else {
+            blueWin();
+        }
+        showRanking();
+    }
+
     public static void startGame() {
         // Init
         setCurrentGameState(GameState.INGAME);
         closeAllPlayersMenu();
         editAmountPlayer.clear();
         setupBlocks();
-        redTeamTotalBlockAmount = redTeamBlocks.size();
-        blueTeamTotalBlockAmount = blueTeamBlocks.size();
+        if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
+            // In time mode we don't predefine ordered block lists; use pool size as total
+            redTeamTotalBlockAmount = Block.blocks.size();
+            blueTeamTotalBlockAmount = Block.blocks.size();
+            prepareTimeModeState();
+        } else {
+            redTeamTotalBlockAmount = redTeamBlocks.size();
+            blueTeamTotalBlockAmount = blueTeamBlocks.size();
+        }
         setLocateScore();
         updateScoreboard();
         Bukkit.getOnlinePlayers().forEach((Player player) -> freeRandomTPList.add(player.getName()));
@@ -272,7 +401,10 @@ public class Game {
             Bukkit.getLogger().info("Game mode: Normal");
         else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING))
             Bukkit.getLogger().info("Game mode: Racing");
+        else if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME))
+            Bukkit.getLogger().info("Game mode: Time");
         Bukkit.getLogger().info(Setting.isSpeedMode() ? "Speed mode: On" : "Speed mode: Off");
+        startTimeModeCountdownIfNeeded();
     }
 
     // Player init
@@ -499,6 +631,11 @@ public class Game {
         @Override
         public void run() {
 
+            if (!getCurrentGameState().equals(GameState.INGAME)) {
+                this.cancel();
+                return;
+            }
+
             // Inventory check
             checkRedInventory();
             checkBlueInventory();
@@ -650,6 +787,22 @@ public class Game {
         redTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
+        // In time mode, when a block is completed (and not in overtime),
+        // generate and add a replacement target so teams always have targets.
+        if (isTimeModeActive() && !timeModeOvertime) {
+            float progress = 0f;
+            if (timeModeDurationSeconds > 0) {
+                progress = (float) (timeModeDurationSeconds - timeModeRemainingSeconds) / (float) timeModeDurationSeconds;
+                progress = Math.max(0f, Math.min(1f, progress));
+            }
+            String newBlock = selectBlockByTimeProgress("red", progress);
+            redTeamRemainingBlocks.add(newBlock);
+            updateScoreboard();
+        }
+        if (isTimeModeActive() && timeModeOvertime) {
+            finalizeOvertimeWin(true);
+            return;
+        }
         // Put items into the opponent's team chest
         if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
             for (int i = blueTeamChest.size() - 1; i >= 0; i--) {
@@ -677,6 +830,22 @@ public class Game {
         blueTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
+        // In time mode, when a block is completed (and not in overtime),
+        // generate and add a replacement target so teams always have targets.
+        if (isTimeModeActive() && !timeModeOvertime) {
+            float progress = 0f;
+            if (timeModeDurationSeconds > 0) {
+                progress = (float) (timeModeDurationSeconds - timeModeRemainingSeconds) / (float) timeModeDurationSeconds;
+                progress = Math.max(0f, Math.min(1f, progress));
+            }
+            String newBlock = selectBlockByTimeProgress("blue", progress);
+            blueTeamRemainingBlocks.add(newBlock);
+            updateScoreboard();
+        }
+        if (isTimeModeActive() && timeModeOvertime) {
+            finalizeOvertimeWin(false);
+            return;
+        }
         // Put items into the opponent's team chest
         if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
             for (int i = redTeamChest.size() - 1; i >= 0; i--) {
@@ -694,6 +863,7 @@ public class Game {
     }
 
     public static void redWin() {
+        stopTimeModeCountdown();
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.closeInventory();
             player.sendTitle(Message.NOTICE_RED_WIN.getString(), null);
@@ -705,6 +875,7 @@ public class Game {
     }
 
     public static void blueWin() {
+        stopTimeModeCountdown();
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.closeInventory();
             player.sendTitle(Message.NOTICE_BLUE_WIN.getString(), null);

@@ -26,6 +26,8 @@ public class Block {
     public static List<String> blueTeamBlocks = new ArrayList<>();
     public static List<String> redTeamRemainingBlocks = new ArrayList<>();
     public static List<String> blueTeamRemainingBlocks = new ArrayList<>();
+    public static List<String> redCompletedBlocks = new ArrayList<>();
+    public static List<String> blueCompletedBlocks = new ArrayList<>();
 
     public Block() {
         easyBlocks = List.of(readFile("EasyBlocks.txt"));
@@ -51,17 +53,95 @@ public class Block {
         if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
             redTeamBlocks = generateBlocks();
             blueTeamBlocks = generateBlocks();
-        } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
-            List<String> blocks = generateBlocks();
-            redTeamBlocks = List.copyOf(blocks);
-            blueTeamBlocks = List.copyOf(blocks);
+            redTeamRemainingBlocks.clear();
+            blueTeamRemainingBlocks.clear();
+            redTeamRemainingBlocks.addAll(List.copyOf(redTeamBlocks));
+            blueTeamRemainingBlocks.addAll(List.copyOf(blueTeamBlocks));
+        } else {
+            // In TIME mode: prepare pool and initialize a small set of active targets
+            // for each team so the game doesn't immediately end. Additional targets
+            // will be generated dynamically during gameplay when targets are
+            // completed.
+            addUpBlocks();
+            redTeamBlocks = new ArrayList<>();
+            blueTeamBlocks = new ArrayList<>();
+            redTeamRemainingBlocks.clear();
+            blueTeamRemainingBlocks.clear();
+
+            // Initialize up to 4 visible targets for each team at game start.
+            int initialVisible = Math.min(4, blocks.size());
+            for (int i = 0; i < initialVisible; i++) {
+                redTeamRemainingBlocks.add(selectBlockByTimeProgress("red", 0f));
+                blueTeamRemainingBlocks.add(selectBlockByTimeProgress("blue", 0f));
+            }
         }
-        redTeamRemainingBlocks.addAll(List.copyOf(redTeamBlocks));
-        blueTeamRemainingBlocks.addAll(List.copyOf(blueTeamBlocks));
+        redCompletedBlocks.clear();
+        blueCompletedBlocks.clear();
         Bukkit.getLogger().info("[BlockRacing] Blocks generate complete.");
         Bukkit.getLogger().info("Red team blocks: " + redTeamBlocks.toString());
         Bukkit.getLogger().info("Blue team blocks: " + blueTeamBlocks.toString());
     }
+
+    // Select a block based on time-progress-derived weights for the specified team.
+    // progress: 0..1 (0 at game start, 1 at game end)
+    public static String selectBlockByTimeProgress(String team, float progress) {
+        // Build available lists excluding already used (remaining + completed) for that team
+        Set<String> used = new HashSet<>();
+        if (team.equals("red")) {
+            used.addAll(redCompletedBlocks);
+            used.addAll(redTeamRemainingBlocks);
+        } else {
+            used.addAll(blueCompletedBlocks);
+            used.addAll(blueTeamRemainingBlocks);
+        }
+
+        List<String> easyTemp = new ArrayList<>();
+        for (String s : easyBlocks) if (!used.contains(s)) easyTemp.add(s);
+        List<String> mediumTemp = new ArrayList<>();
+        for (String s : mediumBlocks) if (!used.contains(s)) mediumTemp.add(s);
+        List<String> hardTemp = new ArrayList<>();
+        for (String s : hardBlocks) if (!used.contains(s)) hardTemp.add(s);
+        List<String> dyedTemp = new ArrayList<>();
+        for (String s : dyedBlocks) if (!used.contains(s)) dyedTemp.add(s);
+        List<String> endTemp = new ArrayList<>();
+        for (String s : endBlocks) if (!used.contains(s)) endTemp.add(s);
+
+        int easyWeight = easyTemp.isEmpty() ? 0 : calculateEasyBlocksWeight(progress);
+        int mediumWeight = mediumTemp.isEmpty() ? 0 : (Setting.isEnableMediumBlock() ? calculateMediumBlocksWeight(progress) : 0);
+        int hardWeight = hardTemp.isEmpty() ? 0 : (Setting.isEnableHardBlock() ? calculateHardBlocksWeight(progress) : 0);
+        int dyedWeight = dyedTemp.isEmpty() ? 0 : (Setting.isEnableDyedBlock() ? calculateDyedBlocksWeight(progress) : 0);
+        int endWeight = endTemp.isEmpty() ? 0 : (Setting.isEnableEndBlock() ? calculateEndBlocksWeight(progress) : 0);
+
+        int totalWeight = easyWeight + mediumWeight + hardWeight + dyedWeight + endWeight;
+
+        List<String> available = new ArrayList<>();
+        for (String s : blocks) if (!used.contains(s)) available.add(s);
+
+        Random random = new Random();
+        if (totalWeight <= 0) {
+            // If no weighted choice possible, fallback to any available block
+            if (!available.isEmpty()) return available.get(random.nextInt(available.size()));
+            // If none available (all used), allow repeating by picking from global pool
+            return blocks.get(random.nextInt(blocks.size()));
+        }
+
+        int r = random.nextInt(totalWeight);
+        if (r < easyWeight && !easyTemp.isEmpty()) return easyTemp.get(random.nextInt(easyTemp.size()));
+        r -= easyWeight;
+        if (r < mediumWeight && !mediumTemp.isEmpty()) return mediumTemp.get(random.nextInt(mediumTemp.size()));
+        r -= mediumWeight;
+        if (r < hardWeight && !hardTemp.isEmpty()) return hardTemp.get(random.nextInt(hardTemp.size()));
+        r -= hardWeight;
+        if (r < dyedWeight && !dyedTemp.isEmpty()) return dyedTemp.get(random.nextInt(dyedTemp.size()));
+        r -= dyedWeight;
+        if (!endTemp.isEmpty()) return endTemp.get(random.nextInt(endTemp.size()));
+
+        // Final fallback
+        if (!available.isEmpty()) return available.get(random.nextInt(available.size()));
+        return blocks.get(random.nextInt(blocks.size()));
+    }
+
+    
 
     private static List<String> generateBlocks() {
 

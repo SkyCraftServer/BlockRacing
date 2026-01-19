@@ -17,6 +17,7 @@ public enum Config {
     END_BLOCK("end-block"),
     BLOCK_AMOUNT("block-amount"),
     GAME_MODE("game-mode"),
+    TIME_MODE_DURATION("time-mode.duration"),
     SPEED_MODE("speed-mode"),
     CONFIG_VERSION("config-version"),
     MAX_TEAM_CHEST_NUM("max-team-chest-num"),

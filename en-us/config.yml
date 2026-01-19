@@ -18,7 +18,13 @@ block-amount: 50
 # Game mode:
 # normal - Normal Mode: Both teams need to collect random blocks in random order, and collecting blocks will give a set of those blocks to the opposing team's chest
 # racing - Racing Mode: Both teams need to collect the same blocks in the same order, and collecting blocks will not give a set of blocks to the opposing team
+# time   - Time Mode: Tally completed tasks within the time limit; if tied when time expires, enter overtime and the next task wins
 game-mode: normal
+
+# Time mode configuration
+# Duration is measured in minutes, default is 90 minutes
+time-mode:
+	duration: 90
 
 # Speed mode:
 # When speed mode is enabled, players will be given certain items and effects at the start, and gaining blocks will earn 3 points to accelerate game progress

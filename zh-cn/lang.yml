@@ -19,6 +19,7 @@ scoreboard:
   game-mode:
     normal: "&a普通模式"
     racing: "&3竞速模式"
+    time: "&e计时模式"
     speed: "&9极速模式"
   blocks:
     easy: "&a简单"
@@ -46,6 +47,8 @@ scoreboard:
     block-format: "%difficulty% | %block%"
     dividing-line: "----------------"
     bottom-slot: "&e&lEnjoy the game!"
+    time-left: "&e剩余时间: &f%time%"
+    overtime: "&c加时赛"
     block-difficulty:
       easy: "&a简单"
       medium: "&e中等"
@@ -90,6 +93,7 @@ menu:
     switch-to: "&e切换至："
     normal-mode: "&a普通模式"
     racing-mode: "&3竞速模式"
+    time-mode: "&e计时模式"
     speed-mode-enabled: "&a当前已开启：&9极速模式"
     speed-mode-disabled: "&e当前未开启：&9极速模式"
     normal-mode-lore:
@@ -100,6 +104,10 @@ menu:
       - "&e两个队伍需要收集的方块及顺序将完全&l相同&r&e，"
       - "&e且收集方块将&l不会&r&e给予一组方块到对方队伍！"
       - "&b物品：石镐、石斧、石铲"
+    time-mode-lore:
+      - "&e在限定时间内完成更多任务即可获胜，"
+      - "&e时间结束后若积分相同，将自动进入加时赛！"
+      - "&b最多同时显示三个目标方块，完成后即时刷新"
     speed-mode-lore:
       - "&a开启极速模式后，开局时将会&l给予玩家部分物品和效果&e，"
       - "&e且获得方块时加3分，以加快游戏进度。"
@@ -213,6 +221,7 @@ notice:
   version-mismatch-title: "&c警告！版本不对应！"
   version-mismatch-subtitle: "&c请查看聊天框的具体信息！"
   team-shuffle: "&a随机组队已完成！"
+  overtime-start: "&c比赛时间结束，进入加时赛！"
   reload-complete: "[BlockRacing] 重载完成。"
   reload-complete-error: "[BlockRacing] 重载完成，但存在错误。请查看控制台以获取详细信息。"
   block-check-passed: "[BlockRacing] 方块文件检查通过。"

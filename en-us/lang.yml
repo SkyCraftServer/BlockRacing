@@ -15,6 +15,7 @@ scoreboard:
   game-mode:
     normal: "&aNormal"
     racing: "&3Racing"
+    time: "&eTime"
     speed: "&9Speed"
   blocks:
     easy: "&aEZ"
@@ -42,6 +43,8 @@ scoreboard:
     block-format: "%difficulty% | %block%"
     dividing-line: "----------------"
     bottom-slot: "&e&lEnjoy the game!"
+    time-left: "&eTime Left: &f%time%"
+    overtime: "&cOvertime"
     block-difficulty:
       easy: "&aEASY"
       medium: "&eMID  "
@@ -86,6 +89,7 @@ menu:
     switch-to: "&eSwitch to: "
     normal-mode: "&aNormal Mode"
     racing-mode: "&3Racing Mode"
+    time-mode: "&eTime Mode"
     speed-mode-enabled: "&aCurrently Enabled: &9Speed Mode"
     speed-mode-disabled: "&eCurrently Disabled: &9Speed Mode"
     normal-mode-lore:
@@ -98,6 +102,10 @@ menu:
       - "&eand the order will be completely &lsynchronized&r&e,"
       - "&eand collecting blocks will &lnot&r&e give 64 blocks"
       - "&eof that block to the opposing team!"
+    time-mode-lore:
+      - "&eWin by completing more tasks before the timer expires,"
+      - "&eTies at zero time automatically trigger sudden death overtime!"
+      - "&bOnly three target blocks are shown at once and refresh on completion"
     speed-mode-lore:
       - "&aAfter enabling Speed Mode, players will be"
       - "&e&lgiven certain items and effects&e at the start,"
@@ -217,6 +225,7 @@ notice:
   version-mismatch-title: "&cWarning! Version Mismatch!"
   version-mismatch-subtitle: "&cPlease check the specific information in the chat!"
   team-shuffle: "&aRandom team shuffle complete!"
+  overtime-start: "&cRegulation time has ended, entering overtime!"
 
 # If you don't know what this is, don't touch it
 lang-version: 3.5
