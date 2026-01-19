@@ -80,7 +80,7 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.from(CompMaterial.COMPASS, Message.MENU_LOCATE.getString(), Message.MENU_LOCATE_LORE.getStringList()).make();
+                return ItemCreator.from(CompMaterial.COMPASS, Message.MENU_LOCATE.getString(), replacePlaceholders(Message.MENU_LOCATE_LORE.getStringList())).make();
             }
         };
 
