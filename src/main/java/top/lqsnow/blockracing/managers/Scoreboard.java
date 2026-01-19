@@ -128,8 +128,55 @@ public class Scoreboard {
     }
 
     private static void setTitle(String title) {
+        // Allow & codes in config but assume title may already be in legacy form (contains '§').
+        if (title == null) title = "";
+        // translate '&' to legacy '§' when present
         title = ChatColor.translateAlternateColorCodes('&', title);
-        sidebar.setDisplayName(title.length() > 32 ? title.substring(0, 32) : title);
+        // Trim to max 32 visible characters while preserving color/hex sequences (do not split color codes)
+        sidebar.setDisplayName(trimLegacyToVisibleLength(title, 32));
+    }
+
+    private static String trimLegacyToVisibleLength(String input, int maxVisible) {
+        if (input == null) return "";
+        StringBuilder out = new StringBuilder();
+        int visible = 0;
+        int i = 0;
+        while (i < input.length() && visible < maxVisible) {
+            char c = input.charAt(i);
+            if (c == '\u00A7') {
+                // color/reset/format code or hex start
+                if (i + 1 < input.length()) {
+                    char code = input.charAt(i + 1);
+                    if (code == 'x' || code == 'X') {
+                        // hex sequence: §x§R§R§G§G§B§B (14 chars)
+                        int end = Math.min(input.length(), i + 14);
+                        out.append(input, i, end);
+                        i = end;
+                        continue; // hex doesn't add visible chars
+                    } else {
+                        // normal formatting code: two chars
+                        out.append(c).append(code);
+                        i += 2;
+                        continue; // formatting code doesn't add visible chars
+                    }
+                } else {
+                    // stray section char, append and count as visible
+                    out.append(c);
+                    i++;
+                    visible++;
+                    continue;
+                }
+            } else {
+                out.append(c);
+                i++;
+                visible++;
+            }
+        }
+
+        // If we've cut early and there are still open formatting codes, preserve trailing formatting by
+        // appending any reset code is optional; we simply return the built string which contains
+        // all color/format sequences encountered before the cutoff.
+        return out.toString();
     }
 
     private static void setSlot(int slot, String text) {

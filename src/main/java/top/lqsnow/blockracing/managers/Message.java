@@ -1,9 +1,9 @@
 package top.lqsnow.blockracing.managers;
 
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import top.lqsnow.blockracing.Main;
+import top.lqsnow.blockracing.utils.MiniMessageUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -181,6 +181,7 @@ public enum Message {
     NOTICE_TEAM_SHUFFLE("notice.team-shuffle"),
 
     // other
+    MESSAGE_PREFIX("prefix"),
     MESSAGE_LANG("lang"),
     MESSAGE_VERSION("lang-version");
 
@@ -225,14 +226,28 @@ public enum Message {
     }
 
     public String getString() {
-        return cacheString != null ? cacheString : (cacheString = ChatColor.translateAlternateColorCodes('&', getMessageConfig().getString(path)));
+        if (cacheString != null) return cacheString;
+        String raw = getRawValue();
+        // Replace %prefix% with the raw prefix MiniMessage string before converting
+        raw = raw.replace("%prefix%", Message.MESSAGE_PREFIX.getRawValue());
+        return cacheString = MiniMessageUtil.toLegacyString(raw);
     }
 
     public List<String> getStringList() {
-        return cacheStringList != null ? cacheStringList : (cacheStringList = Collections.unmodifiableList(
+        if (cacheStringList != null) return cacheStringList;
+        cacheStringList = Collections.unmodifiableList(
                 getMessageConfig().getStringList(path).stream()
-                        .map(msg -> ChatColor.translateAlternateColorCodes('&', msg))
+                        .map(msg -> {
+                            String replaced = msg == null ? "" : msg.replace("%prefix%", Message.MESSAGE_PREFIX.getRawValue());
+                            return MiniMessageUtil.toLegacyString(replaced);
+                        })
                         .collect(Collectors.toList())
-        ));
+        );
+        return cacheStringList;
+    }
+
+    private String getRawValue() {
+        String value = getMessageConfig().getString(path);
+        return value == null ? "" : value;
     }
 }

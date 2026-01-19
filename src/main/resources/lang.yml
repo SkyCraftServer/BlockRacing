@@ -9,11 +9,11 @@
 
 # 当前语言: 简体中文
 lang: zh_cn
+prefix: "[<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>]"
 
 # 记分板
 # slot项中，如果引号里没有任何字符表示这一行不显示，如果引号里加空格表示这一行为空行
 # 注意！最终显示在记分板上的每一行，总字符数不能超过30，这是一行的最大显示范围！
-# 这个显示范围包含颜色代码和空格，占位符替换的文字也包含在内！
 # 超出范围的文字将无法显示！
 scoreboard:
   game-mode:
@@ -27,7 +27,7 @@ scoreboard:
     dyed: "&d染色"
     end: "&e末地"
   pregame:
-    title: "&b&l方块竞速"
+    title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"
     slot11: ""
     slot10: "&a&lShift+F打开菜单"
     slot9: "&e如果无法打开，"
@@ -40,7 +40,7 @@ scoreboard:
     slot2: " "
     slot1: "&e&lEnjoy the game!"
   ingame:
-    title: "&b&l方块竞速"
+    title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"
     red-score: "&c红队：&e%score%分  &b(%current_block%/%total_block%)"
     blue-score: "&9蓝队：&e%score%分  &b(%current_block%/%total_block%)"
     block-format: "%difficulty% | %block%"
@@ -173,7 +173,7 @@ notice:
   spawn-protect-notice: "&b提示：如果出生点附近无法放置或破坏方块，是因为服务器带有出生点保护，离开出生点附近即可！"
   exist-error-block: "&4名为 %s 的物品不存在！请检查配置文件！"
   not-enough-score: "&c积分不足！"
-  random-tp: "&a玩家%player%&a使用了随机传送！队伍积分-2"
+  random-tp: "&a玩家%player%&a使用了随机传送！队伍积分-3"
   red-collect: "&c红队&a收集了 &b%block% &a(来自&c%player%&a)"
   blue-collect: "&9蓝队&a收集了 &b%block% &a(来自&9%player%&a)"
   team-chest-full: "%team%&c队伍箱子已满！%block%无法放入队伍箱子！"
@@ -214,10 +214,10 @@ notice:
   version-mismatch-title: "&c警告！版本不对应！"
   version-mismatch-subtitle: "&c请查看聊天框的具体信息！"
   team-shuffle: "&a随机组队已完成！"
-  reload-complete: "[BlockRacing] 重载完成。"
-  reload-complete-error: "[BlockRacing] 重载完成，但存在错误。请查看控制台以获取详细信息。"
-  block-check-passed: "[BlockRacing] 方块文件检查通过。"
-  block-check-failed: "[BlockRacing] 方块文件检查失败。请查看控制台以获取详细信息。"
+  reload-complete: "%prefix% 重载完成。"
+  reload-complete-error: "%prefix% 重载完成，但存在错误。请查看控制台以获取详细信息。"
+  block-check-passed: "%prefix% 方块文件检查通过。"
+  block-check-failed: "%prefix% 方块文件检查失败。请查看控制台以获取详细信息。"
 
 # 如果你不知道这是什么，不要动它
 lang-version: 3.5

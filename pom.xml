@@ -53,6 +53,16 @@
             <artifactId>annotations</artifactId>
             <version>24.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-minimessage</artifactId>
+            <version>4.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-legacy</artifactId>
+            <version>4.17.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -83,6 +93,8 @@
                      -->
                             <include>org.mineacademy:foundation-bukkit*</include>
                             <include>org.mineacademy:foundation-core*</include>
+                            <include>net.kyori:adventure-text-minimessage</include>
+                            <include>net.kyori:adventure-text-serializer-legacy</include>
                         </includes>
                     </artifactSet>
                     <relocations>
