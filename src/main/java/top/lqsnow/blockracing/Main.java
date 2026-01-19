@@ -70,6 +70,13 @@ public class Main extends SimplePlugin {
         Scoreboard.createScoreboard();
         Scoreboard.setPreGameScoreboard();
         new Block();
+        // Validate blocks at plugin startup (detect missing/invalid materials in files)
+        boolean ok = top.lqsnow.blockracing.managers.Block.checkBlock();
+        if (ok) {
+            Bukkit.getLogger().info(top.lqsnow.blockracing.managers.Message.NOTICE_BLOCK_CHECK_PASSED.getString());
+        } else {
+            Bukkit.getLogger().warning(top.lqsnow.blockracing.managers.Message.NOTICE_BLOCK_CHECK_FAILED.getString());
+        }
         new Game.runPer2Tick().runTaskTimer(this, 0L, 2L);
 
         // Init world settings

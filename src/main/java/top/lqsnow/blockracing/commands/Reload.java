@@ -32,9 +32,9 @@ public class Reload implements CommandExecutor {
         // Validate blocks and notify
         boolean ok = Block.checkBlock();
         if (ok) {
-            sendAll("[BlockRacing] Reload complete.");
+            sendAll(Message.NOTICE_RELOAD_COMPLETE.getString());
         } else {
-            sendAll("[BlockRacing] Reload complete with errors. Check console for details.");
+            sendAll(Message.NOTICE_RELOAD_COMPLETE_ERROR.getString());
         }
         return true;
     }

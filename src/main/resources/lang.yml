@@ -213,6 +213,10 @@ notice:
   version-mismatch-title: "&c警告！版本不对应！"
   version-mismatch-subtitle: "&c请查看聊天框的具体信息！"
   team-shuffle: "&a随机组队已完成！"
+  reload-complete: "[BlockRacing] 重载完成。"
+  reload-complete-error: "[BlockRacing] 重载完成，但存在错误。请查看控制台以获取详细信息。"
+  block-check-passed: "[BlockRacing] 方块文件检查通过。"
+  block-check-failed: "[BlockRacing] 方块文件检查失败。请查看控制台以获取详细信息。"
 
 # 如果你不知道这是什么，不要动它
 lang-version: 3.5
