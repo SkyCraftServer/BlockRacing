@@ -84,6 +84,17 @@ public class BasicListener implements Listener {
 
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
+        // If in game, and player has no bed spawn, use team spawn as low-priority respawn
+        if (Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+            Player p = event.getPlayer();
+            if (p.getBedSpawnLocation() == null) {
+                if (isPlayerInRedTeam(p) && Game.redTeamSpawn != null) {
+                    event.setRespawnLocation(Game.redTeamSpawn);
+                } else if (isPlayerInBlueTeam(p) && Game.blueTeamSpawn != null) {
+                    event.setRespawnLocation(Game.blueTeamSpawn);
+                }
+            }
+        }
         event.getPlayer().sendMessage(Message.NOTICE_SPAWN_PROTECT.getString());
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));

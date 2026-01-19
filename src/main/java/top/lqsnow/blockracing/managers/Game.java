@@ -75,6 +75,42 @@ public class Game {
         }
     }
 
+    // Team spawn locations (shared by team members)
+    public static org.bukkit.Location redTeamSpawn = null;
+    public static org.bukkit.Location blueTeamSpawn = null;
+
+    // Generate safe team spawns for both teams
+    public static void generateTeamSpawns() {
+        World world = Bukkit.getWorlds().get(0);
+        redTeamSpawn = generateSafeSpawn(world);
+        blueTeamSpawn = generateSafeSpawn(world);
+        // ensure spawns are not too close
+        if (redTeamSpawn != null && blueTeamSpawn != null && redTeamSpawn.getWorld().equals(blueTeamSpawn.getWorld())) {
+            if (redTeamSpawn.distance(blueTeamSpawn) < 10) {
+                blueTeamSpawn.add(20, 0, 0);
+            }
+        }
+    }
+
+    private static org.bukkit.Location generateSafeSpawn(World world) {
+        Random random = new Random();
+        org.bukkit.Location loc;
+        int attempts = 0;
+        do {
+            double randX = random.nextInt(20000) - 10000;
+            double randZ = random.nextInt(20000) - 10000;
+            loc = world.getHighestBlockAt(new org.bukkit.Location(world, randX, 0, randZ)).getLocation();
+            loc.setY(loc.getY() + 1);
+            attempts++;
+            Biome biome = loc.getBlock().getBiome();
+            boolean isOcean = biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN || biome == Biome.DEEP_COLD_OCEAN
+                    || biome == Biome.LUKEWARM_OCEAN || biome == Biome.DEEP_FROZEN_OCEAN || biome == Biome.COLD_OCEAN
+                    || biome == Biome.WARM_OCEAN || biome == Biome.DEEP_LUKEWARM_OCEAN || biome == Biome.FROZEN_OCEAN;
+            if (!isOcean) break;
+        } while (attempts < 30);
+        return loc;
+    }
+
     public static void playerLogin(Player player) {
         Scoreboard.showScoreboard(player);
 
@@ -210,6 +246,9 @@ public class Game {
         world.getWorldBorder().setCenter(world.getSpawnLocation());
         world.getWorldBorder().setSize(59999968);
 
+        // Generate shared team spawns for this game
+        generateTeamSpawns();
+
         // Processing of unselected team players (spectators)
         inGamePlayers.addAll(getOnlinePlayersString());
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -240,7 +279,12 @@ public class Game {
     public static void initPlayer(Player player) {
         // General
         player.getInventory().clear();
-        randomTeleport(player, true);
+        // Teleport to team spawn if available, otherwise random teleport
+        org.bukkit.Location spawn = null;
+        if (redTeamPlayers.contains(player.getName()) && redTeamSpawn != null) spawn = redTeamSpawn;
+        else if (blueTeamPlayers.contains(player.getName()) && blueTeamSpawn != null) spawn = blueTeamSpawn;
+        if (spawn != null) player.teleport(spawn);
+        else randomTeleport(player, true);
         player.setHealth(20);
         player.setExp(0);
         player.setLevel(0);
