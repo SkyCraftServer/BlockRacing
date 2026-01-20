@@ -113,6 +113,8 @@ public class Scoreboard {
             base = Message.SCOREBOARD_MODE_NORMAL.getString();
         } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
             base = Message.SCOREBOARD_MODE_RACING.getString();
+        } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST)) {
+            base = Message.SCOREBOARD_MODE_CONTEST.getString();
         } else {
             base = Message.SCOREBOARD_MODE_TIME.getString();
         }

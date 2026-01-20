@@ -78,6 +78,10 @@ public class Game {
         return Setting.getCurrentGameMode().equals(Setting.GameMode.TIME);
     }
 
+    public static boolean isContestModeActive() {
+        return Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST);
+    }
+
     public static boolean isTimeModeOvertime() {
         return timeModeOvertime;
     }
@@ -351,14 +355,21 @@ public class Game {
         closeAllPlayersMenu();
         editAmountPlayer.clear();
         setupBlocks();
-        if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
-            // In time mode we don't predefine ordered block lists; use pool size as total
-            redTeamTotalBlockAmount = Block.blocks.size();
-            blueTeamTotalBlockAmount = Block.blocks.size();
-            prepareTimeModeState();
-        } else {
-            redTeamTotalBlockAmount = redTeamBlocks.size();
-            blueTeamTotalBlockAmount = blueTeamBlocks.size();
+        switch (Setting.getCurrentGameMode()) {
+            case TIME -> {
+                // In time mode we don't predefine ordered block lists; use pool size as total
+                redTeamTotalBlockAmount = Block.blocks.size();
+                blueTeamTotalBlockAmount = Block.blocks.size();
+                prepareTimeModeState();
+            }
+            case CONTEST -> {
+                redTeamTotalBlockAmount = Setting.getBlockAmount();
+                blueTeamTotalBlockAmount = Setting.getBlockAmount();
+            }
+            default -> {
+                redTeamTotalBlockAmount = redTeamBlocks.size();
+                blueTeamTotalBlockAmount = blueTeamBlocks.size();
+            }
         }
         setLocateScore();
         updateScoreboard();
@@ -401,6 +412,8 @@ public class Game {
             Bukkit.getLogger().info("Game mode: Normal");
         else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING))
             Bukkit.getLogger().info("Game mode: Racing");
+        else if (Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST))
+            Bukkit.getLogger().info("Game mode: Contest");
         else if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME))
             Bukkit.getLogger().info("Game mode: Time");
         Bukkit.getLogger().info(Setting.isSpeedMode() ? "Speed mode: On" : "Speed mode: Off");
@@ -641,15 +654,17 @@ public class Game {
             checkBlueInventory();
 
             // Win check
-            if (redTeamRemainingBlocks.isEmpty()) {
-                redWin();
-                showRanking();
-                this.cancel();
-            }
-            if (blueTeamRemainingBlocks.isEmpty()) {
-                blueWin();
-                showRanking();
-                this.cancel();
+            if (!isContestModeActive()) {
+                if (redTeamRemainingBlocks.isEmpty()) {
+                    redWin();
+                    showRanking();
+                    this.cancel();
+                }
+                if (blueTeamRemainingBlocks.isEmpty()) {
+                    blueWin();
+                    showRanking();
+                    this.cancel();
+                }
             }
 
             // Roll check
@@ -789,6 +804,11 @@ public class Game {
         redTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
+        if (isContestModeActive() && redTeamCurrentBlockAmount >= Setting.getBlockAmount()) {
+            redWin();
+            showRanking();
+            return;
+        }
         // Only declare victory for this team if, in time mode, that team's
         // completed list contains all global blocks (i.e. the team alone
         // has collected every block in the pool).
@@ -842,6 +862,11 @@ public class Game {
         blueTeamCurrentBlockAmount += 1;
         collect(player);
         updateScoreboard();
+        if (isContestModeActive() && blueTeamCurrentBlockAmount >= Setting.getBlockAmount()) {
+            blueWin();
+            showRanking();
+            return;
+        }
         // Only declare victory for this team if, in time mode, that team's
         // completed list contains all global blocks (i.e. the team alone
         // has collected every block in the pool).

@@ -51,6 +51,9 @@ public class PreGameMenu extends Menu {
     @Position(31)
     private final Button timeMode;
 
+    @Position(32)
+    private final Button contestMode;
+
     @Position(33)
     private final Button speedMode;
 
@@ -226,6 +229,26 @@ public class PreGameMenu extends Menu {
                     return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_TIME_MODE.getString(), Message.MENU_TIME_MODE_LORE.getStringList()).make();
                 } else {
                     return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_TIME_MODE.getString(), Message.MENU_TIME_MODE_LORE.getStringList()).make();
+                }
+            }
+        };
+
+        // Switch to contest mode
+        this.contestMode = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (!Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST))
+                    Setting.setCurrentGameMode(Setting.GameMode.CONTEST);
+                updateMenu(PreGameMenu.this);
+                updateScoreboard();
+            }
+
+            @Override
+            public ItemStack getItem() {
+                if (Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST)) {
+                    return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_CURRENT_MODE.getString() + Message.MENU_CONTEST_MODE.getString(), Message.MENU_CONTEST_MODE_LORE.getStringList()).make();
+                } else {
+                    return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SWITCH_TO.getString() + Message.MENU_CONTEST_MODE.getString(), Message.MENU_CONTEST_MODE_LORE.getStringList()).make();
                 }
             }
         };

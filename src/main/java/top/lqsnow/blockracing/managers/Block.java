@@ -50,29 +50,44 @@ public class Block {
     }
 
     public static void setupBlocks() {
-        if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
-            redTeamBlocks = generateBlocks();
-            blueTeamBlocks = generateBlocks();
-            redTeamRemainingBlocks.clear();
-            blueTeamRemainingBlocks.clear();
-            redTeamRemainingBlocks.addAll(List.copyOf(redTeamBlocks));
-            blueTeamRemainingBlocks.addAll(List.copyOf(blueTeamBlocks));
-        } else {
-            // In TIME mode: prepare pool and initialize a small set of active targets
-            // for each team so the game doesn't immediately end. Additional targets
-            // will be generated dynamically during gameplay when targets are
-            // completed.
-            addUpBlocks();
-            redTeamBlocks = new ArrayList<>();
-            blueTeamBlocks = new ArrayList<>();
-            redTeamRemainingBlocks.clear();
-            blueTeamRemainingBlocks.clear();
+        addUpBlocks();
+        redTeamRemainingBlocks = new ArrayList<>();
+        blueTeamRemainingBlocks = new ArrayList<>();
 
-            // Initialize up to 4 visible targets for each team at game start.
-            int initialVisible = Math.min(4, blocks.size());
-            for (int i = 0; i < initialVisible; i++) {
-                redTeamRemainingBlocks.add(selectBlockByTimeProgress("red", 0f));
-                blueTeamRemainingBlocks.add(selectBlockByTimeProgress("blue", 0f));
+        switch (Setting.getCurrentGameMode()) {
+            case NORMAL -> {
+                redTeamBlocks = generateBlocks();
+                blueTeamBlocks = generateBlocks();
+                redTeamRemainingBlocks.addAll(List.copyOf(redTeamBlocks));
+                blueTeamRemainingBlocks.addAll(List.copyOf(blueTeamBlocks));
+            }
+            case RACING -> {
+                List<String> shared = generateBlocks();
+                redTeamBlocks = new ArrayList<>(shared);
+                blueTeamBlocks = new ArrayList<>(shared);
+                redTeamRemainingBlocks.addAll(List.copyOf(shared));
+                blueTeamRemainingBlocks.addAll(List.copyOf(shared));
+            }
+            case CONTEST -> {
+                int contestTarget = Math.max(1, (Setting.getBlockAmount() * 2) - 1);
+                List<String> sharedPool = generateBlocks(contestTarget);
+                redTeamBlocks = new ArrayList<>(sharedPool);
+                blueTeamBlocks = new ArrayList<>(sharedPool);
+                // Shared remaining list so that completion by one team removes the target for both
+                List<String> sharedRemaining = new ArrayList<>(sharedPool);
+                redTeamRemainingBlocks = sharedRemaining;
+                blueTeamRemainingBlocks = sharedRemaining;
+            }
+            case TIME -> {
+                redTeamBlocks = new ArrayList<>();
+                blueTeamBlocks = new ArrayList<>();
+
+                // Initialize up to 4 visible targets for each team at game start.
+                int initialVisible = Math.min(4, blocks.size());
+                for (int i = 0; i < initialVisible; i++) {
+                    redTeamRemainingBlocks.add(selectBlockByTimeProgress("red", 0f));
+                    blueTeamRemainingBlocks.add(selectBlockByTimeProgress("blue", 0f));
+                }
             }
         }
         redCompletedBlocks.clear();
@@ -144,6 +159,10 @@ public class Block {
     
 
     private static List<String> generateBlocks() {
+        return generateBlocks(Setting.getBlockAmount());
+    }
+
+    private static List<String> generateBlocks(int targetAmount) {
 
         addUpBlocks();
 
@@ -155,8 +174,7 @@ public class Block {
         List<String> dyedTemp = new ArrayList<>(dyedBlocks);
         List<String> endTemp = new ArrayList<>(endBlocks);
 
-        // Choose blocks
-        int blockAmount = Setting.getBlockAmount();
+        int blockAmount = Math.min(targetAmount, blocksTemp.size());
         List<String> targetBlocks = new ArrayList<>();
 
         for (int i = 0; i < blockAmount; i++) {
@@ -167,19 +185,21 @@ public class Block {
             int dyedWeight = 0;
             int endWeight = 0;
 
-            if (easyTemp.size() != 0) easyWeight = calculateEasyBlocksWeight((float) i / blockAmount);
+            float progress = blockAmount <= 1 ? 1f : (float) i / (float) blockAmount;
 
-            if (mediumTemp.size() != 0)
-                mediumWeight = Setting.isEnableMediumBlock() ? calculateMediumBlocksWeight((float) i / blockAmount) : 0;
+            if (!easyTemp.isEmpty()) easyWeight = calculateEasyBlocksWeight(progress);
 
-            if (hardTemp.size() != 0)
-                hardWeight = Setting.isEnableHardBlock() ? calculateHardBlocksWeight((float) i / blockAmount) : 0;
+            if (!mediumTemp.isEmpty())
+                mediumWeight = Setting.isEnableMediumBlock() ? calculateMediumBlocksWeight(progress) : 0;
 
-            if (dyedTemp.size() != 0)
-                dyedWeight = Setting.isEnableDyedBlock() ? calculateDyedBlocksWeight((float) i / blockAmount) : 0;
+            if (!hardTemp.isEmpty())
+                hardWeight = Setting.isEnableHardBlock() ? calculateHardBlocksWeight(progress) : 0;
 
-            if (endTemp.size() != 0)
-                endWeight = Setting.isEnableEndBlock() ? calculateEndBlocksWeight((float) i / blockAmount) : 0;
+            if (!dyedTemp.isEmpty())
+                dyedWeight = Setting.isEnableDyedBlock() ? calculateDyedBlocksWeight(progress) : 0;
+
+            if (!endTemp.isEmpty())
+                endWeight = Setting.isEnableEndBlock() ? calculateEndBlocksWeight(progress) : 0;
 
 
             // Choose difficulty based on weights

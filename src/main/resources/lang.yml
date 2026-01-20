@@ -19,6 +19,7 @@ scoreboard:
   game-mode:
     normal: "&a普通模式"
     racing: "&3竞速模式"
+    contest: "&6争夺模式"
     time: "&e计时模式"
     speed: "&9极速模式"
   blocks:
@@ -93,6 +94,7 @@ menu:
     switch-to: "&e切换至："
     normal-mode: "&a普通模式"
     racing-mode: "&3竞速模式"
+    contest-mode: "&6争夺模式"
     time-mode: "&e计时模式"
     speed-mode-enabled: "&a当前已开启：&9极速模式"
     speed-mode-disabled: "&e当前未开启：&9极速模式"
@@ -104,6 +106,11 @@ menu:
       - "&e两个队伍需要收集的方块及顺序将完全&l相同&r&e，"
       - "&e且收集方块将&l不会&r&e给予一组方块到对方队伍！"
       - "&b物品：石镐、石斧、石铲"
+    contest-mode-lore:
+      - "&e双方共享一个方块库，先收集的一方获得积分，"
+      - "&e后完成的一方不会加分，列表会即时刷新到下一个目标！"
+      - "&e总方块数 = 目标数量×2-1，先到达目标数量即获胜"
+      - "&b可与极速模式叠加，玩法更快节奏"
     time-mode-lore:
       - "&e在限定时间内完成更多任务即可获胜，"
       - "&e时间结束后若积分相同，将自动进入加时赛！"

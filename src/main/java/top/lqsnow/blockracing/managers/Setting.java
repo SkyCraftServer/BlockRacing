@@ -25,6 +25,7 @@ public class Setting {
     public enum GameMode {
         NORMAL("normal"),
         RACING("racing"),
+        CONTEST("contest"),
         TIME("time");
 
         private final String configValue;
