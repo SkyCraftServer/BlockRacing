@@ -104,7 +104,11 @@ menu:
     start: "&b开始游戏"
     start-lore: "&9点击此处开始游戏"
     block-amount: "&e目标方块数量："
-    block-amount-lore: "&e点击此处更改目标方块数量"
+    block-amount-lore:
+      - "&e点击此处更改目标方块数量"
+    time-mode-duration: "&e计时模式时间：%minutes% 分钟"
+    time-mode-duration-lore:
+      - "&e点击此处更改计时模式的持续时间（分钟）"
     medium-blocks: "&e中等方块："
     hard-blocks: "&e困难方块："
     dyed-blocks: "&e染色方块："
@@ -206,6 +210,8 @@ notice:
   set-blocks-quit: "&a成功退出输入模式！"
   set-blocks-error: "&c请输入正确数字！如果您想退出输入模式，请发送quit"
   set-blocks-success: "&a需要收集的方块数量更改为："
+  set-time-mode-minutes: "&e请直接发送计时模式的持续时间（分钟），发送quit取消输入"
+  set-time-mode-minutes-success: "&a计时模式时间更改为：%minutes% 分钟"
   spawn-protect-notice: "&b提示：如果出生点附近无法放置或破坏方块，是因为服务器带有出生点保护，离开出生点附近即可！"
   exist-error-block: "&4名为 %s 的物品不存在！请检查配置文件！"
   not-enough-score: "&c积分不足！"

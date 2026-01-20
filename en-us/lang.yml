@@ -78,7 +78,11 @@ menu:
     start: "&bStart Game"
     start-lore: "&9Click here to start the game"
     block-amount: "&eTarget Block Amount: "
-    block-amount-lore: "&eClick here to change the target block amount"
+    block-amount-lore:
+      - "&eClick here to change the target block amount"
+    time-mode-duration: "&eTime Mode Duration: %minutes% minutes"
+    time-mode-duration-lore:
+      - "&eClick to change the time mode duration (minutes)"
     medium-blocks: "&eMedium Blocks: "
     hard-blocks: "&eHard Blocks: "
     dyed-blocks: "&eDyed Blocks: "
@@ -182,6 +186,8 @@ notice:
   set-blocks-quit: "&aSuccessfully exited input mode!"
   set-blocks-error: "&cPlease enter a valid number! Send 'quit' to exit input mode if needed."
   set-blocks-success: "&aChanged the required block amount to: "
+  set-time-mode-minutes: "&eSend the time mode duration in minutes, or 'quit' to cancel"
+  set-time-mode-minutes-success: "&aChanged time mode duration to: %minutes% minutes"
   spawn-protect-notice: "&bNote: If you can't place or break blocks near spawn, it's due to spawn protection. Move away from spawn!"
   exist-error-block: "&4Item named %s does not exist! Check the configuration file!"
   not-enough-score: "&cInsufficient points!"

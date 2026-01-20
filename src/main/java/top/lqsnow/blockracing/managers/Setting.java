@@ -108,6 +108,11 @@ public class Setting {
         Config.SPEED_MODE.setBoolean(speedMode);
     }
 
+    public static void setTimeModeDurationMinutes(int minutes) {
+        Setting.timeModeDurationMinutes = minutes;
+        Config.TIME_MODE_DURATION.setInt(minutes);
+    }
+
     public static void setCurrentGameMode(GameMode mode) {
         if (mode == null) {
             mode = GameMode.NORMAL;

@@ -8,6 +8,7 @@ import org.mineacademy.fo.menu.button.Button;
 import org.mineacademy.fo.menu.button.annotation.Position;
 import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
+import top.lqsnow.blockracing.listeners.BasicListener;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.managers.Setting;
@@ -162,12 +163,25 @@ public class PreGameMenu extends Menu {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
                 player.closeInventory();
-                editAmountPlayer.add(player.getName());
-                player.sendMessage(Message.NOTICE_SET_BLOCKS.getString());
+                if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
+                    editAmountPlayer.put(player.getName(), BasicListener.EditType.TIME_MODE_MINUTES);
+                    player.sendMessage(Message.NOTICE_SET_TIME_MODE_MINUTES.getString());
+                } else {
+                    editAmountPlayer.put(player.getName(), BasicListener.EditType.BLOCK_AMOUNT);
+                    player.sendMessage(Message.NOTICE_SET_BLOCKS.getString());
+                }
             }
 
             @Override
             public ItemStack getItem() {
+                if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
+                    int minutes = Math.max(1, Setting.getTimeModeDurationMinutes());
+                    return ItemCreator.from(CompMaterial.NAME_TAG,
+                                    Message.MENU_TIME_MODE_DURATION.getString().replace("%minutes%", String.valueOf(minutes)),
+                                    Message.MENU_TIME_MODE_DURATION_LORE.getStringList())
+                            .make();
+                }
+
                 return ItemCreator.from(CompMaterial.NAME_TAG, Message.MENU_BLOCK_AMOUNT.getString() + Setting.getBlockAmount(), Message.MENU_BLOCK_AMOUNT_LORE.getStringList()).make();
             }
         };

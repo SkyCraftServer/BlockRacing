@@ -11,8 +11,8 @@ import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.managers.*;
 import top.lqsnow.blockracing.menus.PreGameMenu;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static top.lqsnow.blockracing.managers.Gui.updateMenu;
 import static top.lqsnow.blockracing.managers.Scoreboard.updateScoreboard;
@@ -23,7 +23,12 @@ import static top.lqsnow.blockracing.managers.Block.*;
 import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 
 public class BasicListener implements Listener {
-    public static List<String> editAmountPlayer = new ArrayList<>();
+    public enum EditType {
+        BLOCK_AMOUNT,
+        TIME_MODE_MINUTES
+    }
+
+    public static Map<String, EditType> editAmountPlayer = new HashMap<>();
 
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
@@ -49,7 +54,8 @@ public class BasicListener implements Listener {
         Player player = event.getPlayer();
 
         // Change block amount
-        if (editAmountPlayer.contains(player.getName())) {
+        EditType editType = editAmountPlayer.get(player.getName());
+        if (editType != null) {
             if (!Game.getCurrentGameState().equals(Game.GameState.PREGAME)) return;
             if (event.getMessage().equals("quit")) {
                 player.sendMessage(Message.NOTICE_SET_BLOCKS_QUIT.getString());
@@ -69,7 +75,11 @@ public class BasicListener implements Listener {
                 event.setCancelled(true);
             }
             if (flag) {
-                setBlockAmount(blockAmount, true);
+                if (editType == EditType.TIME_MODE_MINUTES) {
+                    setTimeModeDurationMinutes(blockAmount, true);
+                } else {
+                    setBlockAmount(blockAmount, true);
+                }
                 editAmountPlayer.remove(player.getName());
             }
         }
@@ -116,6 +126,27 @@ public class BasicListener implements Listener {
             if (sendMessage) sendAll(Message.NOTICE_SET_BLOCKS_SUCCESS.getString() + blockAmount);
         }
         Setting.setBlockAmount(blockAmount);
+        updateMenu(new PreGameMenu());
+        updateScoreboard();
+    }
+
+    public static void setTimeModeDurationMinutes(int minutes, Boolean sendMessage) {
+        int minAllowed = 1;
+        int maxAllowed = 1440;
+        int finalMinutes = minutes;
+
+        if (minutes < minAllowed) {
+            finalMinutes = minAllowed;
+        } else if (minutes > maxAllowed) {
+            finalMinutes = maxAllowed;
+        }
+
+        if (sendMessage) {
+            sendAll(Message.NOTICE_SET_TIME_MODE_MINUTES_SUCCESS.getString()
+                    .replace("%minutes%", String.valueOf(finalMinutes)));
+        }
+
+        Setting.setTimeModeDurationMinutes(finalMinutes);
         updateMenu(new PreGameMenu());
         updateScoreboard();
     }
