@@ -175,8 +175,6 @@ public enum Message {
     NOTICE_REMOVE_WAYPOINT("notice.remove-waypoint"),
     NOTICE_RELOAD_COMPLETE("notice.reload-complete"),
     NOTICE_RELOAD_COMPLETE_ERROR("notice.reload-complete-error"),
-    NOTICE_BLOCK_CHECK_PASSED("notice.block-check-passed"),
-    NOTICE_BLOCK_CHECK_FAILED("notice.block-check-failed"),
     NOTICE_TP_SUCCESS("notice.tp-success"),
     NOTICE_TP_OCEAN("notice.tp-ocean"),
     NOTICE_RED_REMOVE_WAYPOINT("notice.red-remove-waypoint"),
@@ -213,7 +211,6 @@ public enum Message {
 
     // other
     MESSAGE_PREFIX("prefix"),
-    MESSAGE_LANG("lang"),
     MESSAGE_VERSION("lang-version");
 
     private static final String DEFAULT_LANG = "zh_cn";
@@ -237,16 +234,6 @@ public enum Message {
         }
 
         File messageFile = new File(langDir, languageCode + ".yml");
-        File legacyFile = new File(Main.getInstance().getDataFolder(), "lang.yml");
-
-        // Migrate legacy lang.yml if present
-        if (!messageFile.exists() && legacyFile.exists()) {
-            boolean moved = legacyFile.renameTo(messageFile);
-            if (!moved) {
-                Main.getInstance().getLogger().warning("[BlockRacing] Failed to move legacy lang.yml; will write default file instead.");
-            }
-        }
-
         if (!messageFile.exists()) {
             String resourcePath = "lang/" + languageCode + ".yml";
 

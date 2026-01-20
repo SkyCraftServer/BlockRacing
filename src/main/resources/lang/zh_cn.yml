@@ -258,8 +258,6 @@ notice:
   overtime-start: "&c比赛时间结束，进入加时赛！"
   reload-complete: "%prefix% 重载完成。"
   reload-complete-error: "%prefix% 重载完成，但存在错误。请查看控制台以获取详细信息。"
-  block-check-passed: "%prefix% 方块文件检查通过。"
-  block-check-failed: "%prefix% 方块文件检查失败。请查看控制台以获取详细信息。"
 
 # 如果你不知道这是什么，不要动它
 lang-version: 3.5

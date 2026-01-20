@@ -73,9 +73,9 @@ public class Main extends BukkitPlugin {
         // Validate blocks at plugin startup (detect missing/invalid materials in files)
         boolean ok = top.lqsnow.blockracing.managers.Block.checkBlock();
         if (ok) {
-            Bukkit.getLogger().info(top.lqsnow.blockracing.managers.Message.NOTICE_BLOCK_CHECK_PASSED.getString());
+            Bukkit.getLogger().info("[BlockRacing] Block file check passed.");
         } else {
-            Bukkit.getLogger().warning(top.lqsnow.blockracing.managers.Message.NOTICE_BLOCK_CHECK_FAILED.getString());
+            Bukkit.getLogger().warning("[BlockRacing] Block file check failed. Check console for details.");
         }
         new Game.runPer2Tick().runTaskTimer(this, 0L, 2L);
 
