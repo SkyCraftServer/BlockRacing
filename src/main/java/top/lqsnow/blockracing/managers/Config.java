@@ -11,6 +11,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import top.lqsnow.blockracing.Main;
 
 public enum Config {
+    LANG("lang"),
     MEDIUM_BLOCK("medium-block"),
     HARD_BLOCK("hard-block"),
     DYED_BLOCK("dyed-block"),

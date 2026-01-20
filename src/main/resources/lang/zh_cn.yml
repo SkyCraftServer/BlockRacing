@@ -8,7 +8,6 @@
 # If you need to translate this file, you can directly copy the file content to ChatGPT and let him help translate it.
 
 # 当前语言: 简体中文
-lang: zh_cn
 prefix: "[<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>]"
 
 # 记分板
@@ -252,7 +251,7 @@ notice:
   ranking-red: "&c%player%: &b%amount%"
   ranking-blue: "&9%player%: &b%amount%"
   ranking-offline: "&7%player%: &b%amount%"
-  version-mismatch: "&c警告！当前您的config.yml和lang.yml的文件版本，与插件的版本不对应！您可能更新了插件，但没有更新配置文件！这可能会导致一些意料之外的错误！您可以将\\plugins\\BlockRacing文件夹中的两个配置文件删除，然后重启服务器，亦或是到github上下载最新版本的配置文件替换！"
+  version-mismatch: "&c警告！当前您的config.yml和语言文件的版本，与插件的版本不对应！您可能更新了插件，但没有更新配置文件！这可能会导致一些意料之外的错误！您可以将\\plugins\\BlockRacing文件夹中的配置文件删除，然后重启服务器，亦或是到github上下载最新版本的配置文件替换！"
   version-mismatch-title: "&c警告！版本不对应！"
   version-mismatch-subtitle: "&c请查看聊天框的具体信息！"
   team-shuffle: "&a随机组队已完成！"

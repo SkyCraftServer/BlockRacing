@@ -54,8 +54,8 @@ public class Main extends BukkitPlugin {
                 "HardBlocks.txt",
                 "DyedBlocks.txt",
                 "EndBlocks.txt",
-                "zh_cn.json",
-                "en_us.json"
+                "minecraftlang/zh_cn.json",
+                "minecraftlang/en_us.json"
         );
 
 
@@ -116,6 +116,10 @@ public class Main extends BukkitPlugin {
         }
         for (String path : paths) {
             java.io.File out = new java.io.File(getDataFolder(), path);
+            java.io.File parent = out.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
             if (!out.exists()) {
                 saveResource(path, false); // 只在缺失时复制，避免 WARNING
             }

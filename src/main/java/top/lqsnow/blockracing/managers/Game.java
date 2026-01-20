@@ -194,7 +194,7 @@ public class Game {
                         Message.NOTICE_VERSION_MISMATCH_SUBTITLE.getString(), 0, 2000, 0);
             } else {
                 player.sendMessage(ColorUtil.t(
-                        "&cWarning! The current file versions of your config.yml and lang.yml do not correspond to the plugin version! You may have updated the plugin, but did not update the configuration file! This may lead to some unexpected errors! You can delete the two configuration files in the \\plugins\\BlockRacing folder, and then restart the server, or download the latest version of the configuration file on GitHub to replace it!"));
+                    "&cWarning! The current file versions of your config.yml and language file do not correspond to the plugin version! You may have updated the plugin, but did not update the configuration file! This may lead to some unexpected errors! You can delete the configuration files in the \\plugins\\BlockRacing folder, and then restart the server, or download the latest version of the configuration files on GitHub to replace them!"));
                 player.sendTitle(ColorUtil.t("&cWarning! Version Mismatch!"),
                         ColorUtil.t("&cPlease check the specific information in the chat!"), 20, 0, 0);
             }

@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -215,7 +216,9 @@ public enum Message {
     MESSAGE_LANG("lang"),
     MESSAGE_VERSION("lang-version");
 
+    private static final String DEFAULT_LANG = "zh_cn";
     private static File file;
+    private static String languageCode;
     private String path;
     private String cacheString;
     private List<String> cacheStringList;
@@ -226,15 +229,47 @@ public enum Message {
     }
 
     public static void saveDefaultConfig() {
-        File messageFile = new File(Main.getInstance().getDataFolder(), "lang.yml");
+        languageCode = resolveLanguageCode();
+
+        File langDir = new File(Main.getInstance().getDataFolder(), "lang");
+        if (!langDir.exists()) {
+            langDir.mkdirs();
+        }
+
+        File messageFile = new File(langDir, languageCode + ".yml");
+        File legacyFile = new File(Main.getInstance().getDataFolder(), "lang.yml");
+
+        // Migrate legacy lang.yml if present
+        if (!messageFile.exists() && legacyFile.exists()) {
+            boolean moved = legacyFile.renameTo(messageFile);
+            if (!moved) {
+                Main.getInstance().getLogger().warning("[BlockRacing] Failed to move legacy lang.yml; will write default file instead.");
+            }
+        }
+
         if (!messageFile.exists()) {
-            Main.getInstance().saveResource("lang.yml", false);
+            String resourcePath = "lang/" + languageCode + ".yml";
+
+            if (Main.getInstance().getResource(resourcePath) != null) {
+                Main.getInstance().saveResource(resourcePath, false);
+            } else {
+                Main.getInstance().getLogger().warning("[BlockRacing] Language file '" + resourcePath + "' not found, using default '" + DEFAULT_LANG + "'.");
+                languageCode = DEFAULT_LANG;
+                messageFile = new File(langDir, languageCode + ".yml");
+                if (!messageFile.exists()) {
+                    Main.getInstance().saveResource("lang/" + languageCode + ".yml", false);
+                }
+            }
         }
     }
 
     public static void load() {
-        if (file == null) {
-            file = new File(Main.getInstance().getDataFolder(), "lang.yml");
+        languageCode = resolveLanguageCode();
+        file = new File(Main.getInstance().getDataFolder(), "lang/" + languageCode + ".yml");
+
+        if (!file.exists()) {
+            languageCode = DEFAULT_LANG;
+            file = new File(Main.getInstance().getDataFolder(), "lang/" + languageCode + ".yml");
         }
 
         for (Message m : values()) {
@@ -245,13 +280,30 @@ public enum Message {
     }
 
     private static FileConfiguration getMessageConfig() {
-        FileConfiguration messageConfig = YamlConfiguration.loadConfiguration(new File(Main.getInstance().getDataFolder(), "lang.yml"));
+        if (languageCode == null) {
+            languageCode = resolveLanguageCode();
+        }
 
-        try (Reader reader = new InputStreamReader(Main.getInstance().getResource("lang.yml"), StandardCharsets.UTF_8)) {
+        if (file == null) {
+            file = new File(Main.getInstance().getDataFolder(), "lang/" + languageCode + ".yml");
+        }
+
+        FileConfiguration messageConfig = YamlConfiguration.loadConfiguration(file);
+
+        String resourcePath = "lang/" + languageCode + ".yml";
+        try (Reader reader = new InputStreamReader(Main.getInstance().getResource(resourcePath), StandardCharsets.UTF_8)) {
             YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(reader);
             messageConfig.setDefaults(defConfig);
-        } catch (IOException e) {
-            Main.getInstance().getLogger().log(Level.SEVERE, "Error reading lang.yml!", e);
+        } catch (IOException | NullPointerException e) {
+            Main.getInstance().getLogger().log(Level.SEVERE, "Error reading " + resourcePath + "!", e);
+            if (!DEFAULT_LANG.equals(languageCode)) {
+                try (Reader reader = new InputStreamReader(Main.getInstance().getResource("lang/" + DEFAULT_LANG + ".yml"), StandardCharsets.UTF_8)) {
+                    YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(reader);
+                    messageConfig.setDefaults(defConfig);
+                } catch (IOException | NullPointerException ex) {
+                    Main.getInstance().getLogger().log(Level.SEVERE, "Error reading default language file!", ex);
+                }
+            }
         }
 
         return messageConfig;
@@ -292,5 +344,28 @@ public enum Message {
     private String getRawValue() {
         String value = getMessageConfig().getString(path);
         return value == null ? "" : value;
+    }
+
+    public static String getLanguageCode() {
+        if (languageCode == null) {
+            languageCode = resolveLanguageCode();
+        }
+        return languageCode;
+    }
+
+    public static String getDefaultLanguageCode() {
+        return DEFAULT_LANG;
+    }
+
+    private static String resolveLanguageCode() {
+        try {
+            String fromConfig = Config.LANG.getString();
+            if (fromConfig == null || fromConfig.isBlank()) {
+                return DEFAULT_LANG;
+            }
+            return fromConfig.toLowerCase(Locale.ROOT);
+        } catch (Exception e) {
+            return DEFAULT_LANG;
+        }
     }
 }

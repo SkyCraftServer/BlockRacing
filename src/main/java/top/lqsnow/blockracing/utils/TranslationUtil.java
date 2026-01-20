@@ -18,7 +18,7 @@ public class TranslationUtil {
             if (block.equalsIgnoreCase("NETHER_WART")) {
                 key = "block.minecraft.nether_wart";
             }
-            File file = new File(Main.getInstance().getDataFolder(), Message.MESSAGE_LANG.getString() + ".json");
+            File file = resolveLangFile();
             FileReader reader = new FileReader(file);
             JSONParser parser = new JSONParser();
             Object object = parser.parse(reader);
@@ -28,5 +28,17 @@ public class TranslationUtil {
             Main.getInstance().getLogger().log(Level.SEVERE, "[BlockRacing] Error getting value of blocks!", e);
         }
         return null;
+    }
+
+    private static File resolveLangFile() {
+        String langCode = Message.getLanguageCode();
+        File dir = new File(Main.getInstance().getDataFolder(), "minecraftlang");
+        File langFile = new File(dir, langCode + ".json");
+
+        if (!langFile.exists()) {
+            langFile = new File(dir, Message.getDefaultLanguageCode() + ".json");
+        }
+
+        return langFile;
     }
 }

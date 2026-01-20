@@ -32,7 +32,7 @@ public class WorldTranslation {
                     break;
             }
 
-            File file = new File(Main.getInstance().getDataFolder(), Message.MESSAGE_LANG.getString() + ".json");
+            File file = resolveLangFile();
             FileReader reader = new FileReader(file);
             JSONParser parser = new JSONParser();
             Object object = parser.parse(reader);
@@ -46,5 +46,17 @@ public class WorldTranslation {
 
         // Fallback to world folder name
         return world.getName();
+    }
+
+    private static File resolveLangFile() {
+        String langCode = Message.getLanguageCode();
+        File dir = new File(Main.getInstance().getDataFolder(), "minecraftlang");
+        File langFile = new File(dir, langCode + ".json");
+
+        if (!langFile.exists()) {
+            langFile = new File(dir, Message.getDefaultLanguageCode() + ".json");
+        }
+
+        return langFile;
     }
 }

@@ -4,7 +4,6 @@
 # If you need to translate this file, you can directly copy the file content to ChatGPT and let him help translate it.
 
 # Current language: English
-lang: en_us
 
 # Scoreboard
 # In slot settings, If there are no characters in the quotation marks, the line will not be displayed. If there is only one space in the quotation marks, it means that this line is empty.
@@ -227,7 +226,7 @@ notice:
   ranking-red: "&c%player%: &b%amount%"
   ranking-blue: "&9%player%: &b%amount%"
   ranking-offline: "&7%player%: &b%amount%"
-  version-mismatch: "&cWarning! The current file versions of your config.yml and lang.yml do not correspond to the plugin version! You may have updated the plugin, but did not update the configuration file! This may lead to some unexpected errors! You can delete the two configuration files in the \\plugins\\BlockRacing folder, and then restart the server, or download the latest version of the configuration file on GitHub to replace it!"
+  version-mismatch: "&cWarning! The current file versions of your config.yml and language file do not correspond to the plugin version! You may have updated the plugin, but did not update the configuration file! This may lead to some unexpected errors! You can delete the configuration files in the \\plugins\\BlockRacing folder, and then restart the server, or download the latest versions of the configuration files on GitHub to replace them!"
   version-mismatch-title: "&cWarning! Version Mismatch!"
   version-mismatch-subtitle: "&cPlease check the specific information in the chat!"
   team-shuffle: "&aRandom team shuffle complete!"
