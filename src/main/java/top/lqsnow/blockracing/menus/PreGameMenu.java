@@ -58,7 +58,7 @@ public class PreGameMenu extends Menu {
     @Position(32)
     private final Button contestMode;
 
-    @Position(33)
+    @Position(14)
     private final Button speedMode;
 
     @Position(38)
@@ -299,8 +299,13 @@ public class PreGameMenu extends Menu {
 
             @Override
             public ItemStack getItem() {
-                if (Setting.isSpeedMode()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_SPEED_MODE_ENABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
-                else return ItemCreator.from(CompMaterial.YELLOW_CONCRETE, Message.MENU_SPEED_MODE_DISABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
+                if (Setting.isSpeedMode()) {
+                    return ItemCreator.from(CompMaterial.ELYTRA, Message.MENU_SPEED_MODE_ENABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList())
+                            .glow(true)
+                            .make();
+                }
+
+                return ItemCreator.from(CompMaterial.ELYTRA, Message.MENU_SPEED_MODE_DISABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
             }
         };
 
