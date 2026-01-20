@@ -917,6 +917,7 @@ public class Game {
         sendAll(Message.NOTICE_RED_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
+        updateScoreboard();
     }
 
     public static void blueWin() {
@@ -929,6 +930,7 @@ public class Game {
         sendAll(Message.NOTICE_BLUE_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
+        updateScoreboard();
     }
 
     public static List<String> getCurrentBlocks(String team) {

@@ -28,6 +28,13 @@ scoreboard:
     hard: "&c困难"
     dyed: "&d染色"
     end: "&e末地"
+  common:
+    brand: "<gray>BlockRacing</gray> <yellow>v%version%</yellow>"
+    mode-line: "<aqua>模式：</aqua><yellow>%mode%</yellow>"
+    mode-detail:
+      time-left: "<gold>剩余时间：<white>%time%</white>"
+      overtime: "<red>加时赛</red>"
+      default: ""
   pregame:
     title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"
     slot11: ""
@@ -40,14 +47,17 @@ scoreboard:
     slot4: "&b目标方块库："
     slot3: "%blocks%"
     slot2: " "
-    slot1: "&e&lEnjoy the game!"
+    slot1: "<gray>BlockRacing</gray> <yellow>v%version%</yellow>"
+    time-mode-info: "&b计时模式时间：&e%minutes% 分钟"
   ingame:
     title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"
     red-score: "&c红队：&e%score%分  &b(%current_block%/%total_block%)"
     blue-score: "&9蓝队：&e%score%分  &b(%current_block%/%total_block%)"
+    red-score-time: "<red>红队：</red><yellow>%score%分</yellow> <gray>|</gray> <aqua>已收集：</aqua><white>%current_block%</white>"
+    blue-score-time: "<blue>蓝队：</blue><yellow>%score%分</yellow> <gray>|</gray> <aqua>已收集：</aqua><white>%current_block%</white>"
     block-format: "%difficulty% | %block%"
     dividing-line: "----------------"
-    bottom-slot: "&e&lEnjoy the game!"
+    bottom-slot: "<gray>BlockRacing</gray> <yellow>v%version%</yellow>"
     time-left: "&e剩余时间: &f%time%"
     overtime: "&c加时赛"
     block-difficulty:
@@ -56,6 +66,17 @@ scoreboard:
       hard: "&c困难"
       dyed: "&d染色"
       end: "&e末地"
+  end:
+    title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"
+    status: "<aqua>比赛结束</aqua>"
+    winner:
+      red: "<red>红队获胜！</red>"
+      blue: "<blue>蓝队获胜！</blue>"
+      draw: "<yellow>平局</yellow>"
+    red-score: "&c红队：&e%score%分  &b(%current_block%/%total_block%)"
+    blue-score: "&9蓝队：&e%score%分  &b(%current_block%/%total_block%)"
+    red-score-time: "<red>红队：</red><yellow>%score%分</yellow> <gray>|</gray> <aqua>总计：</aqua><white>%current_block%</white>"
+    blue-score-time: "<blue>蓝队：</blue><yellow>%score%分</yellow> <gray>|</gray> <aqua>总计：</aqua><white>%current_block%</white>"
 
 # 队伍
 team:

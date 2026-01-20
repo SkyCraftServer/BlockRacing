@@ -39,9 +39,12 @@ public enum Message {
     SCOREBOARD_PREGAME_SLOT3("scoreboard.pregame.slot3"),
     SCOREBOARD_PREGAME_SLOT2("scoreboard.pregame.slot2"),
     SCOREBOARD_PREGAME_SLOT1("scoreboard.pregame.slot1"),
+    SCOREBOARD_PREGAME_TIME_MODE_INFO("scoreboard.pregame.time-mode-info"),
     SCOREBOARD_INGAME_TITLE("scoreboard.ingame.title"),
     SCOREBOARD_RED_SCORE("scoreboard.ingame.red-score"),
     SCOREBOARD_BLUE_SCORE("scoreboard.ingame.blue-score"),
+    SCOREBOARD_RED_SCORE_TIME("scoreboard.ingame.red-score-time"),
+    SCOREBOARD_BLUE_SCORE_TIME("scoreboard.ingame.blue-score-time"),
     SCOREBOARD_BLOCK_FORMAT("scoreboard.ingame.block-format"),
     SCOREBOARD_DIVIDING_LINE("scoreboard.ingame.dividing-line"),
     SCOREBOARD_BOTTOM_SLOT("scoreboard.ingame.bottom-slot"),
@@ -52,6 +55,20 @@ public enum Message {
     SCOREBOARD_BLOCK_DIFFICULTY_HARD("scoreboard.ingame.block-difficulty.hard"),
     SCOREBOARD_BLOCK_DIFFICULTY_DYED("scoreboard.ingame.block-difficulty.dyed"),
     SCOREBOARD_BLOCK_DIFFICULTY_END("scoreboard.ingame.block-difficulty.end"),
+    SCOREBOARD_COMMON_BRAND("scoreboard.common.brand"),
+    SCOREBOARD_COMMON_MODE_LINE("scoreboard.common.mode-line"),
+    SCOREBOARD_COMMON_MODE_DETAIL_TIME_LEFT("scoreboard.common.mode-detail.time-left"),
+    SCOREBOARD_COMMON_MODE_DETAIL_OVERTIME("scoreboard.common.mode-detail.overtime"),
+    SCOREBOARD_COMMON_MODE_DETAIL_DEFAULT("scoreboard.common.mode-detail.default"),
+    SCOREBOARD_END_TITLE("scoreboard.end.title"),
+    SCOREBOARD_END_STATUS("scoreboard.end.status"),
+    SCOREBOARD_END_WINNER_RED("scoreboard.end.winner.red"),
+    SCOREBOARD_END_WINNER_BLUE("scoreboard.end.winner.blue"),
+    SCOREBOARD_END_WINNER_DRAW("scoreboard.end.winner.draw"),
+    SCOREBOARD_END_RED_SCORE("scoreboard.end.red-score"),
+    SCOREBOARD_END_BLUE_SCORE("scoreboard.end.blue-score"),
+    SCOREBOARD_END_RED_SCORE_TIME("scoreboard.end.red-score-time"),
+    SCOREBOARD_END_BLUE_SCORE_TIME("scoreboard.end.blue-score-time"),
 
     // team
     TEAM_RED_NAME("team.red.name"),
@@ -198,6 +215,7 @@ public enum Message {
     private String path;
     private String cacheString;
     private List<String> cacheStringList;
+    private String cacheMiniMessage;
 
     Message(String path) {
         this.path = path;
@@ -217,6 +235,7 @@ public enum Message {
 
         for (Message m : values()) {
             m.cacheString = null;
+            m.cacheMiniMessage = null;
             m.cacheStringList = null;
         }
     }
@@ -240,6 +259,17 @@ public enum Message {
         // Replace %prefix% with the raw prefix MiniMessage string before converting
         raw = raw.replace("%prefix%", Message.MESSAGE_PREFIX.getRawValue());
         return cacheString = MiniMessageUtil.toLegacyString(raw);
+    }
+
+    /**
+     * Returns the raw MiniMessage string for this key with built-in prefix substitution, without
+     * converting to legacy. Useful for Adventure or when further placeholder replacement is needed.
+     */
+    public String getMiniMessage() {
+        if (cacheMiniMessage != null) return cacheMiniMessage;
+        String raw = getRawValue();
+        if (raw == null) return "";
+        return cacheMiniMessage = raw.replace("%prefix%", Message.MESSAGE_PREFIX.getRawValue());
     }
 
     public List<String> getStringList() {
