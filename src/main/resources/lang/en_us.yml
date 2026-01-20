@@ -21,6 +21,7 @@ scoreboard:
     medium: "&eMID"
     hard: "&cHARD"
     dyed: "&dDYED"
+    addon: "<gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>ADDON</gradient>"
     end: "&eEND"
   pregame:
     title: "&b&lBlock Racing"
@@ -49,6 +50,7 @@ scoreboard:
       medium: "&eMID  "
       hard: "&cHARD"
       dyed: "&dDYED"
+      addon: "<gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>ADDON</gradient>"
       end: "&eEND  "
 
 # Team
@@ -86,6 +88,7 @@ menu:
     hard-blocks: "&eHard Blocks: "
     dyed-blocks: "&eDyed Blocks: "
     end-blocks: "&eEnd Blocks: "
+    addon-blocks: "&eAddon Blocks: "
     disabled: "&cDisabled"
     enabled: "&aEnabled"
     current-mode: "&aCurrent Mode: "

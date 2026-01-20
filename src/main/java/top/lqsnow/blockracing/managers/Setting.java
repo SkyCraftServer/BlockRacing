@@ -1,5 +1,6 @@
 package top.lqsnow.blockracing.managers;
 
+import org.bukkit.Bukkit;
 import lombok.Getter;
 
 public class Setting {
@@ -11,6 +12,10 @@ public class Setting {
     private static boolean enableDyedBlock;
     @Getter
     private static boolean enableEndBlock;
+    @Getter
+    private static boolean enableAddonBlock;
+    @Getter
+    private static boolean addonAvailable;
     @Getter
     private static int blockAmount;
     @Getter
@@ -54,10 +59,13 @@ public class Setting {
     private static GameMode currentGameMode = GameMode.NORMAL;
 
     public static void getSettings(){
+        org.bukkit.plugin.Plugin addonPlugin = Bukkit.getPluginManager().getPlugin("BlockRacingAddon");
+        addonAvailable = addonPlugin != null && addonPlugin.isEnabled();
         enableMediumBlock = Config.MEDIUM_BLOCK.getBoolean();
         enableHardBlock = Config.HARD_BLOCK.getBoolean();
         enableDyedBlock = Config.DYED_BLOCK.getBoolean();
         enableEndBlock = Config.END_BLOCK.getBoolean();
+        enableAddonBlock = addonAvailable && Config.ADDON_BLOCK.getBoolean();
         blockAmount = Config.BLOCK_AMOUNT.getInt();
         speedMode = Config.SPEED_MODE.getBoolean();
         maxTeamChestNum = Config.MAX_TEAM_CHEST_NUM.getInt();
@@ -91,6 +99,16 @@ public class Setting {
     public static void setEnableEndBlock(boolean enableEndBlock) {
         Setting.enableEndBlock = enableEndBlock;
         Config.END_BLOCK.setBoolean(enableEndBlock);
+    }
+
+    public static void setEnableAddonBlock(boolean enableAddonBlock) {
+        if (!addonAvailable) {
+            Setting.enableAddonBlock = false;
+            Config.ADDON_BLOCK.setBoolean(false);
+            return;
+        }
+        Setting.enableAddonBlock = enableAddonBlock;
+        Config.ADDON_BLOCK.setBoolean(enableAddonBlock);
     }
 
     public static void setBlockAmount(int blockAmount) {
@@ -139,6 +157,10 @@ public class Setting {
 
     public static void toggleEndBlock() {
         setEnableEndBlock(!isEnableEndBlock());
+    }
+
+    public static void toggleAddonBlock() {
+        setEnableAddonBlock(!isEnableAddonBlock());
     }
 
     public static void toggleSpeedMode() {

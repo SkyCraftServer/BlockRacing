@@ -41,6 +41,9 @@ public class PreGameMenu extends Menu {
     private final Button endBlock;
 
     @Position(24)
+    private final Button addonBlock;
+
+    @Position(15)
     private final Button changeBlockAmount;
 
     @Position(29)
@@ -155,6 +158,24 @@ public class PreGameMenu extends Menu {
             public ItemStack getItem() {
                 if (Setting.isEnableEndBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_END_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
                 else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_END_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
+            }
+        };
+
+        // Toggle addon block (only visible when addon plugin is installed)
+        this.addonBlock = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (!Setting.isAddonAvailable()) return;
+                Setting.toggleAddonBlock();
+                updateMenu(PreGameMenu.this);
+                updateScoreboard();
+            }
+
+            @Override
+            public ItemStack getItem() {
+                if (!Setting.isAddonAvailable()) return null;
+                if (Setting.isEnableAddonBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_ADDON_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
+                else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_ADDON_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
         };
 
@@ -331,6 +352,9 @@ public class PreGameMenu extends Menu {
         }
         if (slot == 37 || slot == 43) {
             return ItemCreator.from(CompMaterial.YELLOW_STAINED_GLASS_PANE, Message.MENU_READY_AND_START.getString()).make();
+        }
+        if (slot == 24 && !Setting.isAddonAvailable()) {
+            return ItemCreator.from(CompMaterial.LIGHT_BLUE_STAINED_GLASS_PANE, " ").make();
         }
 
         return super.getItemAt(slot);

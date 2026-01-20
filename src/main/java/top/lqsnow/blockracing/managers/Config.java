@@ -16,6 +16,7 @@ public enum Config {
     HARD_BLOCK("hard-block"),
     DYED_BLOCK("dyed-block"),
     END_BLOCK("end-block"),
+    ADDON_BLOCK("addon-block"),
     BLOCK_AMOUNT("block-amount"),
     GAME_MODE("game-mode"),
     TIME_MODE_DURATION("time-mode.duration"),

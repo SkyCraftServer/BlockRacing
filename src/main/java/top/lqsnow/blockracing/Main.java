@@ -47,6 +47,9 @@ public class Main extends BukkitPlugin {
         setTabCompleterIfPossible("locatebiome", new LocateBiome());
         setTabCompleterIfPossible("block", new GetBlock());
 
+        org.bukkit.plugin.Plugin addonPlugin = Bukkit.getPluginManager().getPlugin("BlockRacingAddon");
+        boolean addonPresent = addonPlugin != null && addonPlugin.isEnabled();
+
         // Save resources
         saveIfAbsent(
                 "EasyBlocks.txt",
@@ -57,6 +60,9 @@ public class Main extends BukkitPlugin {
                 "minecraftlang/zh_cn.json",
                 "minecraftlang/en_us.json"
         );
+        if (addonPresent) {
+            saveIfAbsent("AddonBlocks.txt");
+        }
 
 
         // Load managers

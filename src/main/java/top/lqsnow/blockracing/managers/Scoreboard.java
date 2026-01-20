@@ -40,12 +40,13 @@ public class Scoreboard {
         int minutes = Math.max(1, Setting.getTimeModeDurationSeconds() / 60);
 
         // Generate blocks / time text
-        String blocks = String.format("%s%s%s%s%s",
+        String blocks = String.format("%s%s%s%s%s%s",
             Message.SCOREBOARD_BLOCKS_EASY.getMiniMessage(),
             (Setting.isEnableMediumBlock() ? " " + Message.SCOREBOARD_BLOCKS_MEDIUM.getMiniMessage() : ""),
             (Setting.isEnableHardBlock() ? " " + Message.SCOREBOARD_BLOCKS_HARD.getMiniMessage() : ""),
             (Setting.isEnableDyedBlock() ? " " + Message.SCOREBOARD_BLOCKS_DYED.getMiniMessage() : ""),
-            (Setting.isEnableEndBlock() ? " " + Message.SCOREBOARD_BLOCKS_END.getMiniMessage() : ""));
+            (Setting.isEnableEndBlock() ? " " + Message.SCOREBOARD_BLOCKS_END.getMiniMessage() : ""),
+            (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() ? " " + Message.SCOREBOARD_BLOCKS_ADDON.getMiniMessage() : ""));
         String blockAmount = String.valueOf(Setting.getBlockAmount());
 
         // Generate scoreboard slots (2-11). Slot 1 is reserved for brand line.
@@ -84,10 +85,10 @@ public class Scoreboard {
         setSlot(14, mm(modeLine()));
         setSlot(13, mm(modeDetailLine()));
 
-        // Red team score and blocks
+        // Red team score and blocks (4 entries)
         setSlot(12, mm(buildTeamScoreLine(true, false)));
-        for (int i = 0; i < 3; i++) {
-            int slotIndex = 11 - i; // 11,10,9
+        for (int i = 0; i < 4; i++) {
+            int slotIndex = 11 - i; // 11,10,9,8
             if (i < getCurrentBlocks("red").size()) {
                 setSlot(slotIndex, getBlockDisplay(redTeamRemainingBlocks.get(i)));
             } else {
@@ -96,12 +97,12 @@ public class Scoreboard {
         }
 
         // Dividing line
-        setSlot(8, mm(Message.SCOREBOARD_DIVIDING_LINE.getMiniMessage()));
+        setSlot(7, mm(Message.SCOREBOARD_DIVIDING_LINE.getMiniMessage()));
 
-        // Blue team score and blocks
-        setSlot(7, mm(buildTeamScoreLine(false, false)));
-        for (int i = 0; i < 3; i++) {
-            int slotIndex = 6 - i; // 6,5,4
+        // Blue team score and blocks (4 entries)
+        setSlot(6, mm(buildTeamScoreLine(false, false)));
+        for (int i = 0; i < 4; i++) {
+            int slotIndex = 5 - i; // 5,4,3,2
             if (i < getCurrentBlocks("blue").size()) {
                 setSlot(slotIndex, getBlockDisplay(blueTeamRemainingBlocks.get(i)));
             } else {
@@ -109,14 +110,12 @@ public class Scoreboard {
             }
         }
 
-        // Bottom display (keep brand on 1; slots 3-2 as spacers)
-        setSlot(3, "");
-        setSlot(2, "");
+        // Bottom display (keep brand on 1)
         setSlot(1, mm(brandLine()));
     }
 
     public static void setEndGameScoreboard() {
-        clearSlots(14);
+        clearSlots(15);
 
         String endTitle = Message.SCOREBOARD_END_TITLE.getMiniMessage();
         if (endTitle == null || endTitle.isEmpty()) {
@@ -124,16 +123,18 @@ public class Scoreboard {
         }
         setTitleMini(endTitle);
 
-        setSlot(14, mm(modeLine()));
-        setSlot(13, mm(Message.SCOREBOARD_END_STATUS.getMiniMessage()));
-        setSlot(12, mm(determineWinnerLine()));
-
-        setSlot(11, mm(buildTeamScoreLine(true, true)));
-        setSlot(10, mm(buildTeamScoreLine(false, true)));
-
-        setSlot(9, "");
-        setSlot(2, "");
+        // Compact layout (6 lines): mode, status, winner, red score, blue score, brand
+        setSlot(6, mm(modeLine()));
+        setSlot(5, mm(Message.SCOREBOARD_END_STATUS.getMiniMessage()));
+        setSlot(4, mm(determineWinnerLine()));
+        setSlot(3, mm(buildTeamScoreLine(true, true)));
+        setSlot(2, mm(buildTeamScoreLine(false, true)));
         setSlot(1, mm(brandLine()));
+
+        // Remove any other slots so no blank padding remains
+        for (int slot = 7; slot <= 15; slot++) {
+            resetSlot(slot);
+        }
     }
 
     public static String getBlockDisplay(String block) {
@@ -146,6 +147,8 @@ public class Scoreboard {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_HARD.getMiniMessage();
         } else if (dyedBlocks.contains(block)) {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_DYED.getMiniMessage();
+        } else if (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() && addonBlocks.contains(block)) {
+            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_ADDON.getMiniMessage();
         } else if (endBlocks.contains(block)) {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_END.getMiniMessage();
         } else {
@@ -327,6 +330,18 @@ public class Scoreboard {
         }
     }
 
+    private static void resetSlot(int slot) {
+        String entry = genEntry(slot);
+        if (scoreboard.getEntries().contains(entry)) {
+            scoreboard.resetScores(entry);
+        }
+        Team team = scoreboard.getTeam("SLOT_" + slot);
+        if (team != null) {
+            team.setPrefix("");
+            team.setSuffix("");
+        }
+    }
+
     private static String modeLine() {
         String template = Message.SCOREBOARD_COMMON_MODE_LINE.getMiniMessage();
         if (template == null || template.isEmpty()) {
@@ -360,7 +375,10 @@ public class Scoreboard {
         if (template == null || template.isEmpty()) {
             template = "<gray>BlockRacing</gray> <yellow>v%version%</yellow>";
         }
-        return applyPlaceholders(template, "%version%", Main.getInstance().getDescription().getVersion());
+        String addonSuffix = Setting.isAddonAvailable()
+                ? " <gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>ADDON</gradient>"
+                : "";
+        return applyPlaceholders(template + addonSuffix, "%version%", Main.getInstance().getDescription().getVersion());
     }
 
     private static String determineWinnerLine() {

@@ -26,6 +26,7 @@ scoreboard:
     medium: "&e中等"
     hard: "&c困难"
     dyed: "&d染色"
+    addon: "<gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>扩展</gradient>"
     end: "&e末地"
   common:
     brand: "<gray>BlockRacing</gray> <yellow>v%version%</yellow>"
@@ -64,6 +65,7 @@ scoreboard:
       medium: "&e中等"
       hard: "&c困难"
       dyed: "&d染色"
+      addon: "<gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>扩展</gradient>"
       end: "&e末地"
   end:
     title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"
@@ -112,6 +114,7 @@ menu:
     hard-blocks: "&e困难方块："
     dyed-blocks: "&e染色方块："
     end-blocks: "&e末地方块："
+    addon-blocks: "&eAddon方块："
     disabled: "&c已禁用"
     enabled: "&a已启用"
     current-mode: "&a当前模式："

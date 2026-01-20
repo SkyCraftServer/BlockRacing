@@ -19,7 +19,7 @@ import static top.lqsnow.blockracing.managers.Gui.checkBlockInventory;
 import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 
 public class Block {
-    public static List<String> easyBlocks, mediumBlocks, hardBlocks, dyedBlocks, endBlocks, blocks;
+    public static List<String> easyBlocks, mediumBlocks, hardBlocks, dyedBlocks, endBlocks, addonBlocks, blocks;
     public static List<String> allBlocks = new ArrayList<>();
     public static int maxBlockAmount;
     public static List<String> redTeamBlocks = new ArrayList<>();
@@ -35,6 +35,7 @@ public class Block {
         hardBlocks = List.of(readFile("HardBlocks.txt"));
         dyedBlocks = List.of(readFile("DyedBlocks.txt"));
         endBlocks = List.of(readFile("EndBlocks.txt"));
+        addonBlocks = Setting.isAddonAvailable() ? List.of(readFile("AddonBlocks.txt")) : List.of();
         addUpBlocks();
     }
 
@@ -45,6 +46,7 @@ public class Block {
         if (Setting.isEnableHardBlock()) allBlocks.addAll(List.copyOf(hardBlocks));
         if (Setting.isEnableDyedBlock()) allBlocks.addAll(List.copyOf(dyedBlocks));
         if (Setting.isEnableEndBlock()) allBlocks.addAll(List.copyOf(endBlocks));
+        if (Setting.isAddonAvailable() && Setting.isEnableAddonBlock()) allBlocks.addAll(List.copyOf(addonBlocks));
         blocks = List.copyOf(allBlocks);
         maxBlockAmount = blocks.size();
     }
@@ -120,14 +122,19 @@ public class Block {
         for (String s : dyedBlocks) if (!used.contains(s)) dyedTemp.add(s);
         List<String> endTemp = new ArrayList<>();
         for (String s : endBlocks) if (!used.contains(s)) endTemp.add(s);
+        List<String> addonTemp = new ArrayList<>();
+        if (Setting.isAddonAvailable() && Setting.isEnableAddonBlock()) {
+            for (String s : addonBlocks) if (!used.contains(s)) addonTemp.add(s);
+        }
 
         int easyWeight = easyTemp.isEmpty() ? 0 : calculateEasyBlocksWeight(progress);
         int mediumWeight = mediumTemp.isEmpty() ? 0 : (Setting.isEnableMediumBlock() ? calculateMediumBlocksWeight(progress) : 0);
         int hardWeight = hardTemp.isEmpty() ? 0 : (Setting.isEnableHardBlock() ? calculateHardBlocksWeight(progress) : 0);
         int dyedWeight = dyedTemp.isEmpty() ? 0 : (Setting.isEnableDyedBlock() ? calculateDyedBlocksWeight(progress) : 0);
         int endWeight = endTemp.isEmpty() ? 0 : (Setting.isEnableEndBlock() ? calculateEndBlocksWeight(progress) : 0);
+        int addonWeight = addonTemp.isEmpty() ? 0 : (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() ? calculateAddonBlocksWeight(progress) : 0);
 
-        int totalWeight = easyWeight + mediumWeight + hardWeight + dyedWeight + endWeight;
+        int totalWeight = easyWeight + mediumWeight + hardWeight + dyedWeight + endWeight + addonWeight;
 
         List<String> available = new ArrayList<>();
         for (String s : blocks) if (!used.contains(s)) available.add(s);
@@ -149,6 +156,8 @@ public class Block {
         r -= hardWeight;
         if (r < dyedWeight && !dyedTemp.isEmpty()) return dyedTemp.get(random.nextInt(dyedTemp.size()));
         r -= dyedWeight;
+        if (r < addonWeight && !addonTemp.isEmpty()) return addonTemp.get(random.nextInt(addonTemp.size()));
+        r -= addonWeight;
         if (!endTemp.isEmpty()) return endTemp.get(random.nextInt(endTemp.size()));
 
         // Final fallback
@@ -173,6 +182,7 @@ public class Block {
         List<String> hardTemp = new ArrayList<>(hardBlocks);
         List<String> dyedTemp = new ArrayList<>(dyedBlocks);
         List<String> endTemp = new ArrayList<>(endBlocks);
+        List<String> addonTemp = new ArrayList<>(addonBlocks);
 
         int blockAmount = Math.min(targetAmount, blocksTemp.size());
         List<String> targetBlocks = new ArrayList<>();
@@ -184,6 +194,7 @@ public class Block {
             int hardWeight = 0;
             int dyedWeight = 0;
             int endWeight = 0;
+            int addonWeight = 0;
 
             float progress = blockAmount <= 1 ? 1f : (float) i / (float) blockAmount;
 
@@ -201,12 +212,15 @@ public class Block {
             if (!endTemp.isEmpty())
                 endWeight = Setting.isEnableEndBlock() ? calculateEndBlocksWeight(progress) : 0;
 
+            if (!addonTemp.isEmpty())
+                addonWeight = (Setting.isAddonAvailable() && Setting.isEnableAddonBlock()) ? calculateAddonBlocksWeight(progress) : 0;
+
 
             // Choose difficulty based on weights
-            String difficulty = chooseDifficulty(easyWeight, mediumWeight, hardWeight, dyedWeight, endWeight);
+            String difficulty = chooseDifficulty(easyWeight, mediumWeight, hardWeight, dyedWeight, endWeight, addonWeight);
 
             // Select a block from the corresponding difficulty list
-            String selectedBlock = selectBlock(difficulty, easyTemp, mediumTemp, hardTemp, dyedTemp, endTemp);
+            String selectedBlock = selectBlock(difficulty, easyTemp, mediumTemp, hardTemp, dyedTemp, endTemp, addonTemp);
 
             // Add the selected block to targetBlocks
             targetBlocks.add(selectedBlock);
@@ -218,6 +232,7 @@ public class Block {
                 case "hard" -> hardTemp.remove(selectedBlock);
                 case "dyed" -> dyedTemp.remove(selectedBlock);
                 case "end" -> endTemp.remove(selectedBlock);
+                case "addon" -> addonTemp.remove(selectedBlock);
                 default -> throw new IllegalArgumentException("Invalid difficulty");
             }
 
@@ -229,8 +244,8 @@ public class Block {
     }
 
     // Method to choose difficulty based on weights
-    private static String chooseDifficulty(int easyWeight, int mediumWeight, int hardWeight, int dyedWeight, int endWeight) {
-        int totalWeight = easyWeight + mediumWeight + hardWeight + dyedWeight + endWeight;
+    private static String chooseDifficulty(int easyWeight, int mediumWeight, int hardWeight, int dyedWeight, int endWeight, int addonWeight) {
+        int totalWeight = easyWeight + mediumWeight + hardWeight + dyedWeight + endWeight + addonWeight;
         int randomNumber = new Random().nextInt(totalWeight);
 
         if (randomNumber < easyWeight) {
@@ -241,6 +256,8 @@ public class Block {
             return "hard";
         } else if (randomNumber < easyWeight + mediumWeight + hardWeight + dyedWeight) {
             return "dyed";
+        } else if (randomNumber < easyWeight + mediumWeight + hardWeight + dyedWeight + addonWeight) {
+            return "addon";
         } else {
             return "end";
         }
@@ -248,12 +265,13 @@ public class Block {
 
     // Method to select a block from the corresponding difficulty list
     private static String selectBlock(String difficulty, List<String> easyTemp, List<String> mediumTemp,
-                                      List<String> hardTemp, List<String> dyedTemp, List<String> endTemp) {
+                                      List<String> hardTemp, List<String> dyedTemp, List<String> endTemp, List<String> addonTemp) {
         return switch (difficulty) {
             case "easy" -> selectRandomBlockFromList(easyTemp);
             case "medium" -> selectRandomBlockFromList(mediumTemp);
             case "hard" -> selectRandomBlockFromList(hardTemp);
             case "dyed" -> selectRandomBlockFromList(dyedTemp);
+            case "addon" -> selectRandomBlockFromList(addonTemp);
             case "end" -> selectRandomBlockFromList(endTemp);
             default -> throw new IllegalArgumentException("Invalid difficulty");
         };
@@ -313,6 +331,15 @@ public class Block {
         return 0;
     }
 
+    // Calculate weight for addon blocks
+    // Increases linearly up to progress 0.75, then stays at 10
+    public static int calculateAddonBlocksWeight(float progress) {
+        if (progress >= 0.75f) {
+            return 10;
+        }
+        return Math.max(1, (int) Math.ceil(10 * (progress / 0.75f)));
+    }
+
     // Check if there are any problems with the blocks imported from the file
     public static boolean checkBlock() {
         boolean flag = true;
@@ -335,6 +362,7 @@ public class Block {
         hardBlocks = List.of(readFile("HardBlocks.txt"));
         dyedBlocks = List.of(readFile("DyedBlocks.txt"));
         endBlocks = List.of(readFile("EndBlocks.txt"));
+        addonBlocks = Setting.isAddonAvailable() ? List.of(readFile("AddonBlocks.txt")) : List.of();
         addUpBlocks();
     }
 
