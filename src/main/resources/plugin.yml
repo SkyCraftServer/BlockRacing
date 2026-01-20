@@ -35,6 +35,8 @@ commands:
   breload:
     usage: "/breload"
     description: "Reload BlockRacing config and block lists."
+    permission: op
   randomteam:
     usage: "/randomteam"
     description: "Randomly assign players to teams."
+    permission: op

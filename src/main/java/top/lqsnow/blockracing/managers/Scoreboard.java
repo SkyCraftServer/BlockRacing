@@ -85,6 +85,29 @@ public class Scoreboard {
         setSlot(14, mm(modeLine()));
         setSlot(13, mm(modeDetailLine()));
 
+        // Contest mode: both teams share the same targets, show only 4 blocks total to reduce height
+        if (Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST)) {
+            setSlot(12, mm(buildTeamScoreLine(true, false)));
+            setSlot(11, mm(buildTeamScoreLine(false, false)));
+            setSlot(10, mm(Message.SCOREBOARD_DIVIDING_LINE.getMiniMessage()));
+            for (int i = 0; i < 4; i++) {
+                int slotIndex = 9 - i; // 9,8,7,6
+                if (i < getCurrentBlocks("red").size()) {
+                    setSlot(slotIndex, getBlockDisplay(redTeamRemainingBlocks.get(i)));
+                } else {
+                    setSlot(slotIndex, "");
+                }
+            }
+            // Keep brand at the bottom
+            setSlot(1, mm(brandLine()));
+            // Clear leftover slots below the shared block list
+            resetSlot(5);
+            resetSlot(4);
+            resetSlot(3);
+            resetSlot(2);
+            return;
+        }
+
         // Red team score and blocks (4 entries)
         setSlot(12, mm(buildTeamScoreLine(true, false)));
         for (int i = 0; i < 4; i++) {
@@ -162,6 +185,10 @@ public class Scoreboard {
     }
 
     private static String resolveDisplayedGameModeMini() {
+        return resolveDisplayedGameModeMini(true);
+    }
+
+    private static String resolveDisplayedGameModeMini(boolean includeSpeed) {
         String base;
         if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
             base = Message.SCOREBOARD_MODE_NORMAL.getMiniMessage();
@@ -172,7 +199,7 @@ public class Scoreboard {
         } else {
             base = Message.SCOREBOARD_MODE_TIME.getMiniMessage();
         }
-        if (Setting.isSpeedMode()) {
+        if (includeSpeed && Setting.isSpeedMode()) {
             base = base + " + " + Message.SCOREBOARD_MODE_SPEED.getMiniMessage();
         }
         return base;
@@ -347,7 +374,8 @@ public class Scoreboard {
         if (template == null || template.isEmpty()) {
             template = "<aqua>Mode:</aqua> <yellow>%mode%</yellow>";
         }
-        return applyPlaceholders(template, "%mode%", resolveDisplayedGameModeMini());
+        boolean includeSpeed = !getCurrentGameState().equals(GameState.INGAME);
+        return applyPlaceholders(template, "%mode%", resolveDisplayedGameModeMini(includeSpeed));
     }
 
     private static String modeDetailLine() {
