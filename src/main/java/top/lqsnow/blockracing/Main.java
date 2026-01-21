@@ -25,6 +25,15 @@ public class Main extends BukkitPlugin {
     protected void onPluginStart() {
         instance = this;
 
+        // Load config first (needed for world regeneration check)
+        Config.saveDefaultConfig();
+        Config.load();
+
+        // Regenerate worlds if enabled in config
+        if (WorldManager.shouldRegenerateWorlds()) {
+            WorldManager.regenerateWorlds();
+        }
+
         // Register events
         getPluginManager().registerEvents(new BasicListener(), this);
 
@@ -66,9 +75,7 @@ public class Main extends BukkitPlugin {
         }
 
 
-        // Load managers
-        Config.saveDefaultConfig();
-        Config.load();
+        // Load managers (Config already loaded earlier)
         Message.saveDefaultConfig();
         Message.load();
         Setting.getSettings();

@@ -48,5 +48,9 @@ max-team-chest-num: 8
 # 最大：53
 max-team-waypoint-num: 8
 
+# 世界重新生成设置
+# 警告：开启后，每次插件启动时将删除并重新生成主世界、下界和末地！
+regenerate-worlds-on-startup: false
+
 # 如果你不知道这是什么，不要动它
 config-version: 3.6
