@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import top.lqsnow.blockracing.Main;
@@ -112,6 +113,16 @@ public class BasicListener implements Listener {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
         }, 10L);
+    }
+
+    @EventHandler
+    private void onPlayerPortal(PlayerPortalEvent event) {
+        if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) return;
+        if (!Setting.isNetherMode()) return;
+        if (event.getCause() == TeleportCause.NETHER_PORTAL && event.getFrom().getWorld().getEnvironment() == org.bukkit.World.Environment.NETHER) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(Message.NOTICE_NETHER_PORTAL_BLOCKED.getString());
+        }
     }
 
     public static void setBlockAmount(int blockAmount, Boolean sendMessage) {

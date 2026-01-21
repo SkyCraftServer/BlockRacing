@@ -69,6 +69,8 @@ public class Game {
     public static int locateCost;
     public static Map<String, Integer> collectAmount = new HashMap<>();
 
+    private static World activeGameWorld;
+
     private static BukkitRunnable timeModeTask;
     private static int timeModeRemainingSeconds;
     private static int timeModeDurationSeconds;
@@ -106,6 +108,32 @@ public class Game {
         return String.format("%02d:%02d", minutes, secs);
     }
 
+    private static World resolveGameWorld() {
+        if (Setting.isNetherMode()) {
+            for (World world : Bukkit.getWorlds()) {
+                if (world.getEnvironment() == World.Environment.NETHER) {
+                    return world;
+                }
+            }
+            World fallback = Bukkit.getWorld("world_nether");
+            if (fallback != null) {
+                return fallback;
+            }
+        }
+        return Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+    }
+
+    private static World getActiveGameWorld() {
+        if (activeGameWorld != null) {
+            return activeGameWorld;
+        }
+        World resolved = resolveGameWorld();
+        if (resolved == null) {
+            return Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+        }
+        return resolved;
+    }
+
     public static void initChest() {
         int teamChestNum = Setting.getMaxTeamChestNum();
         for (int i = 0; i < teamChestNum; i++) {
@@ -120,7 +148,10 @@ public class Game {
 
     // Generate safe team spawns for both teams
     public static void generateTeamSpawns() {
-        World world = Bukkit.getWorlds().get(0);
+        World world = getActiveGameWorld();
+        if (world == null) {
+            return;
+        }
         redTeamSpawn = generateSafeSpawn(world);
         blueTeamSpawn = generateSafeSpawn(world);
         // ensure spawns are not too close
@@ -132,6 +163,10 @@ public class Game {
     }
 
     private static org.bukkit.Location generateSafeSpawn(World world) {
+        if (world.getEnvironment() == World.Environment.NETHER) {
+            return findSafeNetherLocation(world, new Random());
+        }
+
         Random random = new Random();
         org.bukkit.Location loc;
         int attempts = 0;
@@ -148,6 +183,49 @@ public class Game {
             if (!isOcean) break;
         } while (attempts < 30);
         return loc;
+    }
+
+    private static Location findSafeNetherLocation(World world, Random random) {
+        if (world == null) {
+            return null;
+        }
+        int attempt = 0;
+        int maxAttempts = 100;
+        while (attempt++ < maxAttempts) {
+            int randX = random.nextInt(20000) - 10000;
+            int randZ = random.nextInt(20000) - 10000;
+            int ceilingLimit = Math.min(world.getMaxHeight() - 5, 118);
+            for (int y = ceilingLimit; y >= 20; y--) {
+                org.bukkit.block.Block floor = world.getBlockAt(randX, y, randZ);
+                if (!isSafeNetherFloor(floor)) {
+                    continue;
+                }
+                org.bukkit.block.Block head = floor.getRelative(0, 1, 0);
+                org.bukkit.block.Block above = floor.getRelative(0, 2, 0);
+                if (!isSafeNetherAir(head) || !isSafeNetherAir(above)) {
+                    continue;
+                }
+                Location candidate = head.getLocation().add(0.5, 0, 0.5);
+                if (candidate.getBlock().getType() == Material.LAVA) {
+                    continue;
+                }
+                return candidate;
+            }
+        }
+        return world.getSpawnLocation();
+    }
+
+    private static boolean isSafeNetherFloor(org.bukkit.block.Block block) {
+        Material type = block.getType();
+        if (type == Material.LAVA || type == Material.BEDROCK || type == Material.MAGMA_BLOCK) {
+            return false;
+        }
+        return type.isSolid();
+    }
+
+    private static boolean isSafeNetherAir(org.bukkit.block.Block block) {
+        Material type = block.getType();
+        return type.isAir() || type == Material.CAVE_AIR;
     }
 
     public static void playerLogin(Player player) {
@@ -375,7 +453,15 @@ public class Game {
         updateScoreboard();
         Bukkit.getOnlinePlayers().forEach((Player player) -> freeRandomTPList.add(player.getName()));
         new runPer5Tick().runTaskTimer(Main.getInstance(), 0L, 5L);
-        World world = Bukkit.getWorlds().get(0);
+        activeGameWorld = resolveGameWorld();
+        World world = getActiveGameWorld();
+        if (world == null) {
+            world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+        }
+        if (world == null) {
+            Bukkit.getLogger().severe("[BlockRacing] No world available for teleport!");
+            return;
+        }
         world.setDifficulty(Difficulty.EASY);
         world.setTime(1000);
         world.setStorm(false);
@@ -417,6 +503,7 @@ public class Game {
         else if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME))
             Bukkit.getLogger().info("Game mode: Time");
         Bukkit.getLogger().info(Setting.isSpeedMode() ? "Speed mode: On" : "Speed mode: Off");
+        Bukkit.getLogger().info(Setting.isNetherMode() ? "Nether mode: On" : "Nether mode: Off");
         startTimeModeCountdownIfNeeded();
     }
 
@@ -533,13 +620,22 @@ public class Game {
 
     // Random Teleport
     public static void randomTeleport(Player player, boolean avoidOcean) {
-        Random random = new Random();
-        World playerWorld = Bukkit.getWorlds().get(0);
-        double randX = random.nextInt(20000) - 10000;
-        double randZ = random.nextInt(20000) - 10000;
-        Location offset = playerWorld.getHighestBlockAt(new Location(playerWorld, randX, 0, randZ)).getLocation();
-        double Y = offset.getY() + 1;
-        offset.setY(Y);
+        World world = getActiveGameWorld();
+        if (world == null) {
+            return;
+        }
+
+        Location offset;
+        if (Setting.isNetherMode() && world.getEnvironment() == World.Environment.NETHER) {
+            offset = findSafeNetherLocation(world, new Random());
+        } else {
+            offset = findSafeOverworldLocation(world, avoidOcean);
+        }
+
+        if (offset == null) {
+            return;
+        }
+
         player.teleport(offset);
 
         String x = String.format("%.1f", offset.getX());
@@ -547,15 +643,28 @@ public class Game {
         String z = String.format("%.1f", offset.getZ());
 
         player.sendMessage(Message.NOTICE_TP_SUCCESS.getString().replace("%x%", x).replace("%y%", y).replace("%z%", z));
-        if (avoidOcean) {
-            Biome biome = player.getLocation().getBlock().getBiome();
-            if (biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN || biome == Biome.DEEP_COLD_OCEAN
-                    || biome == Biome.LUKEWARM_OCEAN || biome == Biome.DEEP_FROZEN_OCEAN || biome == Biome.COLD_OCEAN
-                    || biome == Biome.WARM_OCEAN || biome == Biome.DEEP_LUKEWARM_OCEAN || biome == Biome.FROZEN_OCEAN) {
-                player.sendMessage(Message.NOTICE_TP_OCEAN.getString());
-                randomTeleport(player, true);
+    }
+
+    private static Location findSafeOverworldLocation(World world, boolean avoidOcean) {
+        Random random = new Random();
+        Location fallback = world.getSpawnLocation();
+        for (int attempts = 0; attempts < 60; attempts++) {
+            double randX = random.nextInt(20000) - 10000;
+            double randZ = random.nextInt(20000) - 10000;
+            Location loc = world.getHighestBlockAt(new Location(world, randX, 0, randZ)).getLocation();
+            loc.setY(loc.getY() + 1);
+            if (avoidOcean && isOceanBiome(loc.getBlock().getBiome())) {
+                continue;
             }
+            return loc;
         }
+        return fallback;
+    }
+
+    private static boolean isOceanBiome(Biome biome) {
+        return biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN || biome == Biome.DEEP_COLD_OCEAN
+                || biome == Biome.LUKEWARM_OCEAN || biome == Biome.DEEP_FROZEN_OCEAN || biome == Biome.COLD_OCEAN
+                || biome == Biome.WARM_OCEAN || biome == Biome.DEEP_LUKEWARM_OCEAN || biome == Biome.FROZEN_OCEAN;
     }
 
     // Waypoints

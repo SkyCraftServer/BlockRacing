@@ -9,6 +9,7 @@ import org.mineacademy.fo.menu.button.annotation.Position;
 import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
 import top.lqsnow.blockracing.listeners.BasicListener;
+import top.lqsnow.blockracing.managers.Block;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.managers.Setting;
@@ -61,6 +62,9 @@ public class PreGameMenu extends Menu {
     @Position(14)
     private final Button speedMode;
 
+    @Position(33)
+    private final Button netherMode;
+
     @Position(38)
     private final Button ready;
 
@@ -101,13 +105,19 @@ public class PreGameMenu extends Menu {
         this.mediumBlock = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (Setting.isNetherMode()) {
+                    player.sendMessage(Message.MENU_LOCKED_BY_NETHER.getString());
+                    return;
+                }
                 Setting.toggleMediumBlock();
+                Block.addUpBlocks();
                 updateMenu(PreGameMenu.this);
                 updateScoreboard();
             }
 
             @Override
             public ItemStack getItem() {
+                if (Setting.isNetherMode()) return ItemCreator.from(CompMaterial.GRAY_CONCRETE, Message.MENU_MEDIUM_BLOCKS.getString() + Message.MENU_LOCKED_BY_NETHER.getString()).make();
                 if (Setting.isEnableMediumBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_MEDIUM_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
                 else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_MEDIUM_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
@@ -117,13 +127,19 @@ public class PreGameMenu extends Menu {
         this.hardBlock = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (Setting.isNetherMode()) {
+                    player.sendMessage(Message.MENU_LOCKED_BY_NETHER.getString());
+                    return;
+                }
                 Setting.toggleHardBlock();
+                Block.addUpBlocks();
                 updateMenu(PreGameMenu.this);
                 updateScoreboard();
             }
 
             @Override
             public ItemStack getItem() {
+                if (Setting.isNetherMode()) return ItemCreator.from(CompMaterial.GRAY_CONCRETE, Message.MENU_HARD_BLOCKS.getString() + Message.MENU_LOCKED_BY_NETHER.getString()).make();
                 if (Setting.isEnableHardBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_HARD_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
                 else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_HARD_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
@@ -133,13 +149,19 @@ public class PreGameMenu extends Menu {
         this.dyedBlock = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (Setting.isNetherMode()) {
+                    player.sendMessage(Message.MENU_LOCKED_BY_NETHER.getString());
+                    return;
+                }
                 Setting.toggleDyedBlock();
+                Block.addUpBlocks();
                 updateMenu(PreGameMenu.this);
                 updateScoreboard();
             }
 
             @Override
             public ItemStack getItem() {
+                if (Setting.isNetherMode()) return ItemCreator.from(CompMaterial.GRAY_CONCRETE, Message.MENU_DYED_BLOCKS.getString() + Message.MENU_LOCKED_BY_NETHER.getString()).make();
                 if (Setting.isEnableDyedBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_DYED_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
                 else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_DYED_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
@@ -149,13 +171,19 @@ public class PreGameMenu extends Menu {
         this.endBlock = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (Setting.isNetherMode()) {
+                    player.sendMessage(Message.MENU_LOCKED_BY_NETHER.getString());
+                    return;
+                }
                 Setting.toggleEndBlock();
+                Block.addUpBlocks();
                 updateMenu(PreGameMenu.this);
                 updateScoreboard();
             }
 
             @Override
             public ItemStack getItem() {
+                if (Setting.isNetherMode()) return ItemCreator.from(CompMaterial.GRAY_CONCRETE, Message.MENU_END_BLOCKS.getString() + Message.MENU_LOCKED_BY_NETHER.getString()).make();
                 if (Setting.isEnableEndBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_END_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
                 else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_END_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
@@ -166,7 +194,12 @@ public class PreGameMenu extends Menu {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
                 if (!Setting.isAddonAvailable()) return;
+                if (Setting.isNetherMode()) {
+                    player.sendMessage(Message.MENU_LOCKED_BY_NETHER.getString());
+                    return;
+                }
                 Setting.toggleAddonBlock();
+                Block.addUpBlocks();
                 updateMenu(PreGameMenu.this);
                 updateScoreboard();
             }
@@ -174,6 +207,7 @@ public class PreGameMenu extends Menu {
             @Override
             public ItemStack getItem() {
                 if (!Setting.isAddonAvailable()) return null;
+                if (Setting.isNetherMode()) return ItemCreator.from(CompMaterial.GRAY_CONCRETE, Message.MENU_ADDON_BLOCKS.getString() + Message.MENU_LOCKED_BY_NETHER.getString()).make();
                 if (Setting.isEnableAddonBlock()) return ItemCreator.from(CompMaterial.GREEN_CONCRETE, Message.MENU_ADDON_BLOCKS.getString() + Message.MENU_ENABLED.getString()).make();
                 else return ItemCreator.from(CompMaterial.RED_CONCRETE, Message.MENU_ADDON_BLOCKS.getString() + Message.MENU_DISABLED.getString()).make();
             }
@@ -306,6 +340,25 @@ public class PreGameMenu extends Menu {
                 }
 
                 return ItemCreator.from(CompMaterial.ELYTRA, Message.MENU_SPEED_MODE_DISABLED.getString(), Message.MENU_SPEED_MODE_LORE.getStringList()).make();
+            }
+        };
+
+        // Toggle nether mode
+        this.netherMode = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                Setting.toggleNetherMode();
+                Block.addUpBlocks();
+                updateMenu(PreGameMenu.this);
+                updateScoreboard();
+            }
+
+            @Override
+            public ItemStack getItem() {
+                if (Setting.isNetherMode()) {
+                    return ItemCreator.from(CompMaterial.NETHERRACK, Message.MENU_NETHER_MODE_ENABLED.getString(), Message.MENU_NETHER_MODE_LORE.getStringList()).glow(true).make();
+                }
+                return ItemCreator.from(CompMaterial.NETHERRACK, Message.MENU_NETHER_MODE_DISABLED.getString(), Message.MENU_NETHER_MODE_LORE.getStringList()).make();
             }
         };
 

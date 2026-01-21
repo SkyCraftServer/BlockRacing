@@ -33,6 +33,8 @@ import top.lqsnow.blockracing.utils.WorldTranslation;
 
 public class GameMenu extends Menu {
 
+    private static final int RANDOM_TP_COST = 3;
+
     @Position(0)
     private final Button teamChest;
 
@@ -107,12 +109,12 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
                     freeRandomTPList.remove(player.getName());
                 } else {
                     if (redTeamPlayers.contains(player.getName())) {
-                        if (redTeamScore < 2) {
+                        if (redTeamScore < RANDOM_TP_COST) {
                             player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
                             return;
                         }
                     } else if (blueTeamPlayers.contains(player.getName())) {
-                        if (blueTeamScore < 2) {
+                        if (blueTeamScore < RANDOM_TP_COST) {
                             player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
                             return;
                         }
@@ -120,10 +122,10 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
                     player.closeInventory();
                     randomTeleport(player, false);
                     if (redTeamPlayers.contains(player.getName())) {
-                        redTeamScore -= 2;
+                        redTeamScore -= RANDOM_TP_COST;
                         sendAll(Message.NOTICE_RANDOM_TP.getString().replace("%player%", Message.TEAM_RED_COLOR.getString() + player.getName()));
                     } else if (blueTeamPlayers.contains(player.getName())) {
-                        blueTeamScore -= 2;
+                        blueTeamScore -= RANDOM_TP_COST;
                         sendAll(Message.NOTICE_RANDOM_TP.getString().replace("%player%", Message.TEAM_BLUE_COLOR.getString() + player.getName()));
                     }
                     Scoreboard.updateScoreboard();
@@ -132,7 +134,10 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.from(CompMaterial.ENDER_PEARL, Message.MENU_RANDOM_TP.getString(), Message.MENU_RANDOM_TP_LORE.getStringList()).make();
+                String dimension = Setting.isNetherMode()
+                        ? Message.MENU_RANDOM_TP_DIM_NETHER.getString()
+                        : Message.MENU_RANDOM_TP_DIM_OVERWORLD.getString();
+                return ItemCreator.from(CompMaterial.ENDER_PEARL, Message.MENU_RANDOM_TP.getString(), replaceRandomTpPlaceholders(Message.MENU_RANDOM_TP_LORE.getStringList(), dimension)).make();
             }
         };
 
@@ -277,6 +282,17 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
         for (String line : lore) {
             line = line.replace("%score%", String.valueOf(locateCost));
 
+            modifiedLore.add(line);
+        }
+        return modifiedLore;
+    }
+
+    private Collection<String> replaceRandomTpPlaceholders(Collection<String> lore, String dimension) {
+        List<String> modifiedLore = new ArrayList<>();
+        for (String line : lore) {
+            line = line
+                    .replace("%cost%", String.valueOf(RANDOM_TP_COST))
+                    .replace("%dimension%", dimension);
             modifiedLore.add(line);
         }
         return modifiedLore;

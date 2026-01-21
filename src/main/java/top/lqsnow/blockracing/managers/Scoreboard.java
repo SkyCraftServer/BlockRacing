@@ -40,13 +40,18 @@ public class Scoreboard {
         int minutes = Math.max(1, Setting.getTimeModeDurationSeconds() / 60);
 
         // Generate blocks / time text
-        String blocks = String.format("%s%s%s%s%s%s",
-            Message.SCOREBOARD_BLOCKS_EASY.getMiniMessage(),
-            (Setting.isEnableMediumBlock() ? " " + Message.SCOREBOARD_BLOCKS_MEDIUM.getMiniMessage() : ""),
-            (Setting.isEnableHardBlock() ? " " + Message.SCOREBOARD_BLOCKS_HARD.getMiniMessage() : ""),
-            (Setting.isEnableDyedBlock() ? " " + Message.SCOREBOARD_BLOCKS_DYED.getMiniMessage() : ""),
-            (Setting.isEnableEndBlock() ? " " + Message.SCOREBOARD_BLOCKS_END.getMiniMessage() : ""),
-            (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() ? " " + Message.SCOREBOARD_BLOCKS_ADDON.getMiniMessage() : ""));
+        String blocks;
+        if (Setting.isNetherMode()) {
+            blocks = Message.SCOREBOARD_BLOCKS_NETHER.getMiniMessage();
+        } else {
+            blocks = String.format("%s%s%s%s%s%s",
+                Message.SCOREBOARD_BLOCKS_EASY.getMiniMessage(),
+                (Setting.isEnableMediumBlock() ? " " + Message.SCOREBOARD_BLOCKS_MEDIUM.getMiniMessage() : ""),
+                (Setting.isEnableHardBlock() ? " " + Message.SCOREBOARD_BLOCKS_HARD.getMiniMessage() : ""),
+                (Setting.isEnableDyedBlock() ? " " + Message.SCOREBOARD_BLOCKS_DYED.getMiniMessage() : ""),
+                (Setting.isEnableEndBlock() ? " " + Message.SCOREBOARD_BLOCKS_END.getMiniMessage() : ""),
+                (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() ? " " + Message.SCOREBOARD_BLOCKS_ADDON.getMiniMessage() : ""));
+        }
         String blockAmount = String.valueOf(Setting.getBlockAmount());
 
         // Generate scoreboard slots (2-11). Slot 1 is reserved for brand line.
@@ -174,6 +179,8 @@ public class Scoreboard {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_ADDON.getMiniMessage();
         } else if (endBlocks.contains(block)) {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_END.getMiniMessage();
+        } else if (Setting.isNetherMode() && netherBlocks.contains(block)) {
+            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_NETHER.getMiniMessage();
         } else {
             return "";
         }
@@ -188,7 +195,7 @@ public class Scoreboard {
         return resolveDisplayedGameModeMini(true);
     }
 
-    private static String resolveDisplayedGameModeMini(boolean includeSpeed) {
+    private static String resolveDisplayedGameModeMini(boolean includeOptionalModes) {
         String base;
         if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
             base = Message.SCOREBOARD_MODE_NORMAL.getMiniMessage();
@@ -199,7 +206,10 @@ public class Scoreboard {
         } else {
             base = Message.SCOREBOARD_MODE_TIME.getMiniMessage();
         }
-        if (includeSpeed && Setting.isSpeedMode()) {
+        if (Setting.isNetherMode()) {
+            base = base + " + " + Message.SCOREBOARD_MODE_NETHER.getMiniMessage();
+        }
+        if (includeOptionalModes && Setting.isSpeedMode()) {
             base = base + " + " + Message.SCOREBOARD_MODE_SPEED.getMiniMessage();
         }
         return base;

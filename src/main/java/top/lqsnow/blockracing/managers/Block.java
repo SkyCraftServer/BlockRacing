@@ -19,7 +19,7 @@ import static top.lqsnow.blockracing.managers.Gui.checkBlockInventory;
 import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 
 public class Block {
-    public static List<String> easyBlocks, mediumBlocks, hardBlocks, dyedBlocks, endBlocks, addonBlocks, blocks;
+    public static List<String> easyBlocks, mediumBlocks, hardBlocks, dyedBlocks, endBlocks, addonBlocks, netherBlocks, blocks;
     public static List<String> allBlocks = new ArrayList<>();
     public static int maxBlockAmount;
     public static List<String> redTeamBlocks = new ArrayList<>();
@@ -36,19 +36,27 @@ public class Block {
         dyedBlocks = List.of(readFile("DyedBlocks.txt"));
         endBlocks = List.of(readFile("EndBlocks.txt"));
         addonBlocks = Setting.isAddonAvailable() ? List.of(readFile("AddonBlocks.txt")) : List.of();
+        netherBlocks = List.of(readFile("NetherBlocks.txt"));
         addUpBlocks();
     }
 
     public static void addUpBlocks() {
         allBlocks.clear();
-        allBlocks.addAll(List.copyOf(easyBlocks));
-        if (Setting.isEnableMediumBlock()) allBlocks.addAll(List.copyOf(mediumBlocks));
-        if (Setting.isEnableHardBlock()) allBlocks.addAll(List.copyOf(hardBlocks));
-        if (Setting.isEnableDyedBlock()) allBlocks.addAll(List.copyOf(dyedBlocks));
-        if (Setting.isEnableEndBlock()) allBlocks.addAll(List.copyOf(endBlocks));
-        if (Setting.isAddonAvailable() && Setting.isEnableAddonBlock()) allBlocks.addAll(List.copyOf(addonBlocks));
+        if (Setting.isNetherMode()) {
+            allBlocks.addAll(List.copyOf(netherBlocks));
+        } else {
+            allBlocks.addAll(List.copyOf(easyBlocks));
+            if (Setting.isEnableMediumBlock()) allBlocks.addAll(List.copyOf(mediumBlocks));
+            if (Setting.isEnableHardBlock()) allBlocks.addAll(List.copyOf(hardBlocks));
+            if (Setting.isEnableDyedBlock()) allBlocks.addAll(List.copyOf(dyedBlocks));
+            if (Setting.isEnableEndBlock()) allBlocks.addAll(List.copyOf(endBlocks));
+            if (Setting.isAddonAvailable() && Setting.isEnableAddonBlock()) allBlocks.addAll(List.copyOf(addonBlocks));
+        }
         blocks = List.copyOf(allBlocks);
         maxBlockAmount = blocks.size();
+        if (Setting.getBlockAmount() > maxBlockAmount && maxBlockAmount > 0) {
+            Setting.setBlockAmount(maxBlockAmount);
+        }
     }
 
     public static void setupBlocks() {
@@ -102,6 +110,9 @@ public class Block {
     // Select a block based on time-progress-derived weights for the specified team.
     // progress: 0..1 (0 at game start, 1 at game end)
     public static String selectBlockByTimeProgress(String team, float progress) {
+        if (Setting.isNetherMode()) {
+            return selectNetherBlock(team);
+        }
         // Build available lists excluding already used (remaining + completed) for that team
         Set<String> used = new HashSet<>();
         if (team.equals("red")) {
@@ -173,6 +184,10 @@ public class Block {
 
     private static List<String> generateBlocks(int targetAmount) {
 
+        if (Setting.isNetherMode()) {
+            return generateNetherBlocks(targetAmount);
+        }
+
         addUpBlocks();
 
         // Create temporary file to generate blocks
@@ -241,6 +256,39 @@ public class Block {
         }
 
         return targetBlocks;
+    }
+
+    private static List<String> generateNetherBlocks(int targetAmount) {
+        addUpBlocks();
+        List<String> pool = new ArrayList<>(blocks);
+        Collections.shuffle(pool);
+        int amount = Math.min(targetAmount, pool.size());
+        return new ArrayList<>(pool.subList(0, amount));
+    }
+
+    private static String selectNetherBlock(String team) {
+        Set<String> used = new HashSet<>();
+        if (team.equals("red")) {
+            used.addAll(redCompletedBlocks);
+            used.addAll(redTeamRemainingBlocks);
+        } else {
+            used.addAll(blueCompletedBlocks);
+            used.addAll(blueTeamRemainingBlocks);
+        }
+
+        List<String> available = new ArrayList<>();
+        for (String s : blocks) {
+            if (!used.contains(s)) available.add(s);
+        }
+
+        if (available.isEmpty()) {
+            if (blocks.isEmpty()) {
+                return "NETHERRACK";
+            }
+            return blocks.get(new Random().nextInt(blocks.size()));
+        }
+
+        return available.get(new Random().nextInt(available.size()));
     }
 
     // Method to choose difficulty based on weights
@@ -343,7 +391,13 @@ public class Block {
     // Check if there are any problems with the blocks imported from the file
     public static boolean checkBlock() {
         boolean flag = true;
-        for (String str : blocks) {
+        List<String> candidates = new ArrayList<>(blocks);
+        for (String extra : netherBlocks) {
+            if (!candidates.contains(extra)) {
+                candidates.add(extra);
+            }
+        }
+        for (String str : candidates) {
             try {
                 ItemStack item = ItemCreator.fromMaterial(CompMaterial.fromMaterial(Material.valueOf(str))).amount(64).make();
                 checkBlockInventory.setItem(0, item);
@@ -363,6 +417,7 @@ public class Block {
         dyedBlocks = List.of(readFile("DyedBlocks.txt"));
         endBlocks = List.of(readFile("EndBlocks.txt"));
         addonBlocks = Setting.isAddonAvailable() ? List.of(readFile("AddonBlocks.txt")) : List.of();
+        netherBlocks = List.of(readFile("NetherBlocks.txt"));
         addUpBlocks();
     }
 

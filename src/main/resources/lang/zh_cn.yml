@@ -20,7 +20,8 @@ scoreboard:
     racing: "&3竞速模式"
     contest: "&6争夺模式"
     time: "&e计时模式"
-    speed: "<gradient:#40dbc8:#4ae0d0:#53e5d9:#5deae1>极速模式</gradient>"
+    nether: "<gradient:#fa0000:#ff3434>下界模式</gradient>"
+    speed: "<gradient:#40dbc8:#5deae1>极速模式</gradient>"
   blocks:
     easy: "&a简单"
     medium: "&e中等"
@@ -28,6 +29,7 @@ scoreboard:
     dyed: "&d染色"
     addon: "<gradient:#b7d9af:#06d9f3>扩展</gradient>"
     end: "&e末地"
+    nether: "<gradient:#fa0000:#ff3434>下界</gradient>"
   common:
     brand: "<gray>BlockRacing</gray> <yellow>v%version%</yellow>"
     mode-line: "<aqua>模式：</aqua><yellow>%mode%</yellow>"
@@ -67,8 +69,9 @@ scoreboard:
       dyed: "&d染色"
       addon: "<gradient:#b7d9af:#06d9f3>扩展</gradient>"
       end: "&e末地"
+      nether: "<gradient:#fa0000:#ff3434>下界</gradient>"
   end:
-    title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"
+    title: "<gradient:#1cfadf:#03e4ff><b>方块竞速</b></gradient>"
     status: "<aqua>比赛结束</aqua>"
     winner:
       red: "<red>红队获胜！</red>"
@@ -123,8 +126,10 @@ menu:
     racing-mode: "&3竞速模式"
     contest-mode: "&6争夺模式"
     time-mode: "&e计时模式"
-    speed-mode-enabled: "&a当前已开启：<gradient:#40dbc8:#4ae0d0:#53e5d9:#5deae1>极速模式</gradient>"
-    speed-mode-disabled: "&e当前未开启：<gradient:#40dbc8:#4ae0d0:#53e5d9:#5deae1>极速模式</gradient>"
+    speed-mode-enabled: "&a当前已开启：<gradient:#40dbc8:#5deae1>极速模式</gradient>"
+    speed-mode-disabled: "&e当前未开启：<gradient:#40dbc8:#5deae1>极速模式</gradient>"
+    nether-mode-enabled: "&c当前已开启：<gradient:#fa0000:#ff3434>下界模式</gradient>"
+    nether-mode-disabled: "&e当前未开启：<gradient:#fa0000:#ff3434>下界模式</gradient>"
     normal-mode-lore:
       - "&e两个队伍需要收集的方块及顺序完全&l随机&r&e，"
       - "&e收集方块会将一组该方块给到对方的队伍箱子里！"
@@ -145,11 +150,18 @@ menu:
       - "&e在限定时间内完成更多任务即可获胜，"
       - "&e时间结束后若积分相同，将自动进入加时赛！"
     speed-mode-lore:
-      - "&a开启<gradient:#40dbc8:#4ae0d0:#53e5d9:#5deae1>极速模式</gradient>&a后，开局时将会&l给予玩家部分物品和效果&e，"
+      - "&a开启<gradient:#40dbc8:#5deae1>极速模式</gradient>&a后，开局时将会&l给予玩家部分物品和效果&e，"
       - "&e以加快游戏进度。"
       - "&b物品：精准采集铁镐、金胡萝卜、损坏的鞘翅、经验修补附魔书"
       - "&b效果：急迫5、速度2、抗性2"
-      - "<gradient:#5fdb40:#66d93e:#6dd73c:#74d63a:#7cd438:#83d235:#8ad033:#91ce31:#98cd2f:#9fcb2d:#a7c92b:#aec729:#b5c627:#bcc425:#c3c223:#cac020:#d2be1e:#d9bd1c:#e0bb1a:#e7b918>极速模式并非主要的游戏模式，仅是辅助功能</gradient>"
+      - "<gradient:#5fdb40:#e7b918>极速模式并非主要的游戏模式，仅是辅助功能</gradient>"
+    nether-mode-lore:
+      - "&a开启<gradient:#fa0000:#ff3434>下界模式</gradient>&a后，"
+      - "&e将仅使用下界方块库 ，不加载其他方块库"
+      - "&e随机出生与随机传送限定在下界，并阻止返回主世界"
+      - "&e可与普通/竞速/争夺/计时及极速模式叠加；开启后方块库开关将被锁定"
+      - "<gradient:#5fdb40:#e7b918>下界模式并非主要的游戏模式，您需要选择主要游戏模式</gradient>"
+    locked-by-nether: " &7(下界模式锁定)"
     select-team: "&a选队"
     block-setting: "&a方块设置"
     select-mode: "&a模式选择"
@@ -171,7 +183,9 @@ menu:
     waypoints-lore: "&b保存或传送至记录点"
     random-tp: "&9随机传送"
     random-tp-lore:
-      - "&b花费2积分在&l主世界&r&b随机传送，首次免费"
+      - "&b花费%cost%积分在&l%dimension%&r&b随机传送，首次免费"
+    random-tp-dimension-overworld: "主世界"
+    random-tp-dimension-nether: "下界"
   team-chest-select-menu:
     title: "&0队伍箱子选择"
     chest: "&g队伍箱子"
@@ -264,6 +278,7 @@ notice:
   overtime-start: "&c比赛时间结束，进入加时赛！"
   reload-complete: "%prefix% 重载完成。"
   reload-complete-error: "%prefix% 重载完成，但存在错误。请查看控制台以获取详细信息。"
+  nether-portal-blocked: "&c下界模式下禁止通过下界门返回主世界！"
 
 # 如果你不知道这是什么，不要动它
-lang-version: 3.5
+lang-version: 3.6

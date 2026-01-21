@@ -14,7 +14,9 @@ scoreboard:
   game-mode:
     normal: "&aNormal"
     racing: "&3Racing"
+    contest: "&6Contest"
     time: "&eTime"
+    nether: "&cNether"
     speed: "&9Speed"
   blocks:
     easy: "&aEZ"
@@ -23,6 +25,7 @@ scoreboard:
     dyed: "&dDYED"
     addon: "<gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>ADDON</gradient>"
     end: "&eEND"
+    nether: "&cNETHER"
   pregame:
     title: "&b&lBlock Racing"
     slot11: "&a&lShift+F to open the menu"
@@ -52,6 +55,7 @@ scoreboard:
       dyed: "&dDYED"
       addon: "<gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>ADDON</gradient>"
       end: "&eEND  "
+      nether: "&cNETHER"
 
 # Team
 team:
@@ -98,6 +102,8 @@ menu:
     time-mode: "&eTime Mode"
     speed-mode-enabled: "&aCurrently Enabled: &9Speed Mode"
     speed-mode-disabled: "&eCurrently Disabled: &9Speed Mode"
+    nether-mode-enabled: "&cCurrently Enabled: Nether Mode"
+    nether-mode-disabled: "&eCurrently Disabled: Nether Mode"
     normal-mode-lore:
       - "&eThe blocks that both teams need to collect"
       - "&eare completely &lrandom&r&e,"
@@ -120,6 +126,11 @@ menu:
       - "&bItems: Silk Touch Iron Pickaxe, Cooked Beef, "
       - "&b       Damaged Elytra, Enchanted Book of Mending"
       - "&bEffects: Haste V"
+    nether-mode-lore:
+      - "&eUse only the Nether block pool (NetherBlocks.txt); other pools are ignored"
+      - "&eSpawns and random teleport are limited to the Nether; Nether portals back to Overworld are blocked"
+      - "&eCan stack with Normal/Racing/Time and Speed modes; pool toggles are locked while active"
+    locked-by-nether: " &7(Locked by Nether Mode)"
     select-team: "&aSelect Team"
     block-setting: "&aBlock Setting"
     select-mode: "&aMode Selection"
@@ -144,8 +155,9 @@ menu:
     waypoints-lore: "&bSave or teleport to waypoints"
     random-tp: "&9Random Teleport"
     random-tp-lore:
-      - "&bSpend 2 points to &lrandomly teleport&r&b"
-      - "&bin the &lOverworld&r&b, first time is free"
+      - "&bSpend %cost% points to &lrandomly teleport&r&b in the &l%dimension%&r&b; first use is free"
+    random-tp-dimension-overworld: "Overworld"
+    random-tp-dimension-nether: "Nether"
   team-chest-select-menu:
     title: "&0Team Chest Selection"
     chest: "&gTeam Chest "
@@ -234,6 +246,7 @@ notice:
   version-mismatch-subtitle: "&cPlease check the specific information in the chat!"
   team-shuffle: "&aRandom team shuffle complete!"
   overtime-start: "&cRegulation time has ended, entering overtime!"
+  nether-portal-blocked: "&cNether Mode blocks returning to the Overworld via Nether portals!"
 
 # If you don't know what this is, don't touch it
-lang-version: 3.5
+lang-version: 3.6

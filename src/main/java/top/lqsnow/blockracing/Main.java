@@ -57,6 +57,7 @@ public class Main extends BukkitPlugin {
                 "HardBlocks.txt",
                 "DyedBlocks.txt",
                 "EndBlocks.txt",
+                "NetherBlocks.txt",
                 "minecraftlang/zh_cn.json",
                 "minecraftlang/en_us.json"
         );

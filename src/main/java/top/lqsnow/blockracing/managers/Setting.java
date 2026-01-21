@@ -17,6 +17,8 @@ public class Setting {
     @Getter
     private static boolean addonAvailable;
     @Getter
+    private static boolean netherMode;
+    @Getter
     private static int blockAmount;
     @Getter
     private static int maxTeamChestNum;
@@ -66,6 +68,7 @@ public class Setting {
         enableDyedBlock = Config.DYED_BLOCK.getBoolean();
         enableEndBlock = Config.END_BLOCK.getBoolean();
         enableAddonBlock = addonAvailable && Config.ADDON_BLOCK.getBoolean();
+        netherMode = Config.NETHER_MODE.getBoolean();
         blockAmount = Config.BLOCK_AMOUNT.getInt();
         speedMode = Config.SPEED_MODE.getBoolean();
         maxTeamChestNum = Config.MAX_TEAM_CHEST_NUM.getInt();
@@ -109,6 +112,11 @@ public class Setting {
         }
         Setting.enableAddonBlock = enableAddonBlock;
         Config.ADDON_BLOCK.setBoolean(enableAddonBlock);
+    }
+
+    public static void setNetherMode(boolean netherMode) {
+        Setting.netherMode = netherMode;
+        Config.NETHER_MODE.setBoolean(netherMode);
     }
 
     public static void setBlockAmount(int blockAmount) {
@@ -161,6 +169,10 @@ public class Setting {
 
     public static void toggleAddonBlock() {
         setEnableAddonBlock(!isEnableAddonBlock());
+    }
+
+    public static void toggleNetherMode() {
+        setNetherMode(!isNetherMode());
     }
 
     public static void toggleSpeedMode() {
