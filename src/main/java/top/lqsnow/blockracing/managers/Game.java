@@ -62,8 +62,10 @@ public class Game {
 
     public static int redTeamRollCount;
     public static int blueTeamRollCount;
+    public static int contestModeRollCount;
     public static List<String> redRollPlayers = new ArrayList<>();
     public static List<String> blueRollPlayers = new ArrayList<>();
+    public static List<String> contestModeRollPlayers = new ArrayList<>();
     public static List<String> inGamePlayers = new ArrayList<>();
     public static ArrayList<String> locateCommandPermission = new ArrayList<>();
     public static int locateCost;
@@ -432,6 +434,15 @@ public class Game {
         setCurrentGameState(GameState.INGAME);
         closeAllPlayersMenu();
         editAmountPlayer.clear();
+        
+        // Reset roll counts and players for all game modes
+        redTeamRollCount = 0;
+        blueTeamRollCount = 0;
+        contestModeRollCount = 0;
+        redRollPlayers.clear();
+        blueRollPlayers.clear();
+        contestModeRollPlayers.clear();
+        
         setupBlocks();
         switch (Setting.getCurrentGameMode()) {
             case TIME -> {
@@ -563,29 +574,45 @@ public class Game {
 
     // Roll
     public static void roll(Player player) {
-        if (redTeamPlayers.contains(player.getName())) {
-            if (redTeamRollCount >= 3) {
-                player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
+        if (isContestModeActive()) {
+            // 争夺模式：全场轮换，只有一次机会
+            if (contestModeRollCount >= 1) {
+                player.sendMessage(Message.NOTICE_CANNOT_ROLL_CONTEST.getString());
                 return;
             }
-            if (!redRollPlayers.contains(player.getName())) {
-                redRollPlayers.add(player.getName());
-                sendRed(Message.NOTICE_ROLL_REQUEST.getString().replace("%player%", player.getName()));
+            if (!contestModeRollPlayers.contains(player.getName())) {
+                contestModeRollPlayers.add(player.getName());
+                sendAll(Message.NOTICE_ROLL_REQUEST_CONTEST.getString().replace("%player%", player.getName()));
             } else {
-                redRollPlayers.remove(player.getName());
-                sendRed(Message.NOTICE_ROLL_REQUEST_CANCEL.getString().replace("%player%", player.getName()));
+                contestModeRollPlayers.remove(player.getName());
+                sendAll(Message.NOTICE_ROLL_REQUEST_CANCEL.getString().replace("%player%", player.getName()));
             }
-        } else if (blueTeamPlayers.contains(player.getName())) {
-            if (blueTeamRollCount >= 3) {
-                player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
-                return;
-            }
-            if (!blueRollPlayers.contains(player.getName())) {
-                blueRollPlayers.add(player.getName());
-                sendBlue(Message.NOTICE_ROLL_REQUEST.getString().replace("%player%", player.getName()));
-            } else {
-                blueRollPlayers.remove(player.getName());
-                sendBlue(Message.NOTICE_ROLL_REQUEST_CANCEL.getString().replace("%player%", player.getName()));
+        } else {
+            // 其他模式：队伍轮换，每队三次
+            if (redTeamPlayers.contains(player.getName())) {
+                if (redTeamRollCount >= 3) {
+                    player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
+                    return;
+                }
+                if (!redRollPlayers.contains(player.getName())) {
+                    redRollPlayers.add(player.getName());
+                    sendRed(Message.NOTICE_ROLL_REQUEST.getString().replace("%player%", player.getName()));
+                } else {
+                    redRollPlayers.remove(player.getName());
+                    sendRed(Message.NOTICE_ROLL_REQUEST_CANCEL.getString().replace("%player%", player.getName()));
+                }
+            } else if (blueTeamPlayers.contains(player.getName())) {
+                if (blueTeamRollCount >= 3) {
+                    player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
+                    return;
+                }
+                if (!blueRollPlayers.contains(player.getName())) {
+                    blueRollPlayers.add(player.getName());
+                    sendBlue(Message.NOTICE_ROLL_REQUEST.getString().replace("%player%", player.getName()));
+                } else {
+                    blueRollPlayers.remove(player.getName());
+                    sendBlue(Message.NOTICE_ROLL_REQUEST_CANCEL.getString().replace("%player%", player.getName()));
+                }
             }
         }
     }
@@ -777,10 +804,15 @@ public class Game {
             }
 
             // Roll check
-            if (!redRollPlayers.isEmpty())
-                checkRedRoll();
-            if (!blueRollPlayers.isEmpty())
-                checkBlueRoll();
+            if (isContestModeActive()) {
+                if (!contestModeRollPlayers.isEmpty())
+                    checkContestModeRoll();
+            } else {
+                if (!redRollPlayers.isEmpty())
+                    checkRedRoll();
+                if (!blueRollPlayers.isEmpty())
+                    checkBlueRoll();
+            }
 
         }
     }
@@ -835,6 +867,32 @@ public class Game {
             sendAll(Message.NOTICE_BLUE_ROLL_SUCCESS.getString());
             blueTeamRollCount += 1;
             blueRollPlayers.clear();
+            updateScoreboard();
+        }
+    }
+
+    private static void checkContestModeRoll() {
+        // 获取所有在线玩家
+        Set<String> allOnlinePlayers = new HashSet<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (inGamePlayers.contains(player.getName())) {
+                allOnlinePlayers.add(player.getName());
+            }
+        }
+        
+        Set<String> contestRollSet = new HashSet<>(contestModeRollPlayers);
+        
+        // 检查是否所有在线玩家都同意轮换
+        if (!allOnlinePlayers.isEmpty() && contestRollSet.containsAll(allOnlinePlayers)) {
+            List<String> b = new ArrayList<>(blocks);
+            Random random = new Random();
+            int rollAmount = redTeamRemainingBlocks.size();
+            for (int i = 0; i < rollAmount; i++) {
+                redTeamRemainingBlocks.set(i, b.get(random.nextInt(b.size())));
+            }
+            sendAll(Message.NOTICE_RED_ROLL_SUCCESS.getString());
+            contestModeRollCount += 1;
+            contestModeRollPlayers.clear();
             updateScoreboard();
         }
     }

@@ -68,7 +68,14 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.from(CompMaterial.TOTEM_OF_UNDYING, Message.MENU_ROLL.getString(), Message.MENU_ROLL_LORE.getStringList()).make();
+                List<String> lore = new ArrayList<>();
+                lore.add(Message.MENU_ROLL_LORE.getString());
+                if (Game.isContestModeActive()) {
+                    lore.add(Message.MENU_ROLL_LORE_CONTEST.getString());
+                } else {
+                    lore.add(Message.MENU_ROLL_LORE_NORMAL.getString());
+                }
+                return ItemCreator.from(CompMaterial.TOTEM_OF_UNDYING, Message.MENU_ROLL.getString(), lore).make();
             }
         };
 

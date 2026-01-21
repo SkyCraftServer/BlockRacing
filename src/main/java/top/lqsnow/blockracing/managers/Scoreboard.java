@@ -167,7 +167,9 @@ public class Scoreboard {
 
     public static String getBlockDisplay(String block) {
         String difficulty;
-        if (easyBlocks.contains(block)) {
+        if (Setting.isNetherMode() && netherBlocks.contains(block)) {
+            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_NETHER.getMiniMessage();
+        } else if (easyBlocks.contains(block)) {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_EASY.getMiniMessage();
         } else if (mediumBlocks.contains(block)) {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_MEDIUM.getMiniMessage();
@@ -179,8 +181,6 @@ public class Scoreboard {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_ADDON.getMiniMessage();
         } else if (endBlocks.contains(block)) {
             difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_END.getMiniMessage();
-        } else if (Setting.isNetherMode() && netherBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_NETHER.getMiniMessage();
         } else {
             return "";
         }

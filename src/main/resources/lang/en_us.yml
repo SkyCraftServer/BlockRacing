@@ -141,6 +141,8 @@ menu:
     team-chest-lore: "&bOpen the team chest selection menu"
     roll: "&eRoll"
     roll-lore: "&bReplace all current target blocks with other blocks"
+    roll-lore-normal: "&bEach team can roll 3 times per game"
+    roll-lore-contest: "&bOnly 1 roll per game, all players must agree"
     locate: "&bLocate"
     locate-lore:
       - "&bSpend %score% points to gain permission"
@@ -219,7 +221,9 @@ notice:
   red-remove-waypoint: "&bPlayer &c%player% &bremoved waypoint %index%!"
   blue-remove-waypoint: "&bPlayer &9%player% &bremoved waypoint %index%!"
   cannot-roll: "&cYour team has already rolled blocks 3 times this game, cannot roll again!"
+  cannot-roll-contest: "&cContest mode roll limit reached (only 1 per game), cannot roll again this game!"
   roll-request: "&bPlayer %player% requests to roll blocks! All online players in the team must agree to proceed!"
+  roll-request-contest: "&bPlayer %player% requests to roll blocks! All online players in the server must agree to proceed!"
   roll-request-cancel: "&cPlayer %player% canceled the block roll request!"
   red-roll-success: "&cRed Team&a successfully rolled the blocks!"
   blue-roll-success: "&9Blue Team&a successfully rolled the blocks!"
