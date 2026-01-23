@@ -982,12 +982,10 @@ public class Game {
     }
 
     private static void checkBlueInventory() {
-        // In CONTEST mode, check is done in checkRedInventory
-        if (isContestModeActive()) {
-            return;
-        }
+        // In CONTEST mode, both-team completion is handled in checkRedInventory.
+        // Still allow blue to complete individually here.
         
-        // Normal mode: Complete from player
+        // Complete from player
         for (String player : blueTeamPlayers) {
             for (String block : getCurrentBlocks("blue")) {
                 Player p = Bukkit.getPlayer(player);
