@@ -186,6 +186,7 @@ public enum Message {
     NOTICE_BLUE_WIN("notice.blue-win"),
     NOTICE_RED_TEAM_CHEST("notice.red-team-chest"),
     NOTICE_BLUE_TEAM_CHEST("notice.blue-team-chest"),
+    NOTICE_BOTH_COLLECT_CONTEST("notice.both-collect-contest"),
     NOTICE_REMOVE_WAYPOINT("notice.remove-waypoint"),
     NOTICE_RELOAD_COMPLETE("notice.reload-complete"),
     NOTICE_RELOAD_COMPLETE_ERROR("notice.reload-complete-error"),

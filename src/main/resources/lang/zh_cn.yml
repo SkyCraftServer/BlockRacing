@@ -244,6 +244,7 @@ notice:
   blue-win: "&9&l蓝队获胜！"
   red-team-chest: "&c红队队伍箱子"
   blue-team-chest: "&9蓝队队伍箱子"
+  both-collect-contest: "&e双方都收集了 &b%block%&e ！&c红队&e和&9蓝队&e各获得1分！"
   remove-waypoint: "&a&n点击此处删除记录点%index%"
   tp-success: "&a已传送到 %x% %y% %z%"
   tp-ocean: "&e检测您被传送到了海洋，正在重新传送"

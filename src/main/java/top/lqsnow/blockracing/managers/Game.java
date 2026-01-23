@@ -911,7 +911,54 @@ public class Game {
     }
 
     private static void checkRedInventory() {
-        // Complete from player
+        // In CONTEST mode, check if both teams have the same block first
+        if (isContestModeActive()) {
+            for (String block : getCurrentBlocks("red")) {
+                // Check if red team has the block
+                boolean redHasBlock = false;
+                for (String player : redTeamPlayers) {
+                    Player p = Bukkit.getPlayer(player);
+                    if (p != null && p.getInventory().contains(Material.valueOf(block))) {
+                        redHasBlock = true;
+                        break;
+                    }
+                }
+                if (!redHasBlock) {
+                    for (Inventory chest : redTeamChest) {
+                        if (chest.contains(Material.valueOf(block))) {
+                            redHasBlock = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Check if blue team has the block
+                boolean blueHasBlock = false;
+                for (String player : blueTeamPlayers) {
+                    Player p = Bukkit.getPlayer(player);
+                    if (p != null && p.getInventory().contains(Material.valueOf(block))) {
+                        blueHasBlock = true;
+                        break;
+                    }
+                }
+                if (!blueHasBlock) {
+                    for (Inventory chest : blueTeamChest) {
+                        if (chest.contains(Material.valueOf(block))) {
+                            blueHasBlock = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If both teams have the block, execute joint completion
+                if (redHasBlock && blueHasBlock) {
+                    bothTaskComplete(block);
+                    return;
+                }
+            }
+        }
+        
+        // Normal mode: Complete from player
         for (String player : redTeamPlayers) {
             for (String block : getCurrentBlocks("red")) {
                 Player p = Bukkit.getPlayer(player);
@@ -935,7 +982,12 @@ public class Game {
     }
 
     private static void checkBlueInventory() {
-        // Complete from player
+        // In CONTEST mode, check is done in checkRedInventory
+        if (isContestModeActive()) {
+            return;
+        }
+        
+        // Normal mode: Complete from player
         for (String player : blueTeamPlayers) {
             for (String block : getCurrentBlocks("blue")) {
                 Player p = Bukkit.getPlayer(player);
@@ -955,6 +1007,42 @@ public class Game {
                     return;
                 }
             }
+        }
+    }
+
+    public static void bothTaskComplete(String block) {
+        // Both teams collect the same block in CONTEST mode
+        sendAll(Message.NOTICE_BOTH_COLLECT_CONTEST.getString().replace("%block%", TranslationUtil.getValue(block)));
+        Bukkit.getLogger().info(Message.NOTICE_BOTH_COLLECT_CONTEST.getString()
+                .replace("%block%", TranslationUtil.getValue(block)).replaceAll("§.", ""));
+        playSound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
+        
+        // Remove block from both teams' remaining blocks
+        redTeamRemainingBlocks.remove(block);
+        blueTeamRemainingBlocks.remove(block);
+        
+        // Mark as completed for global tracking
+        redCompletedBlocks.add(block);
+        blueCompletedBlocks.add(block);
+        
+        // Both teams get 1 point
+        redTeamScore += 1;
+        blueTeamScore += 1;
+        redTeamCurrentBlockAmount += 1;
+        blueTeamCurrentBlockAmount += 1;
+        
+        updateScoreboard();
+        
+        // Check if either team reached target amount
+        if (redTeamCurrentBlockAmount >= Setting.getBlockAmount()) {
+            redWin();
+            showRanking();
+            return;
+        }
+        if (blueTeamCurrentBlockAmount >= Setting.getBlockAmount()) {
+            blueWin();
+            showRanking();
+            return;
         }
     }
 
