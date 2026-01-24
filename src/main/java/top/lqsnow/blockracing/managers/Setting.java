@@ -27,6 +27,8 @@ public class Setting {
     @Getter
     private static boolean speedMode;
     @Getter
+    private static boolean comebackBuffEnabled;
+    @Getter
     private static int timeModeDurationMinutes;
 
     public enum GameMode {
@@ -71,6 +73,7 @@ public class Setting {
         netherMode = Config.NETHER_MODE.getBoolean();
         blockAmount = Config.BLOCK_AMOUNT.getInt();
         speedMode = Config.SPEED_MODE.getBoolean();
+        comebackBuffEnabled = Config.COMEBACK_BUFF.getBoolean();
         maxTeamChestNum = Config.MAX_TEAM_CHEST_NUM.getInt();
         maxTeamWaypointNum = Config.MAX_TEAM_WAYPOINT_NUM.getInt();
         setCurrentGameMode(GameMode.fromConfig(Config.GAME_MODE.getString()));
@@ -134,6 +137,11 @@ public class Setting {
         Config.SPEED_MODE.setBoolean(speedMode);
     }
 
+    public static void setComebackBuffEnabled(boolean enabled) {
+        Setting.comebackBuffEnabled = enabled;
+        Config.COMEBACK_BUFF.setBoolean(enabled);
+    }
+
     public static void setTimeModeDurationMinutes(int minutes) {
         Setting.timeModeDurationMinutes = minutes;
         Config.TIME_MODE_DURATION.setInt(minutes);
@@ -177,5 +185,9 @@ public class Setting {
 
     public static void toggleSpeedMode() {
         setSpeedMode(!isSpeedMode());
+    }
+
+    public static void toggleComebackBuff() {
+        setComebackBuffEnabled(!isComebackBuffEnabled());
     }
 }

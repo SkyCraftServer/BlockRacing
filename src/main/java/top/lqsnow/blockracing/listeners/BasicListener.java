@@ -112,6 +112,7 @@ public class BasicListener implements Listener {
             if (Game.getCurrentGameState().equals(Game.GameState.INGAME) && Setting.isSpeedMode()) event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.HASTE, -1, 4, false, false));
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
+            Game.refreshComebackEffects();
         }, 10L);
     }
 

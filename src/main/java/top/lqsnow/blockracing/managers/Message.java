@@ -226,6 +226,8 @@ public enum Message {
     NOTICE_VERSION_MISMATCH_SUBTITLE("notice.version-mismatch-subtitle"),
     NOTICE_TEAM_SHUFFLE("notice.team-shuffle"),
     NOTICE_OVERTIME_START("notice.overtime-start"),
+    NOTICE_COMEBACK_APPLY("notice.comeback-apply"),
+    NOTICE_COMEBACK_CLEAR("notice.comeback-clear"),
 
     // other
     MESSAGE_PREFIX("prefix"),

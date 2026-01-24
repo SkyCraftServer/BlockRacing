@@ -77,6 +77,9 @@ public class Game {
     private static int timeModeRemainingSeconds;
     private static int timeModeDurationSeconds;
     private static boolean timeModeOvertime;
+    private static final int COMEBACK_THRESHOLD = 20;
+    private enum ComebackBuffState { NONE, RED, BLUE }
+    private static ComebackBuffState comebackBuffState = ComebackBuffState.NONE;
 
     public static boolean isTimeModeActive() {
         return Setting.getCurrentGameMode().equals(Setting.GameMode.TIME);
@@ -570,6 +573,8 @@ public class Game {
             xpBook.setItemMeta(meta);
             player.getInventory().addItem(xpBook);
         }
+
+        refreshComebackEffects();
     }
 
     // Roll
@@ -1235,6 +1240,94 @@ public class Game {
             collectAmount.put(p, currentAmount + 1);
         } else {
             collectAmount.put(p, 1);
+        }
+    }
+
+    private static void reapplyBaselineMobility(Player player) {
+        if (player == null) {
+            return;
+        }
+        // Maintain base speed/resistance that are expected for in-game players and preserve speed-mode perks.
+        int amplifier = Setting.isSpeedMode() ? 1 : 1;
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, amplifier, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, amplifier, false, false));
+    }
+
+    private static void clearComebackEffects(List<String> members) {
+        for (String name : members) {
+            Player player = Bukkit.getPlayer(name);
+            if (player == null) {
+                continue;
+            }
+            boolean removed = false;
+            PotionEffect speed = player.getPotionEffect(PotionEffectType.SPEED);
+            if (speed != null && speed.getAmplifier() >= 2) {
+                player.removePotionEffect(PotionEffectType.SPEED);
+                removed = true;
+            }
+            PotionEffect resistance = player.getPotionEffect(PotionEffectType.RESISTANCE);
+            if (resistance != null && resistance.getAmplifier() >= 2) {
+                player.removePotionEffect(PotionEffectType.RESISTANCE);
+                removed = true;
+            }
+            if (removed) {
+                reapplyBaselineMobility(player);
+            }
+        }
+    }
+
+    private static void applyComebackEffects(String team) {
+        List<String> members = getOnlineTeamPlayers(team);
+        for (String name : members) {
+            Player player = Bukkit.getPlayer(name);
+            if (player == null) {
+                continue;
+            }
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 2, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 2, false, false));
+        }
+    }
+
+    public static void refreshComebackEffects() {
+        if (!getCurrentGameState().equals(GameState.INGAME) || !Setting.isComebackBuffEnabled()) {
+            if (comebackBuffState != ComebackBuffState.NONE) {
+                sendAll(Message.NOTICE_COMEBACK_CLEAR.getString().replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+            }
+            comebackBuffState = ComebackBuffState.NONE;
+            clearComebackEffects(redTeamPlayers);
+            clearComebackEffects(blueTeamPlayers);
+            return;
+        }
+
+        int diff = redTeamScore - blueTeamScore;
+        if (Math.abs(diff) < COMEBACK_THRESHOLD) {
+            if (comebackBuffState != ComebackBuffState.NONE) {
+                sendAll(Message.NOTICE_COMEBACK_CLEAR.getString().replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+            }
+            comebackBuffState = ComebackBuffState.NONE;
+            clearComebackEffects(redTeamPlayers);
+            clearComebackEffects(blueTeamPlayers);
+            return;
+        }
+
+        if (diff >= COMEBACK_THRESHOLD) {
+            if (comebackBuffState != ComebackBuffState.BLUE) {
+                sendAll(Message.NOTICE_COMEBACK_APPLY.getString()
+                        .replace("%team%", Message.TEAM_BLUE_NAME.getString())
+                        .replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+            }
+            comebackBuffState = ComebackBuffState.BLUE;
+            applyComebackEffects("blue");
+            clearComebackEffects(redTeamPlayers);
+        } else if (diff <= -COMEBACK_THRESHOLD) {
+            if (comebackBuffState != ComebackBuffState.RED) {
+                sendAll(Message.NOTICE_COMEBACK_APPLY.getString()
+                        .replace("%team%", Message.TEAM_RED_NAME.getString())
+                        .replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+            }
+            comebackBuffState = ComebackBuffState.RED;
+            applyComebackEffects("red");
+            clearComebackEffects(blueTeamPlayers);
         }
     }
 

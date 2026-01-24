@@ -281,9 +281,11 @@ notice:
   version-mismatch-subtitle: "&c请查看聊天框的具体信息！"
   team-shuffle: "&a随机组队已完成！"
   overtime-start: "&c比赛时间结束，进入加时赛！"
+  comeback-apply: "%prefix% &e落后补偿：%team%落后≥%points%分，获得速度III与抗性III效果。"
+  comeback-clear: "%prefix% &e落后补偿：分差回到%points%分以内，补偿已效果移除。"
   reload-complete: "%prefix% 重载完成。"
   reload-complete-error: "%prefix% 重载完成，但存在错误。请查看控制台以获取详细信息。"
-  nether-portal-blocked: "&c下界模式下禁止通过下界门返回主世界！"
+  nether-portal-blocked: "&c下界模式下禁止通过下界传送门返回主世界！"
 
 # 如果你不知道这是什么，不要动它
 lang-version: 3.6

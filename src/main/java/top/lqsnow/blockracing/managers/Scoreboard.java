@@ -227,6 +227,7 @@ public class Scoreboard {
         } else if (getCurrentGameState().equals(GameState.END)) {
             setEndGameScoreboard();
         }
+        refreshComebackEffects();
     }
 
 

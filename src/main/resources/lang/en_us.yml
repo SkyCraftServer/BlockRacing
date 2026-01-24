@@ -250,6 +250,8 @@ notice:
   version-mismatch-subtitle: "&cPlease check the specific information in the chat!"
   team-shuffle: "&aRandom team shuffle complete!"
   overtime-start: "&cRegulation time has ended, entering overtime!"
+  comeback-apply: "%prefix% &eComeback buff: %team% is down by ≥%points% points; granting Speed III and Resistance III."
+  comeback-clear: "%prefix% &eComeback buff: gap is within %points% points; buff removed."
   nether-portal-blocked: "&cNether Mode blocks returning to the Overworld via Nether portals!"
 
 # If you don't know what this is, don't touch it
