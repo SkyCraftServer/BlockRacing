@@ -8,6 +8,7 @@ import org.bukkit.World;
 import org.mineacademy.fo.platform.BukkitPlugin;
 import top.lqsnow.blockracing.commands.*;
 import top.lqsnow.blockracing.listeners.BasicListener;
+import top.lqsnow.blockracing.listeners.AddonMonitorListener;
 import top.lqsnow.blockracing.managers.*;
 
 import org.bukkit.command.PluginCommand;
@@ -36,6 +37,7 @@ public class Main extends BukkitPlugin {
 
         // Register events
         getPluginManager().registerEvents(new BasicListener(), this);
+        getPluginManager().registerEvents(new AddonMonitorListener(), this);
 
         // Register commands (use helper to avoid NPE if server/another plugin owns the command)
         registerCommand("debug", new Debug());
@@ -56,9 +58,6 @@ public class Main extends BukkitPlugin {
         setTabCompleterIfPossible("locatebiome", new LocateBiome());
         setTabCompleterIfPossible("block", new GetBlock());
 
-        org.bukkit.plugin.Plugin addonPlugin = Bukkit.getPluginManager().getPlugin("BlockRacingAddon");
-        boolean addonPresent = addonPlugin != null && addonPlugin.isEnabled();
-
         // Save resources
         saveIfAbsent(
                 "EasyBlocks.txt",
@@ -70,9 +69,14 @@ public class Main extends BukkitPlugin {
                 "minecraftlang/zh_cn.json",
                 "minecraftlang/en_us.json"
         );
-        if (addonPresent) {
-            saveIfAbsent("AddonBlocks.txt");
-        }
+
+        // Re-check addon on the first server tick after startup (other plugins are fully enabled by then)
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            if (Setting.refreshAddonAvailability()) {
+                saveIfAbsent("AddonBlocks.txt");
+                Setting.setEnableAddonBlock(Config.ADDON_BLOCK.getBoolean());
+            }
+        }, 1L);
 
 
         // Load managers (Config already loaded earlier)

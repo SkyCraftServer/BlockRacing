@@ -62,9 +62,23 @@ public class Setting {
     @Getter
     private static GameMode currentGameMode = GameMode.NORMAL;
 
-    public static void getSettings(){
+    /**
+     * Refresh the addon availability flag without altering other settings.
+     * Returns true when BlockRacingAddon is present and enabled.
+     */
+    public static boolean refreshAddonAvailability() {
         org.bukkit.plugin.Plugin addonPlugin = Bukkit.getPluginManager().getPlugin("BlockRacingAddon");
         addonAvailable = addonPlugin != null && addonPlugin.isEnabled();
+
+        if (!addonAvailable) {
+            // Ensure addon-specific switches are off when the addon is missing
+            enableAddonBlock = false;
+        }
+        return addonAvailable;
+    }
+
+    public static void getSettings(){
+        refreshAddonAvailability();
         enableMediumBlock = Config.MEDIUM_BLOCK.getBoolean();
         enableHardBlock = Config.HARD_BLOCK.getBoolean();
         enableDyedBlock = Config.DYED_BLOCK.getBoolean();
