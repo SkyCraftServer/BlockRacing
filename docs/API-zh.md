@@ -250,6 +250,105 @@ public class YourPlugin extends JavaPlugin {
 获取每队需要完成的方块数量设置。
 - **返回值**: `int` - 方块数量
 
+## 方块信息相关
+
+#### `getRedTeamCurrentBlock()`
+获取红队当前需要完成的方块名称。
+- **返回值**: `String` - 方块名称，如果没有则返回空字符串
+- **示例**:
+  ```java
+  String redBlock = BlockRacingAPI.getRedTeamCurrentBlock();
+  if (!redBlock.isEmpty()) {
+      getLogger().info("红队需要的方块: " + redBlock);
+  }
+  ```
+
+#### `getBlueTeamCurrentBlock()`
+获取蓝队当前需要完成的方块名称。
+- **返回值**: `String` - 方块名称，如果没有则返回空字符串
+
+#### `getRedTeamBlocks()`
+获取红队所有需要完成的方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+- **示例**:
+  ```java
+  List<String> redBlocks = BlockRacingAPI.getRedTeamBlocks();
+  for (String block : redBlocks) {
+      getLogger().info("红队方块: " + block);
+  }
+  ```
+
+#### `getBlueTeamBlocks()`
+获取蓝队所有需要完成的方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+
+#### `getRedTeamRemainingBlocksList()`
+获取红队剩余需要完成的方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+- **示例**:
+  ```java
+  List<String> remaining = BlockRacingAPI.getRedTeamRemainingBlocksList();
+  int remainingCount = remaining.size();
+  ```
+
+#### `getBlueTeamRemainingBlocksList()`
+获取蓝队剩余需要完成的方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+
+#### `getRedTeamCompletedBlocksList()`
+获取红队已完成的方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+- **示例**:
+  ```java
+  List<String> completed = BlockRacingAPI.getRedTeamCompletedBlocksList();
+  getLogger().info("红队已完成: " + completed.size() + " 个方块");
+  ```
+
+#### `getBlueTeamCompletedBlocksList()`
+获取蓝队已完成的方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+
+#### `getEnabledBlocks()`
+获取所有已启用的方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+
+#### `isRedTeamBlock(String blockName)`
+检查指定方块是否在红队的方块列表中。
+- **参数**: `blockName` - 方块名称
+- **返回值**: `boolean` - 如果存在返回 true，否则返回 false
+- **示例**:
+  ```java
+  if (BlockRacingAPI.isRedTeamBlock("stone")) {
+      getLogger().info("石头在红队的方块列表中");
+  }
+  ```
+
+#### `isBlueTeamBlock(String blockName)`
+检查指定方块是否在蓝队的方块列表中。
+- **参数**: `blockName` - 方块名称
+- **返回值**: `boolean` - 如果存在返回 true，否则返回 false
+
+#### `getRedTeamCompletedCount()`
+获取红队已完成的方块数量。
+- **返回值**: `int` - 已完成方块数
+- **示例**:
+  ```java
+  int redCompleted = BlockRacingAPI.getRedTeamCompletedCount();
+  ```
+
+#### `getBlueTeamCompletedCount()`
+获取蓝队已完成的方块数量。
+- **返回值**: `int` - 已完成方块数
+
+#### `getAllAvailableBlocks()`
+获取所有可用方块列表。
+- **返回值**: `List<String>` - 方块名称列表（不可修改的副本）
+- **示例**:
+  ```java
+  List<String> allBlocks = BlockRacingAPI.getAllAvailableBlocks();
+  getLogger().info("总共有 " + allBlocks.size() + " 个可用方块");
+  ```
+
 ## 完整示例
 
 以下是一个完整的示例插件，展示如何使用 BlockRacing API：
@@ -339,8 +438,8 @@ public class BlockRacingAddon extends JavaPlugin {
 
 ## 版本兼容性
 
-- **当前 API 版本**: 3.0
-- **最低 BlockRacing 版本**: 3.0
+- **当前 API 版本**: 3.6
+- **最低 BlockRacing 版本**: 3.6
 - **Bukkit API**: 1.20+
 
 ## 反馈与支持

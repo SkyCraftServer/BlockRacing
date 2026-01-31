@@ -2,6 +2,10 @@ package top.lqsnow.blockracing.api;
 
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Setting;
+import top.lqsnow.blockracing.managers.Block;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * BlockRacing 插件的公共 API
@@ -49,19 +53,21 @@ public class BlockRacingAPI {
         return Setting.isNetherMode();
     }
 
+
     /**
-     * 获取红队当前完成的方块数
-     * @return 红队已完成的方块数量
+     * 获取红队当前得分（积分/完成数）
+     * @return 红队当前分数
      */
-    public static int getRedTeamCompletedBlocks() {
+    public static int getRedTeamScore() {
         return Game.redTeamScore;
     }
 
+
     /**
-     * 获取蓝队当前完成的方块数
-     * @return 蓝队已完成的方块数量
+     * 获取蓝队当前得分（积分/完成数）
+     * @return 蓝队当前分数
      */
-    public static int getBlueTeamCompletedBlocks() {
+    public static int getBlueTeamScore() {
         return Game.blueTeamScore;
     }
 
@@ -170,5 +176,127 @@ public class BlockRacingAPI {
      */
     public static int getBlockAmount() {
         return Setting.getBlockAmount();
+    }
+
+    // ==================== 方块信息 API ====================
+
+    /**
+     * 获取红队当前需要完成的方块名称
+     * @return 方块名称字符串，如果没有则返回空字符串
+     */
+    public static String getRedTeamCurrentBlock() {
+        if (Block.redTeamBlocks.isEmpty()) {
+            return "";
+        }
+        return Block.redTeamBlocks.get(0);
+    }
+
+    /**
+     * 获取蓝队当前需要完成的方块名称
+     * @return 方块名称字符串，如果没有则返回空字符串
+     */
+    public static String getBlueTeamCurrentBlock() {
+        if (Block.blueTeamBlocks.isEmpty()) {
+            return "";
+        }
+        return Block.blueTeamBlocks.get(0);
+    }
+
+    /**
+     * 获取红队所有需要完成的方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getRedTeamBlocks() {
+        return new ArrayList<>(Block.redTeamBlocks);
+    }
+
+    /**
+     * 获取蓝队所有需要完成的方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getBlueTeamBlocks() {
+        return new ArrayList<>(Block.blueTeamBlocks);
+    }
+
+    /**
+     * 获取红队剩余需要完成的方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getRedTeamRemainingBlocksList() {
+        return new ArrayList<>(Block.redTeamRemainingBlocks);
+    }
+
+    /**
+     * 获取蓝队剩余需要完成的方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getBlueTeamRemainingBlocksList() {
+        return new ArrayList<>(Block.blueTeamRemainingBlocks);
+    }
+
+    /**
+     * 获取红队已完成的方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getRedTeamCompletedBlocksList() {
+        return new ArrayList<>(Block.redCompletedBlocks);
+    }
+
+    /**
+     * 获取蓝队已完成的方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getBlueTeamCompletedBlocksList() {
+        return new ArrayList<>(Block.blueCompletedBlocks);
+    }
+
+    /**
+     * 获取所有已启用的方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getEnabledBlocks() {
+        return new ArrayList<>(Block.blocks);
+    }
+
+    /**
+     * 检查指定方块是否在红队的方块列表中
+     * @param blockName 方块名称
+     * @return 如果存在返回 true，否则返回 false
+     */
+    public static boolean isRedTeamBlock(String blockName) {
+        return Block.redTeamBlocks.contains(blockName);
+    }
+
+    /**
+     * 检查指定方块是否在蓝队的方块列表中
+     * @param blockName 方块名称
+     * @return 如果存在返回 true，否则返回 false
+     */
+    public static boolean isBlueTeamBlock(String blockName) {
+        return Block.blueTeamBlocks.contains(blockName);
+    }
+
+    /**
+     * 获取红队已完成的方块数量
+     * @return 已完成方块数
+     */
+    public static int getRedTeamCompletedCount() {
+        return Block.redCompletedBlocks.size();
+    }
+
+    /**
+     * 获取蓝队已完成的方块数量
+     * @return 已完成方块数
+     */
+    public static int getBlueTeamCompletedCount() {
+        return Block.blueCompletedBlocks.size();
+    }
+
+    /**
+     * 获取所有可用方块列表
+     * @return 方块名称列表（不可修改的副本）
+     */
+    public static List<String> getAllAvailableBlocks() {
+        return new ArrayList<>(Block.allBlocks);
     }
 }
