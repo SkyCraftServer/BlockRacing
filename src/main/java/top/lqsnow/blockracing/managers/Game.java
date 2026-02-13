@@ -70,6 +70,7 @@ public class Game {
     public static ArrayList<String> locateCommandPermission = new ArrayList<>();
     public static int locateCost;
     public static Map<String, Integer> collectAmount = new HashMap<>();
+    private static final Deque<Location> randomTpPool = new ArrayDeque<>();
 
     private static World activeGameWorld;
 
@@ -678,6 +679,19 @@ public class Game {
     }
 
     private static Location findSafeOverworldLocation(World world, boolean avoidOcean) {
+        // Try to use a candidate from the pool first
+        Location candidate = pollRandomTeleportCandidate();
+        if (candidate != null) {
+            double randX = candidate.getX();
+            double randZ = candidate.getZ();
+            Location loc = world.getHighestBlockAt(new Location(world, randX, 0, randZ)).getLocation();
+            loc.setY(loc.getY() + 1);
+            if (!avoidOcean || !isOceanBiome(loc.getBlock().getBiome())) {
+                return loc;
+            }
+        }
+
+        // Fall back to random location generation
         Random random = new Random();
         Location fallback = world.getSpawnLocation();
         for (int attempts = 0; attempts < 60; attempts++) {
@@ -697,6 +711,24 @@ public class Game {
         return biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN || biome == Biome.DEEP_COLD_OCEAN
                 || biome == Biome.LUKEWARM_OCEAN || biome == Biome.DEEP_FROZEN_OCEAN || biome == Biome.COLD_OCEAN
                 || biome == Biome.WARM_OCEAN || biome == Biome.DEEP_LUKEWARM_OCEAN || biome == Biome.FROZEN_OCEAN;
+    }
+
+    public static synchronized void addRandomTeleportCandidate(Location location) {
+        if (location != null) {
+            randomTpPool.addLast(location);
+        }
+    }
+
+    public static synchronized Location pollRandomTeleportCandidate() {
+        return randomTpPool.pollFirst();
+    }
+
+    public static synchronized int getRandomTeleportPoolSize() {
+        return randomTpPool.size();
+    }
+
+    public static synchronized List<Location> getRandomTeleportPoolSnapshot() {
+        return List.copyOf(randomTpPool);
     }
 
     // Waypoints
