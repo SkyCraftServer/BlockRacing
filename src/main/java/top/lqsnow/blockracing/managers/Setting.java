@@ -29,6 +29,8 @@ public class Setting {
     @Getter
     private static boolean comebackBuffEnabled;
     @Getter
+    private static int comebackBuffThresholdPoints;
+    @Getter
     private static int timeModeDurationMinutes;
 
     public enum GameMode {
@@ -87,7 +89,9 @@ public class Setting {
         netherMode = Config.NETHER_MODE.getBoolean();
         blockAmount = Config.BLOCK_AMOUNT.getInt();
         speedMode = Config.SPEED_MODE.getBoolean();
-        comebackBuffEnabled = Config.COMEBACK_BUFF.getBoolean();
+        int configuredThreshold = Math.max(0, Config.COMEBACK_BUFF_THRESHOLD.getInt());
+        comebackBuffThresholdPoints = configuredThreshold;
+        comebackBuffEnabled = comebackBuffThresholdPoints > 0;
         maxTeamChestNum = Config.MAX_TEAM_CHEST_NUM.getInt();
         maxTeamWaypointNum = Config.MAX_TEAM_WAYPOINT_NUM.getInt();
         setCurrentGameMode(GameMode.fromConfig(Config.GAME_MODE.getString()));
@@ -152,8 +156,22 @@ public class Setting {
     }
 
     public static void setComebackBuffEnabled(boolean enabled) {
-        Setting.comebackBuffEnabled = enabled;
-        Config.COMEBACK_BUFF.setBoolean(enabled);
+        if (!enabled) {
+            setComebackBuffThresholdPoints(0);
+            return;
+        }
+        if (comebackBuffThresholdPoints <= 0) {
+            setComebackBuffThresholdPoints(20);
+            return;
+        }
+        Setting.comebackBuffEnabled = true;
+    }
+
+    public static void setComebackBuffThresholdPoints(int points) {
+        int finalPoints = Math.max(0, Math.min(1000, points));
+        Setting.comebackBuffThresholdPoints = finalPoints;
+        Config.COMEBACK_BUFF_THRESHOLD.setInt(finalPoints);
+        Setting.comebackBuffEnabled = finalPoints > 0;
     }
 
     public static void setTimeModeDurationMinutes(int minutes) {

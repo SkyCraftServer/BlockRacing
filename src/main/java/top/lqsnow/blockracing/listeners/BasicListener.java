@@ -26,7 +26,8 @@ import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 public class BasicListener implements Listener {
     public enum EditType {
         BLOCK_AMOUNT,
-        TIME_MODE_MINUTES
+        TIME_MODE_MINUTES,
+        COMEBACK_THRESHOLD
     }
 
     public static Map<String, EditType> editAmountPlayer = new HashMap<>();
@@ -70,7 +71,11 @@ public class BasicListener implements Listener {
                 blockAmount = Integer.parseInt(event.getMessage());
                 flag = true;
             } catch (Exception ex) {
-                player.sendMessage(Message.NOTICE_SET_BLOCKS_ERROR.getString());
+                if (editType == EditType.COMEBACK_THRESHOLD) {
+                    player.sendMessage(Message.NOTICE_SET_COMEBACK_THRESHOLD_ERROR.getString());
+                } else {
+                    player.sendMessage(Message.NOTICE_SET_BLOCKS_ERROR.getString());
+                }
                 flag = false;
             } finally {
                 event.setCancelled(true);
@@ -78,6 +83,8 @@ public class BasicListener implements Listener {
             if (flag) {
                 if (editType == EditType.TIME_MODE_MINUTES) {
                     setTimeModeDurationMinutes(blockAmount, true);
+                } else if (editType == EditType.COMEBACK_THRESHOLD) {
+                    setComebackThresholdPoints(blockAmount, true);
                 } else {
                     setBlockAmount(blockAmount, true);
                 }
@@ -159,6 +166,21 @@ public class BasicListener implements Listener {
         }
 
         Setting.setTimeModeDurationMinutes(finalMinutes);
+        updateMenu(new PreGameMenu());
+        updateScoreboard();
+    }
+
+    public static void setComebackThresholdPoints(int points, Boolean sendMessage) {
+        int minAllowed = 0;
+        int maxAllowed = 1000;
+        int finalPoints = Math.max(minAllowed, Math.min(maxAllowed, points));
+
+        if (sendMessage) {
+            sendAll(Message.NOTICE_SET_COMEBACK_THRESHOLD_SUCCESS.getString()
+                    .replace("%points%", String.valueOf(finalPoints)));
+        }
+
+        Setting.setComebackBuffThresholdPoints(finalPoints);
         updateMenu(new PreGameMenu());
         updateScoreboard();
     }

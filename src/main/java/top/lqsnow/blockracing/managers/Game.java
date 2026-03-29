@@ -78,7 +78,6 @@ public class Game {
     private static int timeModeRemainingSeconds;
     private static int timeModeDurationSeconds;
     private static boolean timeModeOvertime;
-    private static final int COMEBACK_THRESHOLD = 20;
     private enum ComebackBuffState { NONE, RED, BLUE }
     private static ComebackBuffState comebackBuffState = ComebackBuffState.NONE;
 
@@ -599,7 +598,7 @@ public class Game {
                 List<String> candidates = new ArrayList<>(blocks);
                 candidates.removeAll(redTeamBlocks);
                 if (candidates.isEmpty()) {
-                    player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
+                    player.sendMessage(Message.NOTICE_CANNOT_ROLL_NO_CANDIDATE.getString());
                     return;
                 }
                 if (redTeamRollCount >= 3) {
@@ -617,7 +616,7 @@ public class Game {
                 List<String> candidates = new ArrayList<>(blocks);
                 candidates.removeAll(blueTeamBlocks);
                 if (candidates.isEmpty()) {
-                    player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
+                    player.sendMessage(Message.NOTICE_CANNOT_ROLL_NO_CANDIDATE.getString());
                     return;
                 }
                 if (blueTeamRollCount >= 3) {
@@ -891,7 +890,7 @@ public class Game {
             List<String> b = new ArrayList<>(blocks);
             b.removeAll(redTeamBlocks);
             if (b.isEmpty()) {
-                sendRed(Message.NOTICE_CANNOT_ROLL.getString());
+                sendRed(Message.NOTICE_CANNOT_ROLL_NO_CANDIDATE.getString());
                 redRollPlayers.clear();
                 return;
             }
@@ -914,7 +913,7 @@ public class Game {
             List<String> b = new ArrayList<>(blocks);
             b.removeAll(blueTeamBlocks);
             if (b.isEmpty()) {
-                sendBlue(Message.NOTICE_CANNOT_ROLL.getString());
+                sendBlue(Message.NOTICE_CANNOT_ROLL_NO_CANDIDATE.getString());
                 blueRollPlayers.clear();
                 return;
             }
@@ -1363,9 +1362,10 @@ public class Game {
     }
 
     public static void refreshComebackEffects() {
+        int threshold = Math.max(1, Setting.getComebackBuffThresholdPoints());
         if (!getCurrentGameState().equals(GameState.INGAME) || !Setting.isComebackBuffEnabled()) {
             if (comebackBuffState != ComebackBuffState.NONE) {
-                sendAll(Message.NOTICE_COMEBACK_CLEAR.getString().replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+                sendAll(Message.NOTICE_COMEBACK_CLEAR.getString().replace("%points%", String.valueOf(threshold)));
             }
             comebackBuffState = ComebackBuffState.NONE;
             clearComebackEffects(redTeamPlayers);
@@ -1374,9 +1374,9 @@ public class Game {
         }
 
         int diff = redTeamScore - blueTeamScore;
-        if (Math.abs(diff) < COMEBACK_THRESHOLD) {
+        if (Math.abs(diff) < threshold) {
             if (comebackBuffState != ComebackBuffState.NONE) {
-                sendAll(Message.NOTICE_COMEBACK_CLEAR.getString().replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+                sendAll(Message.NOTICE_COMEBACK_CLEAR.getString().replace("%points%", String.valueOf(threshold)));
             }
             comebackBuffState = ComebackBuffState.NONE;
             clearComebackEffects(redTeamPlayers);
@@ -1384,20 +1384,20 @@ public class Game {
             return;
         }
 
-        if (diff >= COMEBACK_THRESHOLD) {
+        if (diff >= threshold) {
             if (comebackBuffState != ComebackBuffState.BLUE) {
                 sendAll(Message.NOTICE_COMEBACK_APPLY.getString()
                         .replace("%team%", Message.TEAM_BLUE_NAME.getString())
-                        .replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+                        .replace("%points%", String.valueOf(threshold)));
             }
             comebackBuffState = ComebackBuffState.BLUE;
             applyComebackEffects("blue");
             clearComebackEffects(redTeamPlayers);
-        } else if (diff <= -COMEBACK_THRESHOLD) {
+        } else if (diff <= -threshold) {
             if (comebackBuffState != ComebackBuffState.RED) {
                 sendAll(Message.NOTICE_COMEBACK_APPLY.getString()
                         .replace("%team%", Message.TEAM_RED_NAME.getString())
-                        .replace("%points%", String.valueOf(COMEBACK_THRESHOLD)));
+                        .replace("%points%", String.valueOf(threshold)));
             }
             comebackBuffState = ComebackBuffState.RED;
             applyComebackEffects("red");

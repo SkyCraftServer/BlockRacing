@@ -88,6 +88,10 @@ menu:
     time-mode-duration: "&eTime Mode Duration: %minutes% minutes"
     time-mode-duration-lore:
       - "&eClick to change the time mode duration (minutes)"
+    comeback-threshold: "&eComeback Threshold: %points% points"
+    comeback-threshold-lore:
+      - "&eClick to set the score gap that triggers comeback buff"
+      - "&eInput 0 to disable this mechanic"
     medium-blocks: "&eMedium Blocks: "
     hard-blocks: "&eHard Blocks: "
     dyed-blocks: "&eDyed Blocks: "
@@ -204,6 +208,9 @@ notice:
   set-blocks-success: "&aChanged the required block amount to: "
   set-time-mode-minutes: "&eSend the time mode duration in minutes, or 'quit' to cancel"
   set-time-mode-minutes-success: "&aChanged time mode duration to: %minutes% minutes"
+  set-comeback-threshold: "&eSend the comeback trigger score gap (0 to disable), or 'quit' to cancel"
+  set-comeback-threshold-success: "&aComeback threshold set to: %points% points"
+  set-comeback-threshold-error: "&cPlease enter a valid number! Use 0 to disable, or 'quit' to cancel"
   spawn-protect-notice: "&bNote: If you can't place or break blocks near spawn, it's due to spawn protection. Move away from spawn!"
   exist-error-block: "&4Item named %s does not exist! Check the configuration file!"
   not-enough-score: "&cInsufficient points!"
@@ -223,6 +230,7 @@ notice:
   red-remove-waypoint: "&bPlayer &c%player% &bremoved waypoint %index%!"
   blue-remove-waypoint: "&bPlayer &9%player% &bremoved waypoint %index%!"
   cannot-roll: "&cYour team has already rolled blocks 3 times this game, cannot roll again!"
+  cannot-roll-no-candidate: "&cNo replaceable blocks are available (targets already cover the block pool), cannot roll this game!"
   cannot-roll-contest: "&cContest mode roll limit reached (only 1 per game), cannot roll again this game!"
   roll-request: "&bPlayer %player% requests to roll blocks! All online players in the team must agree to proceed!"
   roll-request-contest: "&bPlayer %player% requests to roll blocks! All online players in the server must agree to proceed!"

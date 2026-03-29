@@ -65,6 +65,9 @@ public class PreGameMenu extends Menu {
     @Position(33)
     private final Button netherMode;
 
+    @Position(40)
+    private final Button comebackThreshold;
+
     @Position(38)
     private final Button ready;
 
@@ -359,6 +362,26 @@ public class PreGameMenu extends Menu {
                     return ItemCreator.from(CompMaterial.NETHERRACK, Message.MENU_NETHER_MODE_ENABLED.getString(), Message.MENU_NETHER_MODE_LORE.getStringList()).glow(true).make();
                 }
                 return ItemCreator.from(CompMaterial.NETHERRACK, Message.MENU_NETHER_MODE_DISABLED.getString(), Message.MENU_NETHER_MODE_LORE.getStringList()).make();
+            }
+        };
+
+        // Set comeback threshold (0 disables)
+        this.comebackThreshold = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                player.closeInventory();
+                editAmountPlayer.put(player.getName(), BasicListener.EditType.COMEBACK_THRESHOLD);
+                player.sendMessage(Message.NOTICE_SET_COMEBACK_THRESHOLD.getString());
+            }
+
+            @Override
+            public ItemStack getItem() {
+                int points = Setting.getComebackBuffThresholdPoints();
+                CompMaterial material = points > 0 ? CompMaterial.GREEN_CONCRETE : CompMaterial.RED_CONCRETE;
+                return ItemCreator.from(material,
+                                Message.MENU_COMEBACK_THRESHOLD.getString().replace("%points%", String.valueOf(points)),
+                                Message.MENU_COMEBACK_THRESHOLD_LORE.getStringList())
+                        .make();
             }
         };
 

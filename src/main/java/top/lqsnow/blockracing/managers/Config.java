@@ -22,7 +22,7 @@ public enum Config {
     GAME_MODE("game-mode"),
     TIME_MODE_DURATION("time-mode.duration"),
     SPEED_MODE("speed-mode"),
-    COMEBACK_BUFF("comeback-buff"),
+    COMEBACK_BUFF_THRESHOLD("comeback-buff-threshold"),
     CONFIG_VERSION("config-version"),
     MAX_TEAM_CHEST_NUM("max-team-chest-num"),
     MAX_TEAM_WAYPOINT_NUM("max-team-waypoint-num");

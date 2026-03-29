@@ -113,6 +113,10 @@ menu:
     time-mode-duration: "&e计时模式时间：%minutes% 分钟"
     time-mode-duration-lore:
       - "&e点击此处更改计时模式的持续时间（分钟）"
+    comeback-threshold: "&e落后补偿阈值：%points% 分"
+    comeback-threshold-lore:
+      - "&e点击此处设置落后补偿触发分差"
+      - "&e输入0可关闭该机制"
     medium-blocks: "&e中等方块："
     hard-blocks: "&e困难方块："
     dyed-blocks: "&e染色方块："
@@ -233,6 +237,9 @@ notice:
   set-blocks-success: "&a需要收集的方块数量更改为："
   set-time-mode-minutes: "&e请直接发送计时模式的持续时间（分钟），发送quit取消输入"
   set-time-mode-minutes-success: "&a计时模式时间更改为：%minutes% 分钟"
+  set-comeback-threshold: "&e请直接发送落后补偿触发分差（输入0关闭），发送quit取消输入"
+  set-comeback-threshold-success: "&a落后补偿阈值已设置为：%points% 分"
+  set-comeback-threshold-error: "&c请输入正确数字！输入0可关闭；发送quit退出输入模式"
   spawn-protect-notice: "&b提示：如果出生点附近无法放置或破坏方块，是因为服务器带有出生点保护，离开出生点附近即可！"
   exist-error-block: "&4名为 %s 的物品不存在！请检查配置文件！"
   not-enough-score: "&c积分不足！"
@@ -252,6 +259,7 @@ notice:
   red-remove-waypoint: "&b玩家 &c%player% &b移除了传送点%index%！"
   blue-remove-waypoint: "&b玩家 &9%player% &b移除了传送点%index%！"
   cannot-roll: "&c您的队伍已经轮换过3次方块了，本局不能再次轮换了！"
+  cannot-roll-no-candidate: "&c当前没有可替换方块（目标方块已覆盖方块池），本局不能轮换！"
   cannot-roll-contest: "&c本局争夺模式轮换次数已用尽（仅限1次），本局不能再次轮换了！"
   roll-request: "&b玩家 %player% 申请轮换方块！本队所有在线玩家同意即可轮换！"
   roll-request-contest: "&b玩家 %player% 申请轮换方块！全场所有在线玩家同意即可轮换！"
