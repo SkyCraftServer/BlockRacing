@@ -596,6 +596,12 @@ public class Game {
         } else {
             // 其他模式：队伍轮换，每队三次
             if (redTeamPlayers.contains(player.getName())) {
+                List<String> candidates = new ArrayList<>(blocks);
+                candidates.removeAll(redTeamBlocks);
+                if (candidates.isEmpty()) {
+                    player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
+                    return;
+                }
                 if (redTeamRollCount >= 3) {
                     player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
                     return;
@@ -608,6 +614,12 @@ public class Game {
                     sendRed(Message.NOTICE_ROLL_REQUEST_CANCEL.getString().replace("%player%", player.getName()));
                 }
             } else if (blueTeamPlayers.contains(player.getName())) {
+                List<String> candidates = new ArrayList<>(blocks);
+                candidates.removeAll(blueTeamBlocks);
+                if (candidates.isEmpty()) {
+                    player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
+                    return;
+                }
                 if (blueTeamRollCount >= 3) {
                     player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
                     return;
@@ -878,6 +890,11 @@ public class Game {
         if (!getOnlineTeamPlayers("red").isEmpty() && redSet.containsAll(redOnlineSet)) {
             List<String> b = new ArrayList<>(blocks);
             b.removeAll(redTeamBlocks);
+            if (b.isEmpty()) {
+                sendRed(Message.NOTICE_CANNOT_ROLL.getString());
+                redRollPlayers.clear();
+                return;
+            }
             Random random = new Random();
             int rollAmount = getCurrentBlocks("red").size();
             for (int i = 0; i < rollAmount; i++) {
@@ -896,6 +913,11 @@ public class Game {
         if (!getOnlineTeamPlayers("blue").isEmpty() && blueSet.containsAll(blueOnlineSet)) {
             List<String> b = new ArrayList<>(blocks);
             b.removeAll(blueTeamBlocks);
+            if (b.isEmpty()) {
+                sendBlue(Message.NOTICE_CANNOT_ROLL.getString());
+                blueRollPlayers.clear();
+                return;
+            }
             Random random = new Random();
             int rollAmount = getCurrentBlocks("blue").size();
             for (int i = 0; i < rollAmount; i++) {
