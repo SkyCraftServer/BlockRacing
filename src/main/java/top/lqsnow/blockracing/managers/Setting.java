@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.Map;
 
 public class Setting {
+    private static void persistConfigNow() {
+        Config.saveConfig();
+    }
+
     @Getter
     private static boolean enableMediumBlock;
     @Getter
@@ -123,7 +127,7 @@ public class Setting {
         comebackBuffEnabled = comebackBuffThresholdPoints > 0;
         maxTeamChestNum = Config.MAX_TEAM_CHEST_NUM.getInt();
         maxTeamWaypointNum = Config.MAX_TEAM_WAYPOINT_NUM.getInt();
-        setCurrentGameMode(GameMode.fromConfig(Config.GAME_MODE.getString()));
+        setCurrentGameMode(GameMode.fromConfig(Config.GAME_MODE.getString()), false);
 
         int configuredMinutes = Config.TIME_MODE_DURATION.getInt();
         if (configuredMinutes <= 0) {
@@ -392,51 +396,61 @@ public class Setting {
     public static void setEnableMediumBlock(boolean enableMediumBlock) {
         Setting.enableMediumBlock = enableMediumBlock;
         Config.MEDIUM_BLOCK.setBoolean(enableMediumBlock);
+        persistConfigNow();
     }
 
     public static void setEnableHardBlock(boolean enableHardBlock) {
         Setting.enableHardBlock = enableHardBlock;
         Config.HARD_BLOCK.setBoolean(enableHardBlock);
+        persistConfigNow();
     }
 
     public static void setEnableDyedBlock(boolean enableDyedBlock) {
         Setting.enableDyedBlock = enableDyedBlock;
         Config.DYED_BLOCK.setBoolean(enableDyedBlock);
+        persistConfigNow();
     }
 
     public static void setEnableEndBlock(boolean enableEndBlock) {
         Setting.enableEndBlock = enableEndBlock;
         Config.END_BLOCK.setBoolean(enableEndBlock);
+        persistConfigNow();
     }
 
     public static void setEnableAddonBlock(boolean enableAddonBlock) {
         if (!addonAvailable) {
             Setting.enableAddonBlock = false;
             Config.ADDON_BLOCK.setBoolean(false);
+            persistConfigNow();
             return;
         }
         Setting.enableAddonBlock = enableAddonBlock;
         Config.ADDON_BLOCK.setBoolean(enableAddonBlock);
+        persistConfigNow();
     }
 
     public static void setNetherMode(boolean netherMode) {
         Setting.netherMode = netherMode;
         Config.NETHER_MODE.setBoolean(netherMode);
+        persistConfigNow();
     }
 
     public static void setBlockAmount(int blockAmount) {
         Setting.blockAmount = blockAmount;
         Config.BLOCK_AMOUNT.setInt(blockAmount);
+        persistConfigNow();
     }
 
     public static void setMaxTeamChestNum(int chestNum) {
         Setting.maxTeamChestNum = chestNum;
         Config.MAX_TEAM_CHEST_NUM.setInt(chestNum);
+        persistConfigNow();
     }
 
     public static void setSpeedMode(boolean speedMode) {
         Setting.speedMode = speedMode;
         Config.SPEED_MODE.setBoolean(speedMode);
+        persistConfigNow();
     }
 
     public static void setComebackBuffEnabled(boolean enabled) {
@@ -456,19 +470,28 @@ public class Setting {
         Setting.comebackBuffThresholdPoints = finalPoints;
         Config.COMEBACK_BUFF_THRESHOLD.setInt(finalPoints);
         Setting.comebackBuffEnabled = finalPoints > 0;
+        persistConfigNow();
     }
 
     public static void setTimeModeDurationMinutes(int minutes) {
         Setting.timeModeDurationMinutes = minutes;
         Config.TIME_MODE_DURATION.setInt(minutes);
+        persistConfigNow();
     }
 
     public static void setCurrentGameMode(GameMode mode) {
+        setCurrentGameMode(mode, true);
+    }
+
+    private static void setCurrentGameMode(GameMode mode, boolean persist) {
         if (mode == null) {
             mode = GameMode.NORMAL;
         }
         Setting.currentGameMode = mode;
         Config.GAME_MODE.setString(mode.getConfigValue());
+        if (persist) {
+            persistConfigNow();
+        }
     }
 
     public static int getTimeModeDurationSeconds() {
