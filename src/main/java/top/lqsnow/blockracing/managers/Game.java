@@ -1091,6 +1091,12 @@ public class Game {
         updateScoreboard();
         
         // Check if either team reached target amount
+        if (redTeamCurrentBlockAmount >= Setting.getBlockAmount()
+                && blueTeamCurrentBlockAmount >= Setting.getBlockAmount()) {
+            drawGame();
+            showRanking();
+            return;
+        }
         if (redTeamCurrentBlockAmount >= Setting.getBlockAmount()) {
             redWin();
             showRanking();
@@ -1240,6 +1246,20 @@ public class Game {
             player.setGameMode(GameMode.SPECTATOR);
         }
         sendAll(Message.NOTICE_BLUE_WIN.getString());
+        playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
+        setCurrentGameState(GameState.END);
+        updateScoreboard();
+    }
+
+    public static void drawGame() {
+        stopTimeModeCountdown();
+        String drawMessage = Message.NOTICE_DRAW.getString();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.closeInventory();
+            player.sendTitle(drawMessage, null);
+            player.setGameMode(GameMode.SPECTATOR);
+        }
+        sendAll(drawMessage);
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
         updateScoreboard();

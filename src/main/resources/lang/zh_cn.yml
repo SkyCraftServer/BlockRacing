@@ -242,6 +242,7 @@ notice:
   team-chest-full: "%team%&c队伍箱子已满！%block%无法放入队伍箱子！"
   red-win: "&c&l红队获胜！"
   blue-win: "&9&l蓝队获胜！"
+  draw: "&e&l平局！"
   red-team-chest: "&c红队队伍箱子"
   blue-team-chest: "&9蓝队队伍箱子"
   both-collect-contest: "&e双方都收集了 &b%block%&e ！&c红队&e和&9蓝队&e各获得1分！"

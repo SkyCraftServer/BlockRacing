@@ -184,6 +184,7 @@ public enum Message {
     NOTICE_TEAM_CHEST_FULL("notice.team-chest-full"),
     NOTICE_RED_WIN("notice.red-win"),
     NOTICE_BLUE_WIN("notice.blue-win"),
+    NOTICE_DRAW("notice.draw"),
     NOTICE_RED_TEAM_CHEST("notice.red-team-chest"),
     NOTICE_BLUE_TEAM_CHEST("notice.blue-team-chest"),
     NOTICE_BOTH_COLLECT_CONTEST("notice.both-collect-contest"),
