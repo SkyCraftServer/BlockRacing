@@ -550,28 +550,13 @@ public class Game {
 
         // Speed mode
         if (Setting.isSpeedMode()) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, -1, 4, false, false));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
-            }, 1300L); // 延迟发放 避免冲突
-            player.getInventory()
-                    .addItem(ItemCreator.fromMaterial(CompMaterial.IRON_PICKAXE).enchant(Enchantment.SILK_TOUCH, 1).make());
-            player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.GOLDEN_CARROT).amount(64).make());
-
-            ItemStack damagedElytra = new ItemStack(Material.ELYTRA);
-            damagedElytra.setDurability((short) (damagedElytra.getType().getMaxDurability() - 1));
-            ItemMeta elytraMeta = damagedElytra.getItemMeta();
-            Repairable repairable = (Repairable) elytraMeta;
-            repairable.setRepairCost(15);
-            damagedElytra.setItemMeta(elytraMeta);
-            player.getInventory().addItem(damagedElytra);
-
-            ItemStack xpBook = new ItemStack(Material.ENCHANTED_BOOK);
-            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) xpBook.getItemMeta();
-            meta.addStoredEnchant(Enchantment.MENDING, 1, true);
-            xpBook.setItemMeta(meta);
-            player.getInventory().addItem(xpBook);
+            for (ItemStack stack : Setting.getSpeedModeItems()) {
+                if (stack == null) {
+                    continue;
+                }
+                player.getInventory().addItem(stack.clone());
+            }
+            applyConfiguredSpeedModeEffects(player);
         }
 
         refreshComebackEffects();
@@ -1316,6 +1301,23 @@ public class Game {
         }
     }
 
+    public static void applyConfiguredSpeedModeEffects(Player player) {
+        if (player == null || !Setting.isSpeedMode()) {
+            return;
+        }
+        for (Setting.SpeedModeEffectOption option : Setting.getSpeedModeEffects()) {
+            if (option == null || option.getEffect() == null) {
+                continue;
+            }
+            if (option.getDelayTicks() > 0L) {
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(),
+                        () -> player.addPotionEffect(option.getEffect()), option.getDelayTicks());
+            } else {
+                player.addPotionEffect(option.getEffect());
+            }
+        }
+    }
+
     private static void reapplyBaselineMobility(Player player) {
         if (player == null) {
             return;
@@ -1333,16 +1335,18 @@ public class Game {
                 continue;
             }
             boolean removed = false;
-            PotionEffect speed = player.getPotionEffect(PotionEffectType.SPEED);
-            if (speed != null && speed.getAmplifier() >= 2) {
-                player.removePotionEffect(PotionEffectType.SPEED);
-                removed = true;
+
+            for (PotionEffect configured : Setting.getComebackBuffEffects()) {
+                if (configured == null || configured.getType() == null) {
+                    continue;
+                }
+                PotionEffect active = player.getPotionEffect(configured.getType());
+                if (active != null && active.getAmplifier() >= configured.getAmplifier()) {
+                    player.removePotionEffect(configured.getType());
+                    removed = true;
+                }
             }
-            PotionEffect resistance = player.getPotionEffect(PotionEffectType.RESISTANCE);
-            if (resistance != null && resistance.getAmplifier() >= 2) {
-                player.removePotionEffect(PotionEffectType.RESISTANCE);
-                removed = true;
-            }
+
             if (removed) {
                 reapplyBaselineMobility(player);
             }
@@ -1356,8 +1360,12 @@ public class Game {
             if (player == null) {
                 continue;
             }
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 2, false, false));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 2, false, false));
+            for (PotionEffect effect : Setting.getComebackBuffEffects()) {
+                if (effect == null || effect.getType() == null) {
+                    continue;
+                }
+                player.addPotionEffect(effect);
+            }
         }
     }
 

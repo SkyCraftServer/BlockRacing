@@ -95,4 +95,8 @@ public enum Config {
             Main.getInstance().getLogger().log(Level.SEVERE, "[BlockRacing] Error saving config.yml!", e);
         }
     }
+
+    public static FileConfiguration getConfig() {
+        return config;
+    }
 }

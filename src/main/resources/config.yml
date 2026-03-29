@@ -29,14 +29,65 @@ time-mode:
 
 # 极速模式：
 # 开启极速模式后，开局时将会给予玩家部分道具和效果，以加快游戏进度
-# 物品：精准采集铁镐、熟牛排、损坏的鞘翅、经验修补附魔书
-# 效果：急迫V
+# 具体发放物品和效果可在 speed-mode-items / speed-mode-effects 中自定义
 speed-mode: false
+
+# 极速模式物品配置（支持任意物品）
+# material: 材质名（如 IRON_PICKAXE）
+# amount: 数量（默认1，范围1-64）
+# enchants: 直接附魔（格式：附魔名: 等级）
+# stored-enchants: 附魔书存储附魔（仅 ENCHANTED_BOOK 生效）
+# damage-max-offset: 设置耐久值
+# repair-cost: 铁砧花费
+speed-mode-items:
+  - material: IRON_PICKAXE
+    amount: 1
+    enchants:
+      SILK_TOUCH: 1
+  - material: GOLDEN_CARROT
+    amount: 64
+  - material: ELYTRA
+    amount: 1
+    damage-max-offset: 1
+    repair-cost: 15
+  - material: ENCHANTED_BOOK
+    amount: 1
+    stored-enchants:
+      MENDING: 1
+
+# 极速模式效果配置
+# amplifier 使用药水放大器（0=I，1=II，2=III ...）
+# duration-ticks: 持续时间（-1 表示无限）
+# delay-ticks: 延迟发放（tick，20tick=1秒）
+speed-mode-effects:
+  - type: HASTE
+    amplifier: 4
+    duration-ticks: -1
+    delay-ticks: 0
+  - type: SPEED
+    amplifier: 1
+    duration-ticks: -1
+    delay-ticks: 0
+  - type: RESISTANCE
+    amplifier: 1
+    duration-ticks: -1
+    delay-ticks: 1300
 
 # 落后补偿：当一队落后达到阈值分数时，为落后队伍持续提供速度III与抗性III
 # 分差缩小到阈值内后移除；玩家复活后会重新给予补偿效果
 # 设为 0 可关闭该机制
 comeback-buff-threshold: 20
+
+# 落后补偿效果配置
+# amplifier 使用药水放大器（0=I，1=II，2=III ...）
+# duration-ticks: 持续时间（-1 表示无限）
+comeback-buff-effects:
+  - type: SPEED
+    amplifier: 2
+    duration-ticks: -1
+  - type: RESISTANCE
+    amplifier: 2
+    duration-ticks: -1
 
 # 下界模式：
 # 开启后仅使用 NetherBlocks.txt 方块库，并将出生与随机传送限定在下界（阻止通过下界门返回主世界）
