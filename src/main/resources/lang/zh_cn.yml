@@ -134,6 +134,8 @@ menu:
     speed-mode-disabled: "&e当前未开启：<gradient:#40dbc8:#5deae1>极速模式</gradient>"
     nether-mode-enabled: "&c当前已开启：<gradient:#fa0000:#ff3434>下界模式</gradient>"
     nether-mode-disabled: "&e当前未开启：<gradient:#fa0000:#ff3434>下界模式</gradient>"
+    shared-team-spawn-enabled: "&a当前已开启：同点出生模式"
+    shared-team-spawn-disabled: "&e当前未开启：同点出生模式"
     normal-mode-lore:
       - "&e两个队伍需要收集的方块及顺序完全&l随机&r&e，"
       - "&e收集方块会将一组该方块给到对方的队伍箱子里！"
@@ -165,6 +167,10 @@ menu:
       - "&e随机出生与随机传送限定在下界，并阻止返回主世界"
       - "&e可与普通/竞速/争夺/计时及极速模式叠加；开启后方块库开关将被锁定"
       - "<gradient:#5fdb40:#e7b918>下界模式并非主要的游戏模式，您需要选择主要游戏模式</gradient>"
+    shared-team-spawn-lore:
+      - "&e开启后两队将出生在同一个位置"
+      - "&e更容易在开局直接发生对抗"
+      - "&7默认关闭"
     locked-by-nether: " &7(下界模式锁定)"
     select-team: "&a选队"
     block-setting: "&a方块设置"

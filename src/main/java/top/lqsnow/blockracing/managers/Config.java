@@ -22,6 +22,7 @@ public enum Config {
     GAME_MODE("game-mode"),
     TIME_MODE_DURATION("time-mode.duration"),
     SPEED_MODE("speed-mode"),
+    SHARED_TEAM_SPAWN("shared-team-spawn"),
     COMEBACK_BUFF_THRESHOLD("comeback-buff-threshold"),
     CONFIG_VERSION("config-version"),
     MAX_TEAM_CHEST_NUM("max-team-chest-num"),

@@ -108,6 +108,8 @@ menu:
     speed-mode-disabled: "&eCurrently Disabled: &9Speed Mode"
     nether-mode-enabled: "&cCurrently Enabled: Nether Mode"
     nether-mode-disabled: "&eCurrently Disabled: Nether Mode"
+    shared-team-spawn-enabled: "&aCurrently Enabled: Shared Spawn Mode"
+    shared-team-spawn-disabled: "&eCurrently Disabled: Shared Spawn Mode"
     normal-mode-lore:
       - "&eThe blocks that both teams need to collect"
       - "&eare completely &lrandom&r&e,"
@@ -134,6 +136,10 @@ menu:
       - "&eUse only the Nether block pool (NetherBlocks.txt); other pools are ignored"
       - "&eSpawns and random teleport are limited to the Nether; Nether portals back to Overworld are blocked"
       - "&eCan stack with Normal/Racing/Time and Speed modes; pool toggles are locked while active"
+    shared-team-spawn-lore:
+      - "&eWhen enabled, both teams spawn at the same location"
+      - "&eCreates direct competition right from the start"
+      - "&7Disabled by default"
     locked-by-nether: " &7(Locked by Nether Mode)"
     select-team: "&aSelect Team"
     block-setting: "&aBlock Setting"

@@ -68,6 +68,9 @@ public class PreGameMenu extends Menu {
     @Position(40)
     private final Button comebackThreshold;
 
+    @Position(41)
+    private final Button sharedTeamSpawn;
+
     @Position(38)
     private final Button ready;
 
@@ -381,6 +384,31 @@ public class PreGameMenu extends Menu {
                 return ItemCreator.from(material,
                                 Message.MENU_COMEBACK_THRESHOLD.getString().replace("%points%", String.valueOf(points)),
                                 Message.MENU_COMEBACK_THRESHOLD_LORE.getStringList())
+                        .make();
+            }
+        };
+
+        // Toggle shared team spawn
+        this.sharedTeamSpawn = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                Setting.toggleSharedTeamSpawn();
+                updateMenu(PreGameMenu.this);
+                updateScoreboard();
+            }
+
+            @Override
+            public ItemStack getItem() {
+                if (Setting.isSharedTeamSpawn()) {
+                    return ItemCreator.from(CompMaterial.TOTEM_OF_UNDYING,
+                                    Message.MENU_SHARED_TEAM_SPAWN_ENABLED.getString(),
+                                    Message.MENU_SHARED_TEAM_SPAWN_LORE.getStringList())
+                            .glow(true)
+                            .make();
+                }
+                return ItemCreator.from(CompMaterial.TOTEM_OF_UNDYING,
+                                Message.MENU_SHARED_TEAM_SPAWN_DISABLED.getString(),
+                                Message.MENU_SHARED_TEAM_SPAWN_LORE.getStringList())
                         .make();
             }
         };

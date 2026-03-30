@@ -43,6 +43,8 @@ public class Setting {
     @Getter
     private static boolean speedMode;
     @Getter
+    private static boolean sharedTeamSpawn;
+    @Getter
     private static boolean comebackBuffEnabled;
     @Getter
     private static int comebackBuffThresholdPoints;
@@ -122,6 +124,7 @@ public class Setting {
         netherMode = Config.NETHER_MODE.getBoolean();
         blockAmount = Config.BLOCK_AMOUNT.getInt();
         speedMode = Config.SPEED_MODE.getBoolean();
+        sharedTeamSpawn = Config.SHARED_TEAM_SPAWN.getBoolean();
         int configuredThreshold = Math.max(0, Config.COMEBACK_BUFF_THRESHOLD.getInt());
         comebackBuffThresholdPoints = configuredThreshold;
         comebackBuffEnabled = comebackBuffThresholdPoints > 0;
@@ -453,6 +456,12 @@ public class Setting {
         persistConfigNow();
     }
 
+    public static void setSharedTeamSpawn(boolean sharedTeamSpawn) {
+        Setting.sharedTeamSpawn = sharedTeamSpawn;
+        Config.SHARED_TEAM_SPAWN.setBoolean(sharedTeamSpawn);
+        persistConfigNow();
+    }
+
     public static void setComebackBuffEnabled(boolean enabled) {
         if (!enabled) {
             setComebackBuffThresholdPoints(0);
@@ -524,6 +533,10 @@ public class Setting {
 
     public static void toggleSpeedMode() {
         setSpeedMode(!isSpeedMode());
+    }
+
+    public static void toggleSharedTeamSpawn() {
+        setSharedTeamSpawn(!isSharedTeamSpawn());
     }
 
     public static void toggleComebackBuff() {

@@ -30,6 +30,11 @@ time-mode:
 # 具体发放物品和效果可在 speed-mode-items / speed-mode-effects 中自定义
 speed-mode: false
 
+# 同点出生模式：
+# 开启后红队和蓝队将共享同一个开局出生点，增强对抗性
+# 关闭后双方仍使用分离出生点
+shared-team-spawn: false
+
 # 极速模式物品配置（支持任意物品）
 # material: 材质名（如 IRON_PICKAXE）
 # amount: 数量（默认1，范围1-64）

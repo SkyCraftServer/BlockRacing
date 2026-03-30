@@ -158,6 +158,11 @@ public class Game {
             return;
         }
         redTeamSpawn = generateSafeSpawn(world);
+        if (Setting.isSharedTeamSpawn()) {
+            blueTeamSpawn = redTeamSpawn == null ? null : redTeamSpawn.clone();
+            return;
+        }
+
         blueTeamSpawn = generateSafeSpawn(world);
         // ensure spawns are not too close
         if (redTeamSpawn != null && blueTeamSpawn != null && redTeamSpawn.getWorld().equals(blueTeamSpawn.getWorld())) {
