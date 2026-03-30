@@ -1,0 +1,12 @@
+jdk:
+  - openjdk21
+
+before_install:
+  - git clone https://github.com/kangarko/Foundation/
+  - cd Foundation
+  - git checkout v7
+  - mvn install -DskipTests
+  - cd ..
+
+install:
+  - mvn clean package -DskipTests

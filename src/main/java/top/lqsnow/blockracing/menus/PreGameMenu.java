@@ -71,6 +71,9 @@ public class PreGameMenu extends Menu {
     @Position(41)
     private final Button sharedTeamSpawn;
 
+    @Position(42)
+    private final Button endPortalBroadcast;
+
     @Position(38)
     private final Button ready;
 
@@ -409,6 +412,31 @@ public class PreGameMenu extends Menu {
                 return ItemCreator.from(CompMaterial.TOTEM_OF_UNDYING,
                                 Message.MENU_SHARED_TEAM_SPAWN_DISABLED.getString(),
                                 Message.MENU_SHARED_TEAM_SPAWN_LORE.getStringList())
+                        .make();
+            }
+        };
+
+        // Toggle end portal coordinate broadcast
+        this.endPortalBroadcast = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                Setting.toggleEndPortalCoordinateBroadcast();
+                updateMenu(PreGameMenu.this);
+                updateScoreboard();
+            }
+
+            @Override
+            public ItemStack getItem() {
+                if (Setting.isEndPortalCoordinateBroadcast()) {
+                    return ItemCreator.from(CompMaterial.ENDER_EYE,
+                                    Message.MENU_END_PORTAL_BROADCAST_ENABLED.getString(),
+                                    Message.MENU_END_PORTAL_BROADCAST_LORE.getStringList())
+                            .glow(true)
+                            .make();
+                }
+                return ItemCreator.from(CompMaterial.ENDER_EYE,
+                                Message.MENU_END_PORTAL_BROADCAST_DISABLED.getString(),
+                                Message.MENU_END_PORTAL_BROADCAST_LORE.getStringList())
                         .make();
             }
         };

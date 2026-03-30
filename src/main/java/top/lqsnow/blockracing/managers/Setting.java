@@ -45,6 +45,8 @@ public class Setting {
     @Getter
     private static boolean sharedTeamSpawn;
     @Getter
+    private static boolean endPortalCoordinateBroadcast;
+    @Getter
     private static boolean comebackBuffEnabled;
     @Getter
     private static int comebackBuffThresholdPoints;
@@ -125,6 +127,7 @@ public class Setting {
         blockAmount = Config.BLOCK_AMOUNT.getInt();
         speedMode = Config.SPEED_MODE.getBoolean();
         sharedTeamSpawn = Config.SHARED_TEAM_SPAWN.getBoolean();
+        endPortalCoordinateBroadcast = Config.END_PORTAL_COORDINATE_BROADCAST.getBoolean();
         int configuredThreshold = Math.max(0, Config.COMEBACK_BUFF_THRESHOLD.getInt());
         comebackBuffThresholdPoints = configuredThreshold;
         comebackBuffEnabled = comebackBuffThresholdPoints > 0;
@@ -462,6 +465,12 @@ public class Setting {
         persistConfigNow();
     }
 
+    public static void setEndPortalCoordinateBroadcast(boolean endPortalCoordinateBroadcast) {
+        Setting.endPortalCoordinateBroadcast = endPortalCoordinateBroadcast;
+        Config.END_PORTAL_COORDINATE_BROADCAST.setBoolean(endPortalCoordinateBroadcast);
+        persistConfigNow();
+    }
+
     public static void setComebackBuffEnabled(boolean enabled) {
         if (!enabled) {
             setComebackBuffThresholdPoints(0);
@@ -537,6 +546,10 @@ public class Setting {
 
     public static void toggleSharedTeamSpawn() {
         setSharedTeamSpawn(!isSharedTeamSpawn());
+    }
+
+    public static void toggleEndPortalCoordinateBroadcast() {
+        setEndPortalCoordinateBroadcast(!isEndPortalCoordinateBroadcast());
     }
 
     public static void toggleComebackBuff() {

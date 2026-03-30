@@ -1,11 +1,15 @@
 package top.lqsnow.blockracing.listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import top.lqsnow.blockracing.Main;
@@ -133,6 +137,69 @@ public class BasicListener implements Listener {
             event.setCancelled(true);
             event.getPlayer().sendMessage(Message.NOTICE_NETHER_PORTAL_BLOCKED.getString());
         }
+    }
+
+    @EventHandler
+    private void onEndPortalActivate(PlayerInteractEvent event) {
+        if (!Setting.isEndPortalCoordinateBroadcast()) return;
+        if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getClickedBlock() == null || event.getClickedBlock().getType() != Material.END_PORTAL_FRAME) return;
+        if (event.getItem() == null || event.getItem().getType() != Material.ENDER_EYE) return;
+
+        Location clicked = event.getClickedBlock().getLocation();
+        boolean hadPortal = hasNearbyEndPortal(clicked);
+
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+            if (hadPortal || !hasNearbyEndPortal(clicked)) {
+                return;
+            }
+
+            Player player = event.getPlayer();
+            String teamName;
+            if (isPlayerInRedTeam(player)) {
+                teamName = Message.TEAM_RED_NAME.getString();
+            } else if (isPlayerInBlueTeam(player)) {
+                teamName = Message.TEAM_BLUE_NAME.getString();
+            } else {
+                teamName = "&7未知队伍";
+            }
+
+            Location portalLoc = findNearbyEndPortal(clicked);
+            if (portalLoc == null) {
+                portalLoc = clicked;
+            }
+
+            sendAll(Message.NOTICE_END_PORTAL_OPEN.getString()
+                    .replace("%player%", player.getName())
+                    .replace("%team%", teamName)
+                    .replace("%x%", String.valueOf(portalLoc.getBlockX()))
+                    .replace("%y%", String.valueOf(portalLoc.getBlockY()))
+                    .replace("%z%", String.valueOf(portalLoc.getBlockZ())));
+        }, 1L);
+    }
+
+    private boolean hasNearbyEndPortal(Location center) {
+        return findNearbyEndPortal(center) != null;
+    }
+
+    private Location findNearbyEndPortal(Location center) {
+        if (center == null || center.getWorld() == null) {
+            return null;
+        }
+        org.bukkit.block.Block base = center.getBlock();
+        for (int x = -3; x <= 3; x++) {
+            for (int y = -1; y <= 2; y++) {
+                for (int z = -3; z <= 3; z++) {
+                    org.bukkit.block.Block check = base.getRelative(x, y, z);
+                    if (check.getType() == Material.END_PORTAL) {
+                        return check.getLocation();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public static void setBlockAmount(int blockAmount, Boolean sendMessage) {

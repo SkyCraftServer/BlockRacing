@@ -110,6 +110,8 @@ menu:
     nether-mode-disabled: "&eCurrently Disabled: Nether Mode"
     shared-team-spawn-enabled: "&aCurrently Enabled: Shared Spawn Mode"
     shared-team-spawn-disabled: "&eCurrently Disabled: Shared Spawn Mode"
+    end-portal-broadcast-enabled: "&aCurrently Enabled: End Portal Coordinate Broadcast"
+    end-portal-broadcast-disabled: "&eCurrently Disabled: End Portal Coordinate Broadcast"
     normal-mode-lore:
       - "&eThe blocks that both teams need to collect"
       - "&eare completely &lrandom&r&e,"
@@ -139,6 +141,10 @@ menu:
     shared-team-spawn-lore:
       - "&eWhen enabled, both teams spawn at the same location"
       - "&eCreates direct competition right from the start"
+      - "&7Disabled by default"
+    end-portal-broadcast-lore:
+      - "&eWhen enabled, activating an End Portal"
+      - "&ewill broadcast its coordinates to the whole server"
       - "&7Disabled by default"
     locked-by-nether: " &7(Locked by Nether Mode)"
     select-team: "&aSelect Team"
@@ -268,6 +274,7 @@ notice:
   overtime-start: "&cRegulation time has ended, entering overtime!"
   comeback-apply: "%prefix% &eComeback buff: %team% is down by ≥%points% points; granting Speed III and Resistance III."
   comeback-clear: "%prefix% &eComeback buff: gap is within %points% points; buff removed."
+  end-portal-open: "%prefix% %team%&e player &b%player% &eactivated an End Portal at: &a%x% %y% %z%"
   nether-portal-blocked: "&cNether Mode blocks returning to the Overworld via Nether portals!"
 
 # If you don't know what this is, don't touch it

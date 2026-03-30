@@ -121,6 +121,8 @@ public enum Message {
     MENU_NETHER_MODE_DISABLED("menu.pregame-menu.nether-mode-disabled"),
     MENU_SHARED_TEAM_SPAWN_ENABLED("menu.pregame-menu.shared-team-spawn-enabled"),
     MENU_SHARED_TEAM_SPAWN_DISABLED("menu.pregame-menu.shared-team-spawn-disabled"),
+    MENU_END_PORTAL_BROADCAST_ENABLED("menu.pregame-menu.end-portal-broadcast-enabled"),
+    MENU_END_PORTAL_BROADCAST_DISABLED("menu.pregame-menu.end-portal-broadcast-disabled"),
     MENU_NORMAL_MODE_LORE("menu.pregame-menu.normal-mode-lore"),
     MENU_RACING_MODE_LORE("menu.pregame-menu.racing-mode-lore"),
     MENU_CONTEST_MODE_LORE("menu.pregame-menu.contest-mode-lore"),
@@ -128,6 +130,7 @@ public enum Message {
     MENU_SPEED_MODE_LORE("menu.pregame-menu.speed-mode-lore"),
     MENU_NETHER_MODE_LORE("menu.pregame-menu.nether-mode-lore"),
     MENU_SHARED_TEAM_SPAWN_LORE("menu.pregame-menu.shared-team-spawn-lore"),
+    MENU_END_PORTAL_BROADCAST_LORE("menu.pregame-menu.end-portal-broadcast-lore"),
     MENU_LOCKED_BY_NETHER("menu.pregame-menu.locked-by-nether"),
     MENU_SELECT_TEAM("menu.pregame-menu.select-team"),
     MENU_BLOCK_SETTING("menu.pregame-menu.block-setting"),
@@ -238,6 +241,7 @@ public enum Message {
     NOTICE_OVERTIME_START("notice.overtime-start"),
     NOTICE_COMEBACK_APPLY("notice.comeback-apply"),
     NOTICE_COMEBACK_CLEAR("notice.comeback-clear"),
+    NOTICE_END_PORTAL_OPEN("notice.end-portal-open"),
 
     // other
     MESSAGE_PREFIX("prefix"),

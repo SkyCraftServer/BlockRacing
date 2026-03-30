@@ -35,6 +35,11 @@ speed-mode: false
 # 关闭后双方仍使用分离出生点
 shared-team-spawn: false
 
+# 末地门坐标广播：
+# 开启后，任意队伍激活末地门时会向全服广播末地门坐标
+# 关闭后不会广播
+end-portal-coordinate-broadcast: false
+
 # 极速模式物品配置（支持任意物品）
 # material: 材质名（如 IRON_PICKAXE）
 # amount: 数量（默认1，范围1-64）
