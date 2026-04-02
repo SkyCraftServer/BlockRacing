@@ -1,5 +1,7 @@
 package top.lqsnow.blockracing.api;
 
+import org.bukkit.Location;
+import org.bukkit.block.Biome;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.managers.Block;
@@ -51,6 +53,27 @@ public class BlockRacingAPI {
      */
     public static boolean isNetherModeEnabled() {
         return Setting.isNetherMode();
+    }
+
+    /**
+     * 检查指定群系是否属于海洋类群系
+     * @param biome 群系
+     * @return 如果是海洋类群系返回 true，否则返回 false
+     */
+    public static boolean isOceanBiome(Biome biome) {
+        return Game.isOceanBiome(biome);
+    }
+
+    /**
+     * 检查指定位置所在群系是否属于海洋类群系
+     * @param location 位置
+     * @return 如果是海洋类群系返回 true，否则返回 false
+     */
+    public static boolean isOceanLocation(Location location) {
+        if (location == null || location.getWorld() == null) {
+            return false;
+        }
+        return isOceanBiome(location.getBlock().getBiome());
     }
 
 

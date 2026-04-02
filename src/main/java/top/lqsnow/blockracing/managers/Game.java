@@ -720,7 +720,7 @@ public class Game {
         return fallback;
     }
 
-    private static boolean isOceanBiome(Biome biome) {
+    public static boolean isOceanBiome(Biome biome) {
         return biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN || biome == Biome.DEEP_COLD_OCEAN
                 || biome == Biome.LUKEWARM_OCEAN || biome == Biome.DEEP_FROZEN_OCEAN || biome == Biome.COLD_OCEAN
                 || biome == Biome.WARM_OCEAN || biome == Biome.DEEP_LUKEWARM_OCEAN || biome == Biome.FROZEN_OCEAN;

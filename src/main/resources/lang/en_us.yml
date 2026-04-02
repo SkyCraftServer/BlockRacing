@@ -60,7 +60,7 @@ scoreboard:
 # Server list MOTD
 motd:
   pregame: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>BlockRacing</b></gradient> <gray>|</gray> <aqua>Waiting for players</aqua>\n<yellow>Mode:</yellow><white>%mode%</white>"
-  ingame: "<gradient:#ff8a00:#ff3434><b>BlockRacing</b></gradient> <gray>|</gray> <red>Game in progress</red>\n<yellow>Red</yellow><white>%red_score%</white><gray> / </gray><yellow>Blue</yellow><white>%blue_score%</white>%time_part%"
+  ingame: "<gradient:#ff8a00:#ff3434><b>BlockRacing</b></gradient> <gray>|</gray> <red>Game in progress</red>\n<yellow>Red</yellow><white>%red_current_block%</white><gray> / </gray><yellow>Blue</yellow><white>%blue_current_block%</white>%time_part%"
   end: "<gradient:#1cfadf:#03e4ff><b>BlockRacing</b></gradient> <gray>|</gray> <gold>Round finished</gold>\n<aqua>Join the next match soon</aqua>"
 
 # Team

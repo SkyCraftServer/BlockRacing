@@ -30,8 +30,8 @@ public final class Motd {
             timePart = " <gray>|</gray> <yellow>Time</yellow><white> " + Game.getFormattedTimeModeRemaining() + "</white>";
         }
         return applyPlaceholders(Message.MOTD_INGAME.getMiniMessage(),
-                "%red_score%", String.valueOf(Game.redTeamScore),
-                "%blue_score%", String.valueOf(Game.blueTeamScore),
+                "%red_current_block%", String.valueOf(Game.redTeamCurrentBlockAmount),
+                "%blue_current_block%", String.valueOf(Game.blueTeamCurrentBlockAmount),
                 "%time_part%", timePart);
     }
 

@@ -85,7 +85,7 @@ scoreboard:
 # 服务器列表 MOTD
 motd:
   pregame: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>BlockRacing</b></gradient> <gray>|</gray> <aqua>等待准备</aqua>\n<yellow>当前模式：</yellow><white>%mode%</white>"
-  ingame: "<gradient:#ff8a00:#ff3434><b>BlockRacing</b></gradient> <gray>|</gray> <red>游戏进行中</red>\n<yellow>红队</yellow><white>%red_score%</white><gray> / </gray><yellow>蓝队</yellow><white>%blue_score%</white>%time_part%"
+  ingame: "<gradient:#ff8a00:#ff3434><b>BlockRacing</b></gradient> <gray>|</gray> <red>游戏进行中</red>\n<yellow>红队</yellow><white>%red_current_block%</white><gray> / </gray><yellow>蓝队</yellow><white>%blue_current_block%</white>%time_part%"
   end: "<gradient:#1cfadf:#03e4ff><b>BlockRacing</b></gradient> <gray>|</gray> <gold>本局结束</gold>\n<aqua>欢迎加入下一局</aqua>"
 
 # 队伍
