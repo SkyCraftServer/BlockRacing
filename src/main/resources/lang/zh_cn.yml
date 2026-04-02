@@ -295,6 +295,8 @@ notice:
   locate-structure-not-found: "&c未找到该结构，未扣除积分。"
   locate-biome-success: "&a已定位到生物群系 &e%biome% &a坐标：&b%x% %y% %z% &7（距离当前位置 %distance% 方块）"
   locate-structure-success: "&a已定位到结构 &e%structure% &a坐标：&b%x% %y% %z% &7（距离当前位置 %distance% 方块）"
+  locate-biome-team-success: "&b%player% &a定位了生物群系 &e%biome% &a坐标：&b%x% %y% %z% &7（距离当前位置 %distance% 方块）"
+  locate-structure-team-success: "&b%player% &a定位了结构 &e%structure% &a坐标：&b%x% %y% %z% &7（距离当前位置 %distance% 方块）"
   restart: "&b%player%申请重启！服务器中所有玩家申请即可重启游戏！使用/restartgame命令即可申请！"
   restart-cancel: "&c%player%已取消重启申请！"
   game-not-start: "&c游戏未开始！"

@@ -17,6 +17,9 @@ import top.lqsnow.blockracing.managers.Message;
 import java.util.Arrays;
 import java.util.List;
 
+import static top.lqsnow.blockracing.managers.Team.blueTeamPlayers;
+import static top.lqsnow.blockracing.managers.Team.redTeamPlayers;
+
 public class LocateStructure implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
@@ -63,6 +66,32 @@ public class LocateStructure implements CommandExecutor, TabCompleter {
             .replace("%y%", String.valueOf(target.getBlockY()))
             .replace("%z%", String.valueOf(target.getBlockZ()))
             .replace("%distance%", String.valueOf(distance)));
+
+        List<String> teammates = redTeamPlayers.contains(player.getName()) ? redTeamPlayers
+                : (blueTeamPlayers.contains(player.getName()) ? blueTeamPlayers : List.of());
+
+        for (String teammateName : teammates) {
+            if (teammateName.equals(player.getName())) {
+                continue;
+            }
+            Player teammate = Bukkit.getPlayer(teammateName);
+            if (teammate == null || !teammate.isOnline()) {
+                continue;
+            }
+
+            int teammateDistance = teammate.getWorld().equals(target.getWorld())
+                    ? (int) Math.round(teammate.getLocation().distance(target))
+                    : -1;
+            String distanceText = teammateDistance >= 0 ? String.valueOf(teammateDistance) : "?";
+
+            teammate.sendMessage(Message.NOTICE_LOCATE_STRUCTURE_TEAM_SUCCESS.getString()
+                    .replace("%player%", player.getName())
+                    .replace("%structure%", args[0].toLowerCase())
+                    .replace("%x%", String.valueOf(target.getBlockX()))
+                    .replace("%y%", String.valueOf(target.getBlockY()))
+                    .replace("%z%", String.valueOf(target.getBlockZ()))
+                    .replace("%distance%", distanceText));
+        }
 
         return true;
     }

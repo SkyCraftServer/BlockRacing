@@ -1,5 +1,0 @@
-jdk:
-  - openjdk21
-
-install:
-  - curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz | tar -xz && export PATH=$PWD/apache-maven-3.9.9/bin:$PATH && mvn -version && git clone https://github.com/kangarko/Foundation/ && cd Foundation && git checkout v7 && mvn clean install -DskipTests && cd .. && mvn clean package -DskipTests

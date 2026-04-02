@@ -233,6 +233,8 @@ public enum Message {
     NOTICE_LOCATE_STRUCTURE_NOT_FOUND("notice.locate-structure-not-found"),
     NOTICE_LOCATE_BIOME_SUCCESS("notice.locate-biome-success"),
     NOTICE_LOCATE_STRUCTURE_SUCCESS("notice.locate-structure-success"),
+    NOTICE_LOCATE_BIOME_TEAM_SUCCESS("notice.locate-biome-team-success"),
+    NOTICE_LOCATE_STRUCTURE_TEAM_SUCCESS("notice.locate-structure-team-success"),
     NOTICE_RESTART("notice.restart"),
     NOTICE_RESTART_CANCEL("notice.restart-cancel"),
     NOTICE_GAME_NOT_START("notice.game-not-start"),

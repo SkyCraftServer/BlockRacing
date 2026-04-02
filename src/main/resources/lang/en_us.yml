@@ -265,6 +265,8 @@ notice:
   locate-structure-not-found: "&cStructure not found, no points were deducted."
   locate-biome-success: "&aBiome located: &e%biome% &aat &b%x% %y% %z% &7(distance from current position: %distance% blocks)"
   locate-structure-success: "&aStructure located: &e%structure% &aat &b%x% %y% %z% &7(distance from current position: %distance% blocks)"
+  locate-biome-team-success: "&b%player% &alocated biome &e%biome% &aat &b%x% %y% %z% &7(distance from your current position: %distance% blocks)"
+  locate-structure-team-success: "&b%player% &alocated structure &e%structure% &aat &b%x% %y% %z% &7(distance from your current position: %distance% blocks)"
   restart: "&b%player% requested a restart! The game will restart if all players on the server agree! Use /restartgame to apply!"
   restart-cancel: "&c%player%'s restart request canceled!"
   game-not-start: "&cThe game has not started!"
