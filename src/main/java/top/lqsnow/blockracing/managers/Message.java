@@ -76,6 +76,11 @@ public enum Message {
     SCOREBOARD_END_RED_SCORE_TIME("scoreboard.end.red-score-time"),
     SCOREBOARD_END_BLUE_SCORE_TIME("scoreboard.end.blue-score-time"),
 
+    // motd
+    MOTD_PREGAME("motd.pregame"),
+    MOTD_INGAME("motd.ingame"),
+    MOTD_END("motd.end"),
+
     // team
     TEAM_RED_NAME("team.red.name"),
     TEAM_RED_PREFIX("team.red.prefix"),

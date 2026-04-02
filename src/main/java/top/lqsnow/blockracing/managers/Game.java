@@ -21,6 +21,7 @@ import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
     
 import top.lqsnow.blockracing.Main;
+import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
 import top.lqsnow.blockracing.utils.ColorUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
 
@@ -269,6 +270,7 @@ public class Game {
             player.addAttachment(Main.getInstance(), "minecraft.command.locate", true);
         }
 
+        BlockRacingVoicechatPlugin.syncPlayer(player);
         checkUpdate(player);
     }
 
@@ -510,6 +512,8 @@ public class Game {
             Player player = Bukkit.getPlayer(p);
             initPlayer(player);
         }
+
+        BlockRacingVoicechatPlugin.syncAllPlayers();
 
         Bukkit.getLogger().info("Red team players: " + redTeamPlayers.toString());
         Bukkit.getLogger().info("Blue team players: " + blueTeamPlayers.toString());
@@ -1224,6 +1228,7 @@ public class Game {
         sendAll(Message.NOTICE_RED_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
+        BlockRacingVoicechatPlugin.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -1237,6 +1242,7 @@ public class Game {
         sendAll(Message.NOTICE_BLUE_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
+        BlockRacingVoicechatPlugin.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -1251,6 +1257,7 @@ public class Game {
         sendAll(drawMessage);
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
+        BlockRacingVoicechatPlugin.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -1424,5 +1431,7 @@ public class Game {
 
     public static void setCurrentGameState(GameState currentGameState) {
         Game.currentGameState = currentGameState;
+        BlockRacingVoicechatPlugin.syncAllPlayers();
+        Motd.refresh();
     }
 }

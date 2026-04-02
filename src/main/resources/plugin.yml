@@ -6,6 +6,8 @@ authors: [ LQ_Snow, xiaojiuwo233, FHSHKL ]
 description: The first team to collect the required blocks wins
 loadbefore:
   - BlockRacingAddon
+softdepend:
+  - voicechat
 commands:
   tp:
     usage: "/tp <Teammate>"

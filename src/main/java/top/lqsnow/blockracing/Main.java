@@ -9,7 +9,9 @@ import org.mineacademy.fo.platform.BukkitPlugin;
 import top.lqsnow.blockracing.commands.*;
 import top.lqsnow.blockracing.listeners.BasicListener;
 import top.lqsnow.blockracing.listeners.AddonMonitorListener;
+import top.lqsnow.blockracing.listeners.MotdListener;
 import top.lqsnow.blockracing.managers.*;
+import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
 
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
@@ -38,6 +40,7 @@ public class Main extends BukkitPlugin {
         // Register events
         getPluginManager().registerEvents(new BasicListener(), this);
         getPluginManager().registerEvents(new AddonMonitorListener(), this);
+        getPluginManager().registerEvents(new MotdListener(), this);
 
         // Register commands (use helper to avoid NPE if server/another plugin owns the command)
         registerCommand("debug", new Debug());
@@ -87,6 +90,8 @@ public class Main extends BukkitPlugin {
         Team.createTeam();
         Scoreboard.createScoreboard();
         Scoreboard.setPreGameScoreboard();
+        Motd.refresh();
+        registerVoicechatIntegration();
         new Block();
         // Validate blocks at plugin startup (detect missing/invalid materials in files)
         boolean ok = top.lqsnow.blockracing.managers.Block.checkBlock();
@@ -159,5 +164,13 @@ public class Main extends BukkitPlugin {
         PluginCommand cmd = this.getCommand(name);
         if (cmd == null) return;
         cmd.setTabCompleter(completer);
+    }
+
+    private void registerVoicechatIntegration() {
+        if (getServer().getPluginManager().getPlugin("voicechat") == null) {
+            return;
+        }
+
+        BlockRacingVoicechatPlugin.register(this);
     }
 }

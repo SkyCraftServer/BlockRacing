@@ -6,6 +6,10 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
+import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
+
+import static top.lqsnow.blockracing.managers.Game.getCurrentGameState;
+import static top.lqsnow.blockracing.managers.Game.GameState.INGAME;
 import static top.lqsnow.blockracing.managers.Scoreboard.scoreboard;
 import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 
@@ -58,6 +62,9 @@ public class Team {
             if (sendMessage) {
                 sendAll(Message.NOTICE_JOIN_BLUE.getString().replace("%player%", player.getName()));
             }
+        }
+        if (getCurrentGameState().equals(INGAME)) {
+            BlockRacingVoicechatPlugin.syncPlayer(player);
         }
         return true;
     }
