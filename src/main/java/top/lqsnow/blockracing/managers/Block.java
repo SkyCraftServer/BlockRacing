@@ -98,13 +98,70 @@ public class Block {
                     redTeamRemainingBlocks.add(selectBlockByTimeProgress("red", 0f));
                     blueTeamRemainingBlocks.add(selectBlockByTimeProgress("blue", 0f));
                 }
+
+                // Keep snapshots non-empty and meaningful in logs/commands for time mode.
+                redTeamBlocks = new ArrayList<>(redTeamRemainingBlocks);
+                blueTeamBlocks = new ArrayList<>(blueTeamRemainingBlocks);
             }
         }
+
+        ensureNonEmptyTargets();
+
         redCompletedBlocks.clear();
         blueCompletedBlocks.clear();
         Bukkit.getLogger().info("[BlockRacing] Blocks generate complete.");
         Bukkit.getLogger().info("Red team blocks: " + redTeamBlocks.toString());
         Bukkit.getLogger().info("Blue team blocks: " + blueTeamBlocks.toString());
+    }
+
+    private static void ensureNonEmptyTargets() {
+        boolean contestMode = Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST);
+
+        if (contestMode) {
+            if (redTeamRemainingBlocks.isEmpty()) {
+                String fallback = pickFallbackBlock("red");
+                redTeamRemainingBlocks.add(fallback);
+                blueTeamRemainingBlocks = redTeamRemainingBlocks;
+                redTeamBlocks = new ArrayList<>(redTeamRemainingBlocks);
+                blueTeamBlocks = new ArrayList<>(redTeamRemainingBlocks);
+                Bukkit.getLogger().warning("[BlockRacing] Contest block pool was empty; injected fallback target: " + fallback);
+            }
+            return;
+        }
+
+        if (redTeamRemainingBlocks.isEmpty()) {
+            String fallback = pickFallbackBlock("red");
+            redTeamRemainingBlocks.add(fallback);
+            if (redTeamBlocks == null) {
+                redTeamBlocks = new ArrayList<>();
+            }
+            if (redTeamBlocks.isEmpty()) {
+                redTeamBlocks.add(fallback);
+            }
+            Bukkit.getLogger().warning("[BlockRacing] Red block pool was empty; injected fallback target: " + fallback);
+        }
+
+        if (blueTeamRemainingBlocks.isEmpty()) {
+            String fallback = pickFallbackBlock("blue");
+            blueTeamRemainingBlocks.add(fallback);
+            if (blueTeamBlocks == null) {
+                blueTeamBlocks = new ArrayList<>();
+            }
+            if (blueTeamBlocks.isEmpty()) {
+                blueTeamBlocks.add(fallback);
+            }
+            Bukkit.getLogger().warning("[BlockRacing] Blue block pool was empty; injected fallback target: " + fallback);
+        }
+    }
+
+    private static String pickFallbackBlock(String team) {
+        if (Setting.isNetherMode()) {
+            return selectNetherBlock(team);
+        }
+        if (blocks != null && !blocks.isEmpty()) {
+            return blocks.get(new Random().nextInt(blocks.size()));
+        }
+        return "STONE";
     }
 
     // Select a block based on time-progress-derived weights for the specified team.

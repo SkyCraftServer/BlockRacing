@@ -8,6 +8,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.managers.Message;
 
 import java.util.List;
@@ -17,6 +18,14 @@ import static top.lqsnow.blockracing.managers.Team.*;
 
 
 public class Teleport implements CommandExecutor, TabCompleter {
+    private void teleportPlayer(Player player, Player target) {
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().teleportAsync(player, target.getLocation());
+            return;
+        }
+        player.teleport(target);
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
@@ -34,7 +43,7 @@ public class Teleport implements CommandExecutor, TabCompleter {
                     player.sendMessage(Message.NOTICE_PLAYER_NOT_EXIST.getString());
                     return true;
                 }
-                player.teleport(target);
+                teleportPlayer(player, target);
                 sender.sendMessage(Message.NOTICE_SPECTATOR_TP_PLAYER_SUCCESS.getString().replace("%player%", target.getName()));
                 return true;
             } else {
@@ -51,7 +60,7 @@ public class Teleport implements CommandExecutor, TabCompleter {
                 return true;
             }
             if (redTeamPlayers.contains(target.getName())) {
-                player.teleport(target);
+                teleportPlayer(player, target);
                 sender.sendMessage(Message.NOTICE_TP_PLAYER_SUCCESS.getString().replace("%player%", target.getName()));
                 return true;
             } else {
@@ -68,7 +77,7 @@ public class Teleport implements CommandExecutor, TabCompleter {
                 return true;
             }
             if (blueTeamPlayers.contains(target.getName())) {
-                player.teleport(target);
+                teleportPlayer(player, target);
                 sender.sendMessage(Message.NOTICE_TP_PLAYER_SUCCESS.getString().replace("%player%", target.getName()));
                 return true;
             } else {

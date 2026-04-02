@@ -17,7 +17,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
     
@@ -75,7 +75,9 @@ public class Game {
 
     private static World activeGameWorld;
 
-    private static BukkitRunnable timeModeTask;
+    private static WrappedTask timeModeTask;
+    private static WrappedTask preGameTask;
+    private static WrappedTask inGameTask;
     private static int timeModeRemainingSeconds;
     private static int timeModeDurationSeconds;
     private static boolean timeModeOvertime;
@@ -158,6 +160,21 @@ public class Game {
         if (world == null) {
             return;
         }
+
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Location base = randomFoliaLocation(world, 1200);
+            redTeamSpawn = base.clone();
+            if (Setting.isSharedTeamSpawn()) {
+                blueTeamSpawn = base.clone();
+            } else {
+                blueTeamSpawn = randomFoliaLocation(world, 1200);
+                if (redTeamSpawn.getWorld().equals(blueTeamSpawn.getWorld()) && redTeamSpawn.distance(blueTeamSpawn) < 10) {
+                    blueTeamSpawn.add(20, 0, 0);
+                }
+            }
+            return;
+        }
+
         redTeamSpawn = generateSafeSpawn(world);
         if (Setting.isSharedTeamSpawn()) {
             blueTeamSpawn = redTeamSpawn == null ? null : redTeamSpawn.clone();
@@ -174,6 +191,10 @@ public class Game {
     }
 
     private static org.bukkit.Location generateSafeSpawn(World world) {
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            return randomFoliaLocation(world, 1200);
+        }
+
         if (world.getEnvironment() == World.Environment.NETHER) {
             return findSafeNetherLocation(world, new Random());
         }
@@ -200,33 +221,50 @@ public class Game {
         if (world == null) {
             return null;
         }
+
+        // Folia enforces region/thread ownership across worlds.
+        // During game start/menu click we may not be on the Nether's region thread,
+        // so scanning Nether blocks can throw IllegalStateException (world mismatch).
+        // Use a stable fallback spawn in this case.
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            return randomFoliaLocation(world, 1200);
+        }
+
         int attempt = 0;
         int maxAttempts = 100;
-        while (attempt++ < maxAttempts) {
-            int randX = random.nextInt(20000) - 10000;
-            int randZ = random.nextInt(20000) - 10000;
-            int ceilingLimit = Math.min(world.getMaxHeight() - 5, 118);
-            for (int y = ceilingLimit; y >= 20; y--) {
-                org.bukkit.block.Block floor = world.getBlockAt(randX, y, randZ);
-                if (!isSafeNetherFloor(floor)) {
-                    continue;
+        try {
+            while (attempt++ < maxAttempts) {
+                int randX = random.nextInt(20000) - 10000;
+                int randZ = random.nextInt(20000) - 10000;
+                int ceilingLimit = Math.min(world.getMaxHeight() - 5, 118);
+                for (int y = ceilingLimit; y >= 20; y--) {
+                    org.bukkit.block.Block floor = world.getBlockAt(randX, y, randZ);
+                    if (!isSafeNetherFloor(world, floor)) {
+                        continue;
+                    }
+                    org.bukkit.block.Block head = floor.getRelative(0, 1, 0);
+                    org.bukkit.block.Block above = floor.getRelative(0, 2, 0);
+                    if (!isSafeNetherAir(world, head) || !isSafeNetherAir(world, above)) {
+                        continue;
+                    }
+                    Location candidate = head.getLocation().add(0.5, 0, 0.5);
+                    if (candidate.getBlock().getType() == Material.LAVA) {
+                        continue;
+                    }
+                    return candidate;
                 }
-                org.bukkit.block.Block head = floor.getRelative(0, 1, 0);
-                org.bukkit.block.Block above = floor.getRelative(0, 2, 0);
-                if (!isSafeNetherAir(head) || !isSafeNetherAir(above)) {
-                    continue;
-                }
-                Location candidate = head.getLocation().add(0.5, 0, 0.5);
-                if (candidate.getBlock().getType() == Material.LAVA) {
-                    continue;
-                }
-                return candidate;
             }
+        } catch (IllegalStateException ex) {
+            Bukkit.getLogger().warning("[BlockRacing] Nether spawn scan failed on current thread, falling back to world spawn: " + ex.getMessage());
         }
+
         return world.getSpawnLocation();
     }
 
-    private static boolean isSafeNetherFloor(org.bukkit.block.Block block) {
+    private static boolean isSafeNetherFloor(World expectedWorld, org.bukkit.block.Block block) {
+        if (block == null || expectedWorld == null || block.getWorld() == null || !expectedWorld.equals(block.getWorld())) {
+            return false;
+        }
         Material type = block.getType();
         if (type == Material.LAVA || type == Material.BEDROCK || type == Material.MAGMA_BLOCK) {
             return false;
@@ -234,7 +272,10 @@ public class Game {
         return type.isSolid();
     }
 
-    private static boolean isSafeNetherAir(org.bukkit.block.Block block) {
+    private static boolean isSafeNetherAir(World expectedWorld, org.bukkit.block.Block block) {
+        if (block == null || expectedWorld == null || block.getWorld() == null || !expectedWorld.equals(block.getWorld())) {
+            return false;
+        }
         Material type = block.getType();
         return type.isAir() || type == Material.CAVE_AIR;
     }
@@ -247,7 +288,7 @@ public class Game {
             player.sendMessage(Message.NOTICE_WELCOME.getString());
             player.sendMessage(t(
                     "&eNot your language? Please follow the tutorial to change the language: https://github.com/SkyCraftServer/BlockRacing/blob/3.0/docs/en/TranslationTutorial-en.md"));
-            player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
+                teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
         } else if (getCurrentGameState().equals(GameState.INGAME)) {
             // Spectator
             if (!redTeamPlayers.contains(player.getName()) && !blueTeamPlayers.contains(player.getName())) {
@@ -393,29 +434,25 @@ public class Game {
             return;
         }
         stopTimeModeCountdown();
-        timeModeTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!getCurrentGameState().equals(GameState.INGAME)) {
-                    stopTimeModeCountdown();
-                    return;
-                }
-                if (timeModeOvertime) {
-                    updateScoreboard();
-                    return;
-                }
-                if (timeModeRemainingSeconds <= 0) {
-                    handleTimeModeCountdownFinished();
-                    return;
-                }
-                timeModeRemainingSeconds--;
-                updateScoreboard();
-                if (timeModeRemainingSeconds == 0) {
-                    handleTimeModeCountdownFinished();
-                }
+        timeModeTask = Main.getFoliaLib().getScheduler().runTimer(() -> {
+            if (!getCurrentGameState().equals(GameState.INGAME)) {
+                stopTimeModeCountdown();
+                return;
             }
-        };
-        timeModeTask.runTaskTimer(Main.getInstance(), 20L, 20L);
+            if (timeModeOvertime) {
+                updateScoreboard();
+                return;
+            }
+            if (timeModeRemainingSeconds <= 0) {
+                handleTimeModeCountdownFinished();
+                return;
+            }
+            timeModeRemainingSeconds--;
+            updateScoreboard();
+            if (timeModeRemainingSeconds == 0) {
+                handleTimeModeCountdownFinished();
+            }
+        }, 20L, 20L);
     }
 
     private static void stopTimeModeCountdown() {
@@ -497,7 +534,7 @@ public class Game {
         setLocateScore();
         updateScoreboard();
         Bukkit.getOnlinePlayers().forEach((Player player) -> freeRandomTPList.add(player.getName()));
-        new runPer5Tick().runTaskTimer(Main.getInstance(), 0L, 5L);
+        startInGameLoop();
         activeGameWorld = resolveGameWorld();
         World world = getActiveGameWorld();
         if (world == null) {
@@ -507,15 +544,8 @@ public class Game {
             Bukkit.getLogger().severe("[BlockRacing] No world available for teleport!");
             return;
         }
-        world.setDifficulty(Difficulty.EASY);
-        world.setTime(1000);
-        world.setStorm(false);
-        world.setThundering(false);
+        applyGlobalWorldState(world);
         world.getEntities().stream().filter(e -> e instanceof Item).forEach(Entity::remove);
-
-        // World border
-        world.getWorldBorder().setCenter(world.getSpawnLocation());
-        world.getWorldBorder().setSize(59999968);
 
         // Generate shared team spawns for this game
         generateTeamSpawns();
@@ -537,6 +567,12 @@ public class Game {
             initPlayer(player);
         }
 
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runLater(Game::refreshComebackEffects, 5L);
+        } else {
+            refreshComebackEffects();
+        }
+
         BlockRacingVoicechatPlugin.syncAllPlayers();
 
         Bukkit.getLogger().info("Red team players: " + redTeamPlayers.toString());
@@ -554,15 +590,47 @@ public class Game {
         startTimeModeCountdownIfNeeded();
     }
 
+    private static void applyGlobalWorldState(World world) {
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runNextTick(task -> {
+                world.setDifficulty(Difficulty.EASY);
+                world.setTime(1000);
+                world.setStorm(false);
+                world.setThundering(false);
+                world.getWorldBorder().setCenter(world.getSpawnLocation());
+                world.getWorldBorder().setSize(59999968);
+            });
+            return;
+        }
+
+        world.setDifficulty(Difficulty.EASY);
+        world.setTime(1000);
+        world.setStorm(false);
+        world.setThundering(false);
+        world.getWorldBorder().setCenter(world.getSpawnLocation());
+        world.getWorldBorder().setSize(59999968);
+    }
+
     // Player init
     public static void initPlayer(Player player) {
+        if (player == null) {
+            return;
+        }
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> initPlayerInternal(player));
+            return;
+        }
+        initPlayerInternal(player);
+    }
+
+    private static void initPlayerInternal(Player player) {
         // General
         player.getInventory().clear();
         // Teleport to team spawn if available, otherwise random teleport
         org.bukkit.Location spawn = null;
         if (redTeamPlayers.contains(player.getName()) && redTeamSpawn != null) spawn = redTeamSpawn;
         else if (blueTeamPlayers.contains(player.getName()) && blueTeamSpawn != null) spawn = blueTeamSpawn;
-        if (spawn != null) player.teleport(spawn);
+        if (spawn != null) teleportPlayer(player, spawn);
         else randomTeleport(player, true);
         player.setHealth(20);
         player.setExp(0);
@@ -576,10 +644,13 @@ public class Game {
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
-        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 1200, 4, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 1200, 4, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1200, 4, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
+
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntityLater(player,
+                    () -> applyInitialPotionEffects(player), 4L);
+        } else {
+            applyInitialPotionEffects(player);
+        }
 
         // Speed mode
         if (Setting.isSpeedMode()) {
@@ -589,10 +660,23 @@ public class Game {
                 }
                 player.getInventory().addItem(stack.clone());
             }
-            applyConfiguredSpeedModeEffects(player);
+            if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+                Main.getFoliaLib().getScheduler().runAtEntityLater(player,
+                        () -> applyConfiguredSpeedModeEffects(player), 6L);
+            } else {
+                applyConfiguredSpeedModeEffects(player);
+            }
         }
+    }
 
-        refreshComebackEffects();
+    private static void applyInitialPotionEffects(Player player) {
+        if (player == null) {
+            return;
+        }
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 1200, 4, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 1200, 4, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1200, 4, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
     }
 
     // Roll
@@ -713,7 +797,8 @@ public class Game {
             return;
         }
 
-        player.teleport(offset);
+        teleportPlayer(player, offset);
+        applyPostTeleportProtection(player);
 
         String x = String.format("%.1f", offset.getX());
         String y = String.format("%.1f", offset.getY());
@@ -723,6 +808,19 @@ public class Game {
     }
 
     private static Location findSafeOverworldLocation(World world, boolean avoidOcean) {
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Location candidate = pollRandomTeleportCandidate();
+            if (candidate != null) {
+                return new Location(world,
+                        candidate.getX() + 0.5,
+                        candidate.getY(),
+                        candidate.getZ() + 0.5,
+                        candidate.getYaw(),
+                        candidate.getPitch());
+            }
+            return randomFoliaLocation(world, 10000);
+        }
+
         // Try to use a candidate from the pool first
         Location candidate = pollRandomTeleportCandidate();
         if (candidate != null) {
@@ -755,6 +853,31 @@ public class Game {
         return biome == Biome.OCEAN || biome == Biome.DEEP_OCEAN || biome == Biome.DEEP_COLD_OCEAN
                 || biome == Biome.LUKEWARM_OCEAN || biome == Biome.DEEP_FROZEN_OCEAN || biome == Biome.COLD_OCEAN
                 || biome == Biome.WARM_OCEAN || biome == Biome.DEEP_LUKEWARM_OCEAN || biome == Biome.FROZEN_OCEAN;
+    }
+
+    private static Location randomFoliaLocation(World world, int radius) {
+        Random random = new Random();
+        double x = random.nextInt(radius * 2 + 1) - radius;
+        double z = random.nextInt(radius * 2 + 1) - radius;
+        double y = world.getSpawnLocation().getY() + 1.0;
+        return new Location(world, x + 0.5, y, z + 0.5);
+    }
+
+    private static void applyPostTeleportProtection(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        Runnable action = () -> {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 20 * 15, 1, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 20 * 8, 1, false, false));
+        };
+
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntityLater(player, action, 3L);
+        } else {
+            action.run();
+        }
     }
 
     public static synchronized void addRandomTeleportCandidate(Location location) {
@@ -796,7 +919,7 @@ public class Game {
                         setWaypoint(player, team, index);
                         return true;
                     } else {
-                        player.teleport(waypoint);
+                        teleportPlayer(player, waypoint);
                         String x = String.format("%.1f", waypoint.getX());
                         String y = String.format("%.1f", waypoint.getY());
                         String z = String.format("%.1f", waypoint.getZ());
@@ -832,6 +955,17 @@ public class Game {
         }
     }
 
+    private static void teleportPlayer(Player player, Location location) {
+        if (player == null || location == null) {
+            return;
+        }
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().teleportAsync(player, location);
+            return;
+        }
+        player.teleport(location);
+    }
+
     private static void removeWaypoint(Player player, int index) {
         TextComponent message = new TextComponent(
                 Message.NOTICE_REMOVE_WAYPOINT.getString().replace("%index%", String.valueOf(index)));
@@ -840,61 +974,83 @@ public class Game {
         player.closeInventory();
     }
 
-    // Run per 2t
-    // Before the game, provide regeneration and saturation effects
-    public static class runPer2Tick extends BukkitRunnable {
-        @Override
-        public void run() {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 255));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 10, 255));
-            }
-            if (getCurrentGameState().equals(GameState.INGAME))
-                this.cancel();
+    public static void startPreGameLoop() {
+        stopPreGameLoop();
+        preGameTask = Main.getFoliaLib().getScheduler().runTimer(Game::tickPreGame, 0L, 2L);
+    }
+
+    private static void stopPreGameLoop() {
+        if (preGameTask != null) {
+            preGameTask.cancel();
+            preGameTask = null;
         }
     }
 
-    // Run per 5t
-    // During the game
-    public static class runPer5Tick extends BukkitRunnable {
+    private static void startInGameLoop() {
+        stopInGameLoop();
+        inGameTask = Main.getFoliaLib().getScheduler().runTimer(Game::tickInGame, 0L, 5L);
+    }
 
-        @Override
-        public void run() {
+    private static void stopInGameLoop() {
+        if (inGameTask != null) {
+            inGameTask.cancel();
+            inGameTask = null;
+        }
+    }
 
-            if (!getCurrentGameState().equals(GameState.INGAME)) {
-                this.cancel();
-                return;
-            }
-
-            // Inventory check
-            checkRedInventory();
-            checkBlueInventory();
-
-            // Win check
-            if (!isContestModeActive()) {
-                if (redTeamRemainingBlocks.isEmpty()) {
-                    redWin();
-                    showRanking();
-                    this.cancel();
-                }
-                if (blueTeamRemainingBlocks.isEmpty()) {
-                    blueWin();
-                    showRanking();
-                    this.cancel();
-                }
-            }
-
-            // Roll check
-            if (isContestModeActive()) {
-                if (!contestModeRollPlayers.isEmpty())
-                    checkContestModeRoll();
+    // Run per 2t before the game, provide regeneration and saturation effects
+    private static void tickPreGame() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+                Main.getFoliaLib().getScheduler().runAtEntity(player, task -> {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 255));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 10, 255));
+                });
             } else {
-                if (!redRollPlayers.isEmpty())
-                    checkRedRoll();
-                if (!blueRollPlayers.isEmpty())
-                    checkBlueRoll();
+                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 255));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 10, 255));
             }
+        }
+        if (getCurrentGameState().equals(GameState.INGAME)) {
+            stopPreGameLoop();
+        }
+    }
 
+    // Run per 5t during the game
+    private static void tickInGame() {
+
+        if (!getCurrentGameState().equals(GameState.INGAME)) {
+            stopInGameLoop();
+            return;
+        }
+
+        // Inventory check
+        checkRedInventory();
+        checkBlueInventory();
+
+        // Win check
+        if (!isContestModeActive()) {
+            if (redTeamRemainingBlocks.isEmpty()) {
+                redWin();
+                showRanking();
+                stopInGameLoop();
+            }
+            if (blueTeamRemainingBlocks.isEmpty()) {
+                blueWin();
+                showRanking();
+                stopInGameLoop();
+            }
+        }
+
+        // Roll check
+        if (isContestModeActive()) {
+            if (!contestModeRollPlayers.isEmpty())
+                checkContestModeRoll();
+        } else {
+            if (!redRollPlayers.isEmpty())
+                checkRedRoll();
+            if (!blueRollPlayers.isEmpty())
+                checkBlueRoll();
         }
     }
 
@@ -1366,10 +1522,10 @@ public class Game {
                 continue;
             }
             if (option.getDelayTicks() > 0L) {
-                Bukkit.getScheduler().runTaskLater(Main.getInstance(),
+                Main.getFoliaLib().getScheduler().runAtEntityLater(player,
                         () -> player.addPotionEffect(option.getEffect()), option.getDelayTicks());
             } else {
-                player.addPotionEffect(option.getEffect());
+                runOnEntityThread(player, () -> player.addPotionEffect(option.getEffect()));
             }
         }
     }
@@ -1380,8 +1536,10 @@ public class Game {
         }
         // Maintain base speed/resistance that are expected for in-game players and preserve speed-mode perks.
         int amplifier = Setting.isSpeedMode() ? 1 : 1;
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, amplifier, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, amplifier, false, false));
+        runOnEntityThread(player, () -> {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, amplifier, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, amplifier, false, false));
+        });
     }
 
     private static void clearComebackEffects(List<String> members) {
@@ -1398,7 +1556,7 @@ public class Game {
                 }
                 PotionEffect active = player.getPotionEffect(configured.getType());
                 if (active != null && active.getAmplifier() >= configured.getAmplifier()) {
-                    player.removePotionEffect(configured.getType());
+                    runOnEntityThread(player, () -> player.removePotionEffect(configured.getType()));
                     removed = true;
                 }
             }
@@ -1420,9 +1578,20 @@ public class Game {
                 if (effect == null || effect.getType() == null) {
                     continue;
                 }
-                player.addPotionEffect(effect);
+                runOnEntityThread(player, () -> player.addPotionEffect(effect));
             }
         }
+    }
+
+    private static void runOnEntityThread(Player player, Runnable action) {
+        if (player == null || action == null) {
+            return;
+        }
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> action.run());
+            return;
+        }
+        action.run();
     }
 
     public static void refreshComebackEffects() {

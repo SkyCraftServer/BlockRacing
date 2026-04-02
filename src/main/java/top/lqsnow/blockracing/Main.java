@@ -1,6 +1,7 @@
 package top.lqsnow.blockracing;
 
 import lombok.Getter;
+import com.tcoded.folialib.FoliaLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
@@ -23,10 +24,13 @@ import static org.bukkit.Bukkit.getPluginManager;
 public class Main extends BukkitPlugin {
     @Getter
     private static Main instance;
+    @Getter
+    private static FoliaLib foliaLib;
 
     @Override
     protected void onPluginStart() {
         instance = this;
+        foliaLib = new FoliaLib(this);
 
         // Load config first (needed for world regeneration check)
         Config.saveDefaultConfig();
@@ -75,7 +79,7 @@ public class Main extends BukkitPlugin {
         );
 
         // Re-check addon on the first server tick after startup (other plugins are fully enabled by then)
-        Bukkit.getScheduler().runTaskLater(this, () -> {
+        foliaLib.getScheduler().runLater(() -> {
             if (Setting.refreshAddonAvailability()) {
                 saveIfAbsent("AddonBlocks.txt");
                 Setting.setEnableAddonBlock(Config.ADDON_BLOCK.getBoolean());
@@ -88,9 +92,12 @@ public class Main extends BukkitPlugin {
         Message.load();
         Setting.getSettings();
         Game.initChest();
-        Team.createTeam();
-        Scoreboard.createScoreboard();
-        Scoreboard.setPreGameScoreboard();
+        foliaLib.getScheduler().runNextTick(task -> {
+            Scoreboard.createScoreboard();
+            Team.createTeam();
+            Scoreboard.setPreGameScoreboard();
+            Bukkit.getOnlinePlayers().forEach(Scoreboard::showScoreboard);
+        });
         Motd.refresh();
         registerVoicechatIntegration();
         new Block();
@@ -101,10 +108,10 @@ public class Main extends BukkitPlugin {
         } else {
             Bukkit.getLogger().warning("[BlockRacing] Block file check failed. Check console for details.");
         }
-        new Game.runPer2Tick().runTaskTimer(this, 0L, 2L);
+        Game.startPreGameLoop();
 
         // Init world settings
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        foliaLib.getScheduler().runLater(() -> {
             World world = Bukkit.getWorlds().get(0);
             world.setDifficulty(Difficulty.PEACEFUL);
             // overworld
@@ -131,6 +138,9 @@ public class Main extends BukkitPlugin {
     @Override
     protected void onPluginStop() {
         super.onPluginStop();
+        if (foliaLib != null) {
+            foliaLib.getScheduler().cancelAllTasks();
+        }
         Config.saveConfig();
     }
 

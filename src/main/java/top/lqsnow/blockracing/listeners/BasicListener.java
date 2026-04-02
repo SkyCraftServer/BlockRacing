@@ -118,7 +118,7 @@ public class BasicListener implements Listener {
             }
         }
         event.getPlayer().sendMessage(Message.NOTICE_SPAWN_PROTECT.getString());
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        Main.getFoliaLib().getScheduler().runAtEntityLater(event.getPlayer(), () -> {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
             if (Game.getCurrentGameState().equals(Game.GameState.INGAME) && Setting.isSpeedMode()) {
                 Game.applyConfiguredSpeedModeEffects(event.getPlayer());
@@ -151,7 +151,7 @@ public class BasicListener implements Listener {
         Location clicked = event.getClickedBlock().getLocation();
         boolean hadPortal = hasNearbyEndPortal(clicked);
 
-        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+        Main.getFoliaLib().getScheduler().runAtLocationLater(clicked, () -> {
             if (hadPortal || !hasNearbyEndPortal(clicked)) {
                 return;
             }

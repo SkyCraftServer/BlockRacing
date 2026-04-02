@@ -91,7 +91,7 @@ public class PreGameMenu extends Menu {
         this.joinRedButton = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
-                Team.joinTeam(player, redTeam, true);
+                Team.joinTeam(player, "red", true);
             }
 
             @Override
@@ -104,7 +104,7 @@ public class PreGameMenu extends Menu {
         this.joinBlueButton = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
-                Team.joinTeam(player, Team.blueTeam, true);
+                Team.joinTeam(player, "blue", true);
             }
 
             @Override

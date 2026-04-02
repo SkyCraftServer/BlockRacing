@@ -7,27 +7,111 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Team;
 import top.lqsnow.blockracing.Main;
+import top.lqsnow.blockracing.scoreboard.ScoreboardFoliaIntegration;
 import top.lqsnow.blockracing.utils.MiniMessageUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static top.lqsnow.blockracing.managers.Game.*;
 import static top.lqsnow.blockracing.managers.Block.*;
 
 
 public class Scoreboard {
-    public static org.bukkit.scoreboard.Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+    public static org.bukkit.scoreboard.Scoreboard scoreboard;
     public static Objective sidebar;
+    private static boolean available = true;
+    private static final Map<Integer, String> foliaSlotEntries = new HashMap<>();
+    private static boolean externalScoreboardMode = false;
+
+    private static boolean isFolia() {
+        return Main.getFoliaLib() != null && Main.getFoliaLib().isFolia();
+    }
+
+    private static boolean deferToGlobalIfNeeded(Runnable action) {
+        if (Main.getFoliaLib() != null
+                && Main.getFoliaLib().isFolia()
+                && !Main.getFoliaLib().getScheduler().isGlobalTickThread()) {
+            Main.getFoliaLib().getScheduler().runNextTick(task -> action.run());
+            return true;
+        }
+        return false;
+    }
 
     public static void createScoreboard() {
-        sidebar = scoreboard.registerNewObjective("sidebar", "dummy");
-        sidebar.setDisplaySlot(DisplaySlot.SIDEBAR);
-        for (int i = 1; i <= 15; i++) {
-            Team team = scoreboard.registerNewTeam("SLOT_" + i);
-            team.addEntry(genEntry(i));
+        if (!available) {
+            return;
+        }
+        if (deferToGlobalIfNeeded(Scoreboard::createScoreboard)) {
+            return;
+        }
+        if (isFolia()) {
+            if (externalScoreboardMode) {
+                return;
+            }
+            if (ScoreboardFoliaIntegration.install()) {
+                externalScoreboardMode = true;
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sb reload");
+                return;
+            }
+
+            externalScoreboardMode = false;
+            available = false;
+            Main.getInstance().getLogger().warning("Folia detected but Scoreboard/PlaceholderAPI integration is unavailable. Sidebar display is disabled.");
+            return;
+        }
+        if (scoreboard != null && sidebar != null) {
+            return;
+        }
+        if (Bukkit.getScoreboardManager() == null) {
+            return;
+        }
+        try {
+            scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+
+            sidebar = scoreboard.getObjective("blockracing_sidebar");
+            if (sidebar == null) {
+                sidebar = scoreboard.registerNewObjective("blockracing_sidebar", "dummy");
+            }
+            sidebar.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+            if (!isFolia()) {
+                for (int i = 1; i <= 15; i++) {
+                    Team team = scoreboard.getTeam("SLOT_" + i);
+                    if (team == null) {
+                        team = scoreboard.registerNewTeam("SLOT_" + i);
+                    }
+                    team.addEntry(genEntry(i));
+                }
+            }
+        } catch (UnsupportedOperationException ex) {
+            available = false;
+            Main.getInstance().getLogger().warning("Scoreboard API is not available on this runtime. Disabling BlockRacing scoreboard updates.");
         }
     }
 
+    private static boolean ensureInitialized() {
+        if (!available) {
+            return false;
+        }
+        if (isFolia()) {
+            if (externalScoreboardMode) {
+                return true;
+            }
+            externalScoreboardMode = ScoreboardFoliaIntegration.install();
+            return externalScoreboardMode;
+        }
+        if (scoreboard == null || sidebar == null) {
+            createScoreboard();
+        }
+        return available && scoreboard != null && sidebar != null;
+    }
+
     public static void setPreGameScoreboard() {
+        if (deferToGlobalIfNeeded(Scoreboard::setPreGameScoreboard)) return;
+        if (!ensureInitialized()) return;
+        if (isFolia()) return;
         clearSlots(11);
 
         // Title
@@ -82,6 +166,9 @@ public class Scoreboard {
     }
 
     public static void setInGameScoreboard() {
+        if (deferToGlobalIfNeeded(Scoreboard::setInGameScoreboard)) return;
+        if (!ensureInitialized()) return;
+        if (isFolia()) return;
         clearSlots(14);
 
         setTitleMini(Message.SCOREBOARD_INGAME_TITLE.getMiniMessage());
@@ -143,6 +230,9 @@ public class Scoreboard {
     }
 
     public static void setEndGameScoreboard() {
+        if (deferToGlobalIfNeeded(Scoreboard::setEndGameScoreboard)) return;
+        if (!ensureInitialized()) return;
+        if (isFolia()) return;
         clearSlots(15);
 
         String endTitle = Message.SCOREBOARD_END_TITLE.getMiniMessage();
@@ -216,10 +306,19 @@ public class Scoreboard {
     }
 
     public static void showScoreboard(Player player) {
+        if (!ensureInitialized()) return;
+        if (isFolia()) {
+            Main.getFoliaLib().getScheduler().runNextTick(task ->
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sb show blockracing " + player.getName()));
+            return;
+        }
         player.setScoreboard(scoreboard);
     }
 
     public static void updateScoreboard() {
+        if (deferToGlobalIfNeeded(Scoreboard::updateScoreboard)) return;
+        if (!ensureInitialized()) return;
+        if (isFolia()) return;
         if (getCurrentGameState().equals(GameState.PREGAME)) {
             setPreGameScoreboard();
         } else if (getCurrentGameState().equals(GameState.INGAME)) {
@@ -294,6 +393,11 @@ public class Scoreboard {
     }
 
     private static void setSlot(int slot, String text) {
+        if (isFolia()) {
+            setSlotFolia(slot, text);
+            return;
+        }
+
         Team team = scoreboard.getTeam("SLOT_" + slot);
         String entry = genEntry(slot);
         if (!scoreboard.getEntries().contains(entry)) {
@@ -314,6 +418,30 @@ public class Scoreboard {
         }
         team.setPrefix(pre);
         team.setSuffix(suf);
+    }
+
+    private static void setSlotFolia(int slot, String text) {
+        if (text == null || text.isEmpty()) {
+            resetSlot(slot);
+            return;
+        }
+
+        String legacy = ChatColor.translateAlternateColorCodes('&', text);
+        String trimmed = trimLegacyToVisibleLength(legacy, 30);
+        if (trimmed.isEmpty()) {
+            trimmed = " ";
+        }
+
+        // Use hidden formatting suffix to keep each slot entry unique.
+        String unique = trimmed + ChatColor.RESET + ChatColor.values()[slot];
+
+        String old = foliaSlotEntries.get(slot);
+        if (old != null && !old.equals(unique)) {
+            scoreboard.resetScores(old);
+        }
+
+        sidebar.getScore(unique).setScore(slot);
+        foliaSlotEntries.put(slot, unique);
     }
 
     private static String takeVisible(String s, int maxVisible) {
@@ -350,6 +478,17 @@ public class Scoreboard {
     }
 
     private static void clearSlots(int maxSlot) {
+        if (isFolia()) {
+            for (int i = 1; i <= 15; i++) {
+                if (i > maxSlot) {
+                    resetSlot(i);
+                } else {
+                    setSlot(i, "");
+                }
+            }
+            return;
+        }
+
         // Clear desired range
         for (int i = 1; i <= maxSlot; i++) {
             setSlot(i, "");
@@ -369,6 +508,14 @@ public class Scoreboard {
     }
 
     private static void resetSlot(int slot) {
+        if (isFolia()) {
+            String old = foliaSlotEntries.remove(slot);
+            if (old != null) {
+                scoreboard.resetScores(old);
+            }
+            return;
+        }
+
         String entry = genEntry(slot);
         if (scoreboard.getEntries().contains(entry)) {
             scoreboard.resetScores(entry);

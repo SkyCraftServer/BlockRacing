@@ -4,10 +4,14 @@ main: top.lqsnow.blockracing.Main
 api-version: 1.21.11
 authors: [ LQ_Snow, xiaojiuwo233, FHSHKL ]
 description: The first team to collect the required blocks wins
+folia-supported: true
 loadbefore:
   - BlockRacingAddon
 softdepend:
   - voicechat
+  - PlaceholderAPI
+  - Scoreboard
+  - Scoreboard-Folia
 commands:
   tp:
     usage: "/tp <Teammate>"

@@ -2,6 +2,7 @@ package top.lqsnow.blockracing.managers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import top.lqsnow.blockracing.Main;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,16 +11,39 @@ import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
 
 import static top.lqsnow.blockracing.managers.Game.getCurrentGameState;
 import static top.lqsnow.blockracing.managers.Game.GameState.INGAME;
-import static top.lqsnow.blockracing.managers.Scoreboard.scoreboard;
 import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 
 public class Team {
-    public static org.bukkit.scoreboard.Team redTeam = scoreboard.registerNewTeam("red");
-    public static org.bukkit.scoreboard.Team blueTeam = scoreboard.registerNewTeam("blue");
+    public static org.bukkit.scoreboard.Team redTeam;
+    public static org.bukkit.scoreboard.Team blueTeam;
     public static List<String> redTeamPlayers = new ArrayList<>();
     public static List<String> blueTeamPlayers = new ArrayList<>();
 
     public static void createTeam() {
+        Scoreboard.createScoreboard();
+        if (Scoreboard.scoreboard == null) {
+            return;
+        }
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            redTeam = null;
+            blueTeam = null;
+            return;
+        }
+        try {
+            redTeam = Scoreboard.scoreboard.getTeam("red");
+            if (redTeam == null) {
+                redTeam = Scoreboard.scoreboard.registerNewTeam("red");
+            }
+            blueTeam = Scoreboard.scoreboard.getTeam("blue");
+            if (blueTeam == null) {
+                blueTeam = Scoreboard.scoreboard.registerNewTeam("blue");
+            }
+        } catch (UnsupportedOperationException ex) {
+            redTeam = null;
+            blueTeam = null;
+            return;
+        }
+
         redTeam.setDisplayName(Message.TEAM_RED_NAME.getString());
         redTeam.setPrefix(Message.TEAM_RED_PREFIX.getString());
         redTeam.setColor(ChatColor.RED);
@@ -29,7 +53,29 @@ public class Team {
     }
 
     public static boolean joinTeam(Player player, org.bukkit.scoreboard.Team team, boolean sendMessage) {
-        if (team.equals(redTeam)) {
+        if (team == redTeam) {
+            return joinTeam(player, "red", sendMessage);
+        }
+        if (team == blueTeam) {
+            return joinTeam(player, "blue", sendMessage);
+        }
+        if (redTeam == null || blueTeam == null) {
+            createTeam();
+        }
+        if (team == redTeam) {
+            return joinTeam(player, "red", sendMessage);
+        }
+        if (team == blueTeam) {
+            return joinTeam(player, "blue", sendMessage);
+        }
+        return false;
+    }
+
+    public static boolean joinTeam(Player player, String teamName, boolean sendMessage) {
+        if (redTeam == null || blueTeam == null) {
+            createTeam();
+        }
+        if (teamName.equalsIgnoreCase("red")) {
             if (redTeamPlayers.contains(player.getName())) {
                 if (sendMessage) {
                     player.sendMessage(Message.NOTICE_ALREADY_IN_RED.getString());
@@ -37,16 +83,20 @@ public class Team {
                 return false;
             }
             if (blueTeamPlayers.contains(player.getName())) {
-                blueTeam.removeEntry(player.getName());
+                if (blueTeam != null) {
+                    blueTeam.removeEntry(player.getName());
+                }
                 blueTeamPlayers.remove(player.getName());
             }
-            redTeam.addEntry(player.getName());
+            if (redTeam != null) {
+                redTeam.addEntry(player.getName());
+            }
             redTeamPlayers.add(player.getName());
             if (sendMessage) {
                 sendAll(Message.NOTICE_JOIN_RED.getString().replace("%player%", player.getName()));
             }
         }
-        else if (team.equals(blueTeam)) {
+        else if (teamName.equalsIgnoreCase("blue")) {
             if (blueTeamPlayers.contains(player.getName())) {
                 if (sendMessage) {
                     player.sendMessage(Message.NOTICE_ALREADY_IN_BLUE.getString());
@@ -54,14 +104,20 @@ public class Team {
                 return false;
             }
             if (redTeamPlayers.contains(player.getName())) {
-                redTeam.removeEntry(player.getName());
+                if (redTeam != null) {
+                    redTeam.removeEntry(player.getName());
+                }
                 redTeamPlayers.remove(player.getName());
             }
-            blueTeam.addEntry(player.getName());
+            if (blueTeam != null) {
+                blueTeam.addEntry(player.getName());
+            }
             blueTeamPlayers.add(player.getName());
             if (sendMessage) {
                 sendAll(Message.NOTICE_JOIN_BLUE.getString().replace("%player%", player.getName()));
             }
+        } else {
+            return false;
         }
         if (getCurrentGameState().equals(INGAME)) {
             BlockRacingVoicechatPlugin.syncPlayer(player);

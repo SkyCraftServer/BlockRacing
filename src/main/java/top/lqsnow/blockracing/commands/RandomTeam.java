@@ -37,15 +37,15 @@ public class RandomTeam implements CommandExecutor {
         for (int i = 0; i < players.size(); i++) {
             if (randomTeam) {
                 if (i < sizeA) {
-                    Team.joinTeam(players.get(i), Team.redTeam, false);
+                    Team.joinTeam(players.get(i), "red", false);
                 } else {
-                    Team.joinTeam(players.get(i), Team.blueTeam, false);
+                    Team.joinTeam(players.get(i), "blue", false);
                 }
             } else {
                 if (i < sizeA) {
-                    Team.joinTeam(players.get(i), Team.blueTeam, false);
+                    Team.joinTeam(players.get(i), "blue", false);
                 } else {
-                    Team.joinTeam(players.get(i), Team.redTeam, false);
+                    Team.joinTeam(players.get(i), "red", false);
                 }
             }
         }

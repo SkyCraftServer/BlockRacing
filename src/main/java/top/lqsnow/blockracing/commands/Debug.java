@@ -123,9 +123,9 @@ public class Debug implements CommandExecutor, TabCompleter {
                     }
                     boolean result;
                     if (args[1].equalsIgnoreCase("red")) {
-                        result = joinTeam(p, redTeam, false);
+                        result = joinTeam(p, "red", false);
                     } else {
-                        result = joinTeam(p, blueTeam, false);
+                        result = joinTeam(p, "blue", false);
                     }
                     if (result) {
                         player.sendMessage(t(String.format("&aSuccessfully added %s to the %s team", p.getName(), args[1].toLowerCase())));
