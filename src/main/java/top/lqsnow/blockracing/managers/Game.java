@@ -1416,7 +1416,7 @@ public class Game {
             return;
         }
 
-        int diff = redTeamScore - blueTeamScore;
+        int diff = redTeamCurrentBlockAmount - blueTeamCurrentBlockAmount;
         if (Math.abs(diff) < threshold) {
             if (comebackBuffState != ComebackBuffState.NONE) {
                 sendAll(Message.NOTICE_COMEBACK_CLEAR.getString().replace("%points%", String.valueOf(threshold)));
