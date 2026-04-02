@@ -13,12 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
-import top.lqsnow.blockracing.utils.ColorUtil;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static top.lqsnow.blockracing.managers.Game.locateCommandPermission;
 
 public class LocateStructure implements CommandExecutor, TabCompleter {
     @Override
@@ -29,12 +26,11 @@ public class LocateStructure implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 1) {
-            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString());
+            player.sendMessage(Message.NOTICE_LOCATE_STRUCTURE_USAGE.getString());
             return true;
         }
 
-        if (!locateCommandPermission.contains(player.getName())) {
-            player.sendMessage(Message.NOTICE_LOCATE_NO_PERMISSION.getString());
+        if (!Game.canAffordLocate(player)) {
             return true;
         }
 
@@ -43,7 +39,7 @@ public class LocateStructure implements CommandExecutor, TabCompleter {
             java.lang.reflect.Field field = Structure.class.getField(args[0].toUpperCase());
             structure = (Structure) field.get(null);
         } catch (Exception ex) {
-            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString());
+            player.sendMessage(Message.NOTICE_LOCATE_STRUCTURE_INVALID.getString());
             return true;
         }
 
@@ -51,17 +47,22 @@ public class LocateStructure implements CommandExecutor, TabCompleter {
         Location source = player.getLocation();
         org.bukkit.util.StructureSearchResult result = world.locateNearestStructure(source, structure, 100, false);
         if (result == null) {
-            player.sendMessage(ColorUtil.t("&c未找到该结构，未扣除积分。"));
+            player.sendMessage(Message.NOTICE_LOCATE_STRUCTURE_NOT_FOUND.getString());
             return true;
         }
 
-        if (!Game.consumeLocatePermissionWithCharge(player)) {
+        if (!Game.chargeLocateCost(player)) {
             return true;
         }
 
         Location target = result.getLocation();
-        player.sendMessage(ColorUtil.t("&a已定位到结构 &e" + args[0].toLowerCase()
-                + " &a坐标：&b" + target.getBlockX() + " " + target.getBlockY() + " " + target.getBlockZ()));
+        int distance = (int) Math.round(source.distance(target));
+        player.sendMessage(Message.NOTICE_LOCATE_STRUCTURE_SUCCESS.getString()
+            .replace("%structure%", args[0].toLowerCase())
+            .replace("%x%", String.valueOf(target.getBlockX()))
+            .replace("%y%", String.valueOf(target.getBlockY()))
+            .replace("%z%", String.valueOf(target.getBlockZ()))
+            .replace("%distance%", String.valueOf(distance)));
 
         return true;
     }

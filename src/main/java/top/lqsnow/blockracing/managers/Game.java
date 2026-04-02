@@ -68,7 +68,6 @@ public class Game {
     public static List<String> blueRollPlayers = new ArrayList<>();
     public static List<String> contestModeRollPlayers = new ArrayList<>();
     public static List<String> inGamePlayers = new ArrayList<>();
-    public static ArrayList<String> locateCommandPermission = new ArrayList<>();
     public static int locateCost;
     public static Map<String, Integer> collectAmount = new HashMap<>();
     private static final Deque<Location> randomTpPool = new ArrayDeque<>();
@@ -262,12 +261,6 @@ public class Game {
                 initPlayer(player);
                 freeRandomTPList.add(player.getName());
             }
-        }
-
-        // The permissions will disappear when the player exits and re-enters,
-        // permissions need to be given again.
-        if (locateCommandPermission.contains(player.getName())) {
-            player.addAttachment(Main.getInstance(), "minecraft.command.locate", true);
         }
 
         BlockRacingVoicechatPlugin.syncPlayer(player);
@@ -629,43 +622,37 @@ public class Game {
     }
 
     public static void locate(Player player) {
-        if (locateCommandPermission.contains(player.getName())) {
-            player.sendMessage(Message.NOTICE_LOCATE_ALREADY_BOUGHT.getString());
-            return;
-        }
-        if (redTeamPlayers.contains(player.getName())) {
-            if (redTeamScore >= locateCost) {
-                locateCommandPermission.add(player.getName());
-                sendAll(Message.NOTICE_BUY_LOCATE.getString().replace("%player%", player.getName()));
-                player.addAttachment(Main.getInstance(), "minecraft.command.locate", true);
-            } else {
-                player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
-            }
-        } else if (blueTeamPlayers.contains(player.getName())) {
-            if (blueTeamScore >= locateCost) {
-                locateCommandPermission.add(player.getName());
-                sendAll(Message.NOTICE_BUY_LOCATE.getString().replace("%player%", player.getName()));
-                player.addAttachment(Main.getInstance(), "minecraft.command.locate", true);
-            } else {
-                player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
-            }
-        }
+        player.sendMessage(Message.NOTICE_LOCATE_COMMAND_HINT.getString().replace("%score%", String.valueOf(locateCost)));
     }
 
-    public static boolean consumeLocatePermissionWithCharge(Player player) {
-        if (!locateCommandPermission.contains(player.getName())) {
-            return false;
-        }
-
+    public static boolean canAffordLocate(Player player) {
         if (redTeamPlayers.contains(player.getName())) {
             if (redTeamScore < locateCost) {
-                player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
+                player.sendMessage(Message.NOTICE_LOCATE_NOT_ENOUGH_SCORE.getString().replace("%score%", String.valueOf(locateCost)));
+                return false;
+            }
+            return true;
+        } else if (blueTeamPlayers.contains(player.getName())) {
+            if (blueTeamScore < locateCost) {
+                player.sendMessage(Message.NOTICE_LOCATE_NOT_ENOUGH_SCORE.getString().replace("%score%", String.valueOf(locateCost)));
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    public static boolean chargeLocateCost(Player player) {
+        if (redTeamPlayers.contains(player.getName())) {
+            if (redTeamScore < locateCost) {
+                player.sendMessage(Message.NOTICE_LOCATE_NOT_ENOUGH_SCORE.getString().replace("%score%", String.valueOf(locateCost)));
                 return false;
             }
             redTeamScore -= locateCost;
         } else if (blueTeamPlayers.contains(player.getName())) {
             if (blueTeamScore < locateCost) {
-                player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
+                player.sendMessage(Message.NOTICE_LOCATE_NOT_ENOUGH_SCORE.getString().replace("%score%", String.valueOf(locateCost)));
                 return false;
             }
             blueTeamScore -= locateCost;
@@ -673,8 +660,6 @@ public class Game {
             return false;
         }
 
-        locateCommandPermission.remove(player.getName());
-        player.addAttachment(Main.getInstance(), "minecraft.command.locate", false);
         updateScoreboard();
         return true;
     }
@@ -973,6 +958,11 @@ public class Game {
     }
 
     private static void setLocateScore() {
+        if (Setting.getCurrentGameMode() == Setting.GameMode.RACING) {
+            locateCost = 16;
+            return;
+        }
+
         if (Setting.getBlockAmount() <= 20)
             locateCost = 5;
         else if (Setting.getBlockAmount() <= 50)

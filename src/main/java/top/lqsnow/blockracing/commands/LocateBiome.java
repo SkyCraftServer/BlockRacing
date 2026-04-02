@@ -13,12 +13,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
-import top.lqsnow.blockracing.utils.ColorUtil;
+import top.lqsnow.blockracing.utils.BiomeTranslation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static top.lqsnow.blockracing.managers.Game.locateCommandPermission;
+import java.util.Locale;
 
 public class LocateBiome implements CommandExecutor, TabCompleter {
     @Override
@@ -29,20 +29,17 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 1) {
-            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString());
+            player.sendMessage(Message.NOTICE_LOCATE_BIOME_USAGE.getString());
             return true;
         }
 
-        if (!locateCommandPermission.contains(player.getName())) {
-            player.sendMessage(Message.NOTICE_LOCATE_NO_PERMISSION.getString());
+        if (!Game.canAffordLocate(player)) {
             return true;
         }
 
-        Biome biome;
-        try {
-            biome = Biome.valueOf(args[0].toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString());
+        Biome biome = resolveBiomeInput(args[0]);
+        if (biome == null) {
+            player.sendMessage(Message.NOTICE_LOCATE_BIOME_INVALID.getString());
             return true;
         }
 
@@ -50,17 +47,22 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
         Location source = player.getLocation();
         org.bukkit.util.BiomeSearchResult result = world.locateNearestBiome(source, 6400, biome);
         if (result == null) {
-            player.sendMessage(ColorUtil.t("&c未找到该生物群系，未扣除积分。"));
+            player.sendMessage(Message.NOTICE_LOCATE_BIOME_NOT_FOUND.getString());
             return true;
         }
 
-        if (!Game.consumeLocatePermissionWithCharge(player)) {
+        if (!Game.chargeLocateCost(player)) {
             return true;
         }
 
         Location target = result.getLocation();
-        player.sendMessage(ColorUtil.t("&a已定位到生物群系 &e" + args[0].toLowerCase()
-                + " &a坐标：&b" + target.getBlockX() + " " + target.getBlockY() + " " + target.getBlockZ()));
+        int distance = (int) Math.round(source.distance(target));
+        player.sendMessage(Message.NOTICE_LOCATE_BIOME_SUCCESS.getString()
+            .replace("%biome%", BiomeTranslation.getValue(biome))
+            .replace("%x%", String.valueOf(target.getBlockX()))
+            .replace("%y%", String.valueOf(target.getBlockY()))
+            .replace("%z%", String.valueOf(target.getBlockZ()))
+            .replace("%distance%", String.valueOf(distance)));
 
         return true;
     }
@@ -68,6 +70,54 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return Arrays.asList("plains", "sunflower_plains", "snowy_plains", "ice_spikes", "desert", "swamp", "mangrove_swamp", "forest", "flower_forest", "birch_forest", "dark_forest", "old_growth_birch_forest", "old_growth_pine_taiga", "old_growth_spruce_taiga", "taiga", "snowy_taiga", "savanna", "savanna_plateau", "windswept_hills", "windswept_gravelly_hills", "windswept_forest", "windswept_savanna", "jungle", "sparse_jungle", "bamboo_jungle", "badlands", "eroded_badlands", "wooded_badlands", "meadow", "grove", "snowy_slopes", "frozen_peaks", "jagged_peaks", "stony_peaks", "river", "frozen_river", "beach", "snowy_beach", "stony_shore", "warm_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "ocean", "deep_ocean", "cold_ocean", "deep_cold_ocean", "frozen_ocean", "deep_frozen_ocean", "mushroom_fields", "dripstone_caves", "lush_caves", "deep_dark", "nether_wastes", "warped_forest", "crimson_forest", "soul_sand_valley", "basalt_deltas", "the_end", "end_highlands", "end_midlands", "small_end_islands", "end_barrens", "cherry_grove", "pale_garden");
+        List<String> candidates;
+        if (isChineseLanguageConfig()) {
+            candidates = new ArrayList<>();
+            for (Biome biome : Biome.values()) {
+                String name = BiomeTranslation.getValue(biome);
+                if (name != null && !name.isBlank()) {
+                    candidates.add(name);
+                }
+            }
+        } else {
+            candidates = Arrays.stream(Biome.values())
+                    .map(b -> b.name().toLowerCase(Locale.ROOT))
+                    .toList();
+        }
+
+        if (strings.length == 0) {
+            return candidates;
+        }
+
+        String prefix = strings[strings.length - 1].toLowerCase(Locale.ROOT);
+        return candidates.stream()
+                .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
+                .toList();
+    }
+
+    private Biome resolveBiomeInput(String input) {
+        String normalizedInput = input == null ? "" : input.trim();
+        try {
+            return Biome.valueOf(normalizedInput.toUpperCase(Locale.ROOT));
+        } catch (Exception ignored) {
+            // Continue and try localized input in Chinese mode.
+        }
+
+        if (!isChineseLanguageConfig()) {
+            return null;
+        }
+
+        for (Biome biome : Biome.values()) {
+            String localized = BiomeTranslation.getValue(biome);
+            if (localized != null && localized.equalsIgnoreCase(normalizedInput)) {
+                return biome;
+            }
+        }
+        return null;
+    }
+
+    private boolean isChineseLanguageConfig() {
+        String languageCode = Message.getLanguageCode();
+        return languageCode != null && languageCode.toLowerCase(Locale.ROOT).startsWith("zh");
     }
 }
