@@ -101,6 +101,7 @@ public enum Message {
     MENU_READY_LORE("menu.pregame-menu.ready-lore"),
     MENU_START("menu.pregame-menu.start"),
     MENU_START_LORE("menu.pregame-menu.start-lore"),
+    MENU_START_FORCE_SHIFT_LORE("menu.pregame-menu.start-force-shift-lore"),
     MENU_BLOCK_AMOUNT("menu.pregame-menu.block-amount"),
     MENU_BLOCK_AMOUNT_LORE("menu.pregame-menu.block-amount-lore"),
     MENU_TIME_MODE_DURATION("menu.pregame-menu.time-mode-duration"),

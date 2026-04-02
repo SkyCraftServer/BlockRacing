@@ -4,6 +4,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
+import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -332,6 +333,36 @@ public class Game {
         // Exist empty team
         if (redTeamPlayers.isEmpty() || blueTeamPlayers.isEmpty()) {
             player.sendMessage(Message.NOTICE_EMPTY_TEAM.getString());
+            return;
+        }
+
+        // Blocks have problems
+        if (!checkBlock()) {
+            return;
+        }
+
+        // Start the game
+        sendAll(Message.NOTICE_START.getString());
+        startGame();
+    }
+
+    // Force start by OP, ignoring ready-state checks.
+    public static void forceStart(CommandSender sender) {
+
+        // Game already start
+        if (getCurrentGameState().equals(GameState.INGAME)) {
+            return;
+        }
+
+        // Not enough players
+        if (!(Bukkit.getOnlinePlayers().size() > 1)) {
+            sender.sendMessage(Message.NOTICE_NOT_ENOUGH_PLAYERS.getString());
+            return;
+        }
+
+        // Exist empty team
+        if (redTeamPlayers.isEmpty() || blueTeamPlayers.isEmpty()) {
+            sender.sendMessage(Message.NOTICE_EMPTY_TEAM.getString());
             return;
         }
 

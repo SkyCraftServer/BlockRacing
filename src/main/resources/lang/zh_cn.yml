@@ -113,6 +113,7 @@ menu:
     ready-lore: "&9点击此处准备"
     start: "&b开始游戏"
     start-lore: "&9点击此处开始游戏"
+    start-force-shift-lore: "&7Shift点击强制开始游戏"
     block-amount: "&e目标方块数量："
     block-amount-lore:
       - "&e点击此处更改目标方块数量"

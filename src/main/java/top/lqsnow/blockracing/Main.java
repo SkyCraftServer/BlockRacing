@@ -53,6 +53,7 @@ public class Main extends BukkitPlugin {
         registerCommand("block", new GetBlock());
         registerCommand("breload", new top.lqsnow.blockracing.commands.Reload());
         registerCommand("randomteam", new RandomTeam());
+        registerCommand("forcestart", new ForceStart());
 
         // Set tab completers where applicable
         setTabCompleterIfPossible("debug", new Debug());

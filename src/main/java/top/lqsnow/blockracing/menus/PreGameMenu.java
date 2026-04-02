@@ -15,6 +15,9 @@ import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.managers.Team;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static top.lqsnow.blockracing.listeners.BasicListener.editAmountPlayer;
 import static top.lqsnow.blockracing.managers.Gui.updateMenu;
 import static top.lqsnow.blockracing.managers.Scoreboard.updateScoreboard;
@@ -458,12 +461,20 @@ public class PreGameMenu extends Menu {
         this.start = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (player.isOp() && click.isShiftClick()) {
+                    Game.forceStart(player);
+                    return;
+                }
                 Game.checkStartDemands(player);
             }
 
             @Override
             public ItemStack getItem() {
-                return ItemCreator.from(CompMaterial.DIAMOND, Message.MENU_START.getString(), Message.MENU_START_LORE.getStringList()).make();
+                List<String> lore = new ArrayList<>(Message.MENU_START_LORE.getStringList());
+                if (getViewer() != null && getViewer().isOp()) {
+                    lore.add(Message.MENU_START_FORCE_SHIFT_LORE.getString());
+                }
+                return ItemCreator.from(CompMaterial.DIAMOND, Message.MENU_START.getString(), lore).make();
             }
         };
 

@@ -13,10 +13,10 @@ commands:
     usage: "/tp <Teammate>"
     description: "TP to teammate."
   locatestructure:
-    usage: "/locate <Structure>"
+    usage: "/locatestructure <Structure>"
     description: "Locate structure."
   locatebiome:
-    usage: "/locate <Biome>"
+    usage: "/locatebiome <Biome>"
     description: "Locate biome."
   restartgame:
     usage: "/restartgame"
@@ -41,4 +41,8 @@ commands:
   randomteam:
     usage: "/randomteam"
     description: "Randomly assign players to teams."
+    permission: op
+  forcestart:
+    usage: "/forcestart"
+    description: "Force start the game and ignore ready status."
     permission: op

@@ -88,6 +88,7 @@ menu:
     ready-lore: "&9Click here to ready up"
     start: "&bStart Game"
     start-lore: "&9Click here to start the game"
+    start-force-shift-lore: "&7Shift-click to force start the game"
     block-amount: "&eTarget Block Amount: "
     block-amount-lore:
       - "&eClick here to change the target block amount"
