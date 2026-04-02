@@ -178,11 +178,9 @@ menu:
     shared-team-spawn-lore:
       - "&e开启后两队将出生在同一个位置"
       - "&e更容易在开局直接发生对抗"
-      - "&7默认关闭"
     end-portal-broadcast-lore:
       - "&e开启后，任意队伍开启末地门时"
       - "&e将向全服广播末地门坐标"
-      - "&7默认关闭"
     locked-by-nether: " &7(下界模式锁定)"
     select-team: "&a选队"
     block-setting: "&a方块设置"

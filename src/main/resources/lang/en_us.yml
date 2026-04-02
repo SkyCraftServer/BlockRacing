@@ -147,11 +147,9 @@ menu:
     shared-team-spawn-lore:
       - "&eWhen enabled, both teams spawn at the same location"
       - "&eCreates direct competition right from the start"
-      - "&7Disabled by default"
     end-portal-broadcast-lore:
       - "&eWhen enabled, activating an End Portal"
       - "&ewill broadcast its coordinates to the whole server"
-      - "&7Disabled by default"
     locked-by-nether: " &7(Locked by Nether Mode)"
     select-team: "&aSelect Team"
     block-setting: "&aBlock Setting"
