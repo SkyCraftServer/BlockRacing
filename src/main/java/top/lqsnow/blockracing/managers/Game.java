@@ -635,8 +635,6 @@ public class Game {
         }
         if (redTeamPlayers.contains(player.getName())) {
             if (redTeamScore >= locateCost) {
-                redTeamScore -= locateCost;
-                updateScoreboard();
                 locateCommandPermission.add(player.getName());
                 sendAll(Message.NOTICE_BUY_LOCATE.getString().replace("%player%", player.getName()));
                 player.addAttachment(Main.getInstance(), "minecraft.command.locate", true);
@@ -645,8 +643,6 @@ public class Game {
             }
         } else if (blueTeamPlayers.contains(player.getName())) {
             if (blueTeamScore >= locateCost) {
-                blueTeamScore -= locateCost;
-                updateScoreboard();
                 locateCommandPermission.add(player.getName());
                 sendAll(Message.NOTICE_BUY_LOCATE.getString().replace("%player%", player.getName()));
                 player.addAttachment(Main.getInstance(), "minecraft.command.locate", true);
@@ -654,6 +650,33 @@ public class Game {
                 player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
             }
         }
+    }
+
+    public static boolean consumeLocatePermissionWithCharge(Player player) {
+        if (!locateCommandPermission.contains(player.getName())) {
+            return false;
+        }
+
+        if (redTeamPlayers.contains(player.getName())) {
+            if (redTeamScore < locateCost) {
+                player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
+                return false;
+            }
+            redTeamScore -= locateCost;
+        } else if (blueTeamPlayers.contains(player.getName())) {
+            if (blueTeamScore < locateCost) {
+                player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString());
+                return false;
+            }
+            blueTeamScore -= locateCost;
+        } else {
+            return false;
+        }
+
+        locateCommandPermission.remove(player.getName());
+        player.addAttachment(Main.getInstance(), "minecraft.command.locate", false);
+        updateScoreboard();
+        return true;
     }
 
     // Random Teleport

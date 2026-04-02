@@ -1,6 +1,9 @@
 package top.lqsnow.blockracing.commands;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -8,8 +11,9 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import top.lqsnow.blockracing.Main;
+import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
+import top.lqsnow.blockracing.utils.ColorUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,11 +28,39 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (locateCommandPermission.contains(player.getName())) {
-            player.performCommand("locate biome " + args[0]);
-            locateCommandPermission.remove(player.getName());
-            player.addAttachment(Main.getInstance(), "minecraft.command.locate", false);
-        } else player.sendMessage(Message.NOTICE_LOCATE_NO_PERMISSION.getString());
+        if (args.length < 1) {
+            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString());
+            return true;
+        }
+
+        if (!locateCommandPermission.contains(player.getName())) {
+            player.sendMessage(Message.NOTICE_LOCATE_NO_PERMISSION.getString());
+            return true;
+        }
+
+        Biome biome;
+        try {
+            biome = Biome.valueOf(args[0].toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString());
+            return true;
+        }
+
+        World world = player.getWorld();
+        Location source = player.getLocation();
+        org.bukkit.util.BiomeSearchResult result = world.locateNearestBiome(source, 6400, biome);
+        if (result == null) {
+            player.sendMessage(ColorUtil.t("&c未找到该生物群系，未扣除积分。"));
+            return true;
+        }
+
+        if (!Game.consumeLocatePermissionWithCharge(player)) {
+            return true;
+        }
+
+        Location target = result.getLocation();
+        player.sendMessage(ColorUtil.t("&a已定位到生物群系 &e" + args[0].toLowerCase()
+                + " &a坐标：&b" + target.getBlockX() + " " + target.getBlockY() + " " + target.getBlockZ()));
 
         return true;
     }
