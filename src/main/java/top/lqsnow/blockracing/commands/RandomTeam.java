@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static top.lqsnow.blockracing.managers.Game.getCurrentGameState;
 
@@ -51,6 +52,11 @@ public class RandomTeam implements CommandExecutor {
         }
 
         CommandUtil.sendAll(Message.NOTICE_TEAM_SHUFFLE.getString());
+
+        String redMembers = Team.redTeamPlayers.stream().collect(Collectors.joining(", "));
+        String blueMembers = Team.blueTeamPlayers.stream().collect(Collectors.joining(", "));
+        CommandUtil.sendAll("&c红队: &f" + (redMembers.isEmpty() ? "(无)" : redMembers));
+        CommandUtil.sendAll("&9蓝队: &f" + (blueMembers.isEmpty() ? "(无)" : blueMembers));
 
 
 

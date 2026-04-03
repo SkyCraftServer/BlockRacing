@@ -3,9 +3,10 @@ package top.lqsnow.blockracing.managers;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import top.lqsnow.blockracing.Main;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
 
@@ -16,8 +17,8 @@ import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 public class Team {
     public static org.bukkit.scoreboard.Team redTeam;
     public static org.bukkit.scoreboard.Team blueTeam;
-    public static List<String> redTeamPlayers = new ArrayList<>();
-    public static List<String> blueTeamPlayers = new ArrayList<>();
+    public static List<String> redTeamPlayers = new CopyOnWriteArrayList<>();
+    public static List<String> blueTeamPlayers = new CopyOnWriteArrayList<>();
 
     public static void createTeam() {
         Scoreboard.createScoreboard();
@@ -92,6 +93,7 @@ public class Team {
                 redTeam.addEntry(player.getName());
             }
             redTeamPlayers.add(player.getName());
+            setPlayerListNameByTeam(player, true);
             if (sendMessage) {
                 sendAll(Message.NOTICE_JOIN_RED.getString().replace("%player%", player.getName()));
             }
@@ -113,6 +115,7 @@ public class Team {
                 blueTeam.addEntry(player.getName());
             }
             blueTeamPlayers.add(player.getName());
+            setPlayerListNameByTeam(player, false);
             if (sendMessage) {
                 sendAll(Message.NOTICE_JOIN_BLUE.getString().replace("%player%", player.getName()));
             }
@@ -131,6 +134,42 @@ public class Team {
 
     public static boolean isPlayerInBlueTeam(Player player) {
         return blueTeamPlayers.contains(player.getName());
+    }
+
+    public static void refreshPlayerListName(Player player) {
+        if (player == null) {
+            return;
+        }
+        if (redTeamPlayers.contains(player.getName())) {
+            setPlayerListNameByTeam(player, true);
+            return;
+        }
+        if (blueTeamPlayers.contains(player.getName())) {
+            setPlayerListNameByTeam(player, false);
+            return;
+        }
+
+        Runnable action = () -> player.setPlayerListName(player.getName());
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> action.run());
+            return;
+        }
+        action.run();
+    }
+
+    private static void setPlayerListNameByTeam(Player player, boolean red) {
+        if (player == null) {
+            return;
+        }
+
+        String color = red ? Message.TEAM_RED_COLOR.getString() : Message.TEAM_BLUE_COLOR.getString();
+        Runnable action = () -> player.setPlayerListName(color + player.getName());
+
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> action.run());
+            return;
+        }
+        action.run();
     }
 
 }

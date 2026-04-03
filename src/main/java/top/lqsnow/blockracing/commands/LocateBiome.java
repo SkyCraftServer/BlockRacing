@@ -11,6 +11,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.utils.BiomeTranslation;
@@ -84,7 +85,7 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
                     : -1;
             String distanceText = teammateDistance >= 0 ? String.valueOf(teammateDistance) : "?";
 
-            teammate.sendMessage(Message.NOTICE_LOCATE_BIOME_TEAM_SUCCESS.getString()
+            sendMessageFoliaSafe(teammate, Message.NOTICE_LOCATE_BIOME_TEAM_SUCCESS.getString()
                     .replace("%player%", player.getName())
                     .replace("%biome%", BiomeTranslation.getValue(biome))
                     .replace("%x%", String.valueOf(target.getBlockX()))
@@ -94,6 +95,17 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
         }
 
         return true;
+    }
+
+    private static void sendMessageFoliaSafe(Player player, String message) {
+        if (player == null) {
+            return;
+        }
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> player.sendMessage(message));
+            return;
+        }
+        player.sendMessage(message);
     }
 
     @Nullable

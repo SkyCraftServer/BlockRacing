@@ -12,6 +12,7 @@ import top.lqsnow.blockracing.listeners.BasicListener;
 import top.lqsnow.blockracing.listeners.AddonMonitorListener;
 import top.lqsnow.blockracing.listeners.MotdListener;
 import top.lqsnow.blockracing.managers.*;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
 
 import org.bukkit.command.PluginCommand;
@@ -114,15 +115,10 @@ public class Main extends BukkitPlugin {
         foliaLib.getScheduler().runLater(() -> {
             World world = Bukkit.getWorlds().get(0);
             world.setDifficulty(Difficulty.PEACEFUL);
-            // overworld
-            world.setGameRule(GameRule.KEEP_INVENTORY, true);
-            world.setGameRule(GameRule.LOCATOR_BAR, false);
-            // nether
-            Bukkit.getWorlds().get(1).setGameRule(GameRule.KEEP_INVENTORY, true);
-            Bukkit.getWorlds().get(1).setGameRule(GameRule.LOCATOR_BAR, false);
-            // end
-            Bukkit.getWorlds().get(2).setGameRule(GameRule.KEEP_INVENTORY, true);
-            Bukkit.getWorlds().get(2).setGameRule(GameRule.LOCATOR_BAR, false);
+            for (World w : Bukkit.getWorlds()) {
+                w.setGameRule(GameRule.KEEP_INVENTORY, true);
+                w.setGameRule(GameRule.LOCATOR_BAR, false);
+            }
             world.setTime(1000);
         }, 5);
 

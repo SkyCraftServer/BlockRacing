@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
 
 import static top.lqsnow.blockracing.managers.Game.*;
@@ -36,12 +37,6 @@ public class WayPoint implements CommandExecutor {
     }
 
     private boolean removeWaypoint(String team, int index) {
-        if (team.equals("red")) {
-            redWaypoint.remove(index);
-        } else {
-            blueWaypoint.remove(index);
-        }
-
-        return true;
+        return Game.removeWaypoint(team, index);
     }
 }

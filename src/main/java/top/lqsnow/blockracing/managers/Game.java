@@ -23,17 +23,23 @@ import org.mineacademy.fo.remain.CompMaterial;
     
 import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
+import top.lqsnow.blockracing.utils.BiomeTranslation;
 import top.lqsnow.blockracing.utils.ColorUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 import java.time.Duration;
 
 import static top.lqsnow.blockracing.listeners.BasicListener.editAmountPlayer;
 import static top.lqsnow.blockracing.managers.Block.*;
 import static top.lqsnow.blockracing.managers.Gui.*;
-import static top.lqsnow.blockracing.managers.Scoreboard.updateScoreboard;
+import static top.lqsnow.blockracing.scoreboard.Scoreboard.updateScoreboard;
 import static top.lqsnow.blockracing.managers.Team.*;
 import static top.lqsnow.blockracing.utils.ColorUtil.t;
 import static top.lqsnow.blockracing.utils.CommandUtil.*;
@@ -43,34 +49,36 @@ public class Game {
         PREGAME, INGAME, END
     }
 
-    public static GameState currentGameState = GameState.PREGAME;
-    public static List<String> readyPlayers = new ArrayList<>();
+    public static volatile GameState currentGameState = GameState.PREGAME;
+    public static List<String> readyPlayers = new CopyOnWriteArrayList<>();
     public static int redTeamScore = 0;
     public static int blueTeamScore = 0;
     public static int redTeamCurrentBlockAmount = 0;
     public static int blueTeamCurrentBlockAmount = 0;
     public static int redTeamTotalBlockAmount = 0;
     public static int blueTeamTotalBlockAmount = 0;
-    public static List<String> freeRandomTPList = new ArrayList<>();
+    public static List<String> freeRandomTPList = new CopyOnWriteArrayList<>();
 
     public static ArrayList<Inventory> redTeamChest = new ArrayList<>();
     public static ArrayList<Inventory> blueTeamChest = new ArrayList<>();
 
-    public static HashMap<Integer, Location> redWaypoint = new HashMap<>();
-    public static HashMap<Integer, Location> blueWaypoint = new HashMap<>();
+    public static Map<Integer, Location> redWaypoint = new ConcurrentHashMap<>();
+    public static Map<Integer, Location> blueWaypoint = new ConcurrentHashMap<>();
 
-    public static HashMap<Integer, CompMaterial> redWaypointIconCache = new HashMap<>();
-    public static HashMap<Integer, CompMaterial> blueWaypointIconCache = new HashMap<>();
+    public static Map<Integer, CompMaterial> redWaypointIconCache = new ConcurrentHashMap<>();
+    public static Map<Integer, CompMaterial> blueWaypointIconCache = new ConcurrentHashMap<>();
+    public static Map<Integer, String> redWaypointBiomeCache = new ConcurrentHashMap<>();
+    public static Map<Integer, String> blueWaypointBiomeCache = new ConcurrentHashMap<>();
 
     public static int redTeamRollCount;
     public static int blueTeamRollCount;
     public static int contestModeRollCount;
-    public static List<String> redRollPlayers = new ArrayList<>();
-    public static List<String> blueRollPlayers = new ArrayList<>();
-    public static List<String> contestModeRollPlayers = new ArrayList<>();
-    public static List<String> inGamePlayers = new ArrayList<>();
+    public static List<String> redRollPlayers = new CopyOnWriteArrayList<>();
+    public static List<String> blueRollPlayers = new CopyOnWriteArrayList<>();
+    public static List<String> contestModeRollPlayers = new CopyOnWriteArrayList<>();
+    public static List<String> inGamePlayers = new CopyOnWriteArrayList<>();
     public static int locateCost;
-    public static Map<String, Integer> collectAmount = new HashMap<>();
+    public static Map<String, Integer> collectAmount = new ConcurrentHashMap<>();
     private static final Deque<Location> randomTpPool = new ArrayDeque<>();
 
     private static World activeGameWorld;
@@ -161,20 +169,6 @@ public class Game {
             return;
         }
 
-        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
-            Location base = randomFoliaLocation(world, 1200);
-            redTeamSpawn = base.clone();
-            if (Setting.isSharedTeamSpawn()) {
-                blueTeamSpawn = base.clone();
-            } else {
-                blueTeamSpawn = randomFoliaLocation(world, 1200);
-                if (redTeamSpawn.getWorld().equals(blueTeamSpawn.getWorld()) && redTeamSpawn.distance(blueTeamSpawn) < 10) {
-                    blueTeamSpawn.add(20, 0, 0);
-                }
-            }
-            return;
-        }
-
         redTeamSpawn = generateSafeSpawn(world);
         if (Setting.isSharedTeamSpawn()) {
             blueTeamSpawn = redTeamSpawn == null ? null : redTeamSpawn.clone();
@@ -191,12 +185,12 @@ public class Game {
     }
 
     private static org.bukkit.Location generateSafeSpawn(World world) {
-        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
-            return randomFoliaLocation(world, 1200);
-        }
-
         if (world.getEnvironment() == World.Environment.NETHER) {
             return findSafeNetherLocation(world, new Random());
+        }
+
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            return resolveSafeOverworldLocationFolia(world, true, 0, 5);
         }
 
         Random random = new Random();
@@ -222,14 +216,14 @@ public class Game {
             return null;
         }
 
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            return resolveSafeNetherLocationFolia(world, 0, 5);
+        }
+
         // Folia enforces region/thread ownership across worlds.
         // During game start/menu click we may not be on the Nether's region thread,
         // so scanning Nether blocks can throw IllegalStateException (world mismatch).
         // Use a stable fallback spawn in this case.
-        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
-            return randomFoliaLocation(world, 1200);
-        }
-
         int attempt = 0;
         int maxAttempts = 100;
         try {
@@ -281,6 +275,7 @@ public class Game {
     }
 
     public static void playerLogin(Player player) {
+        Team.refreshPlayerListName(player);
         Scoreboard.showScoreboard(player);
 
         if (getCurrentGameState().equals(GameState.PREGAME)) {
@@ -632,6 +627,7 @@ public class Game {
         else if (blueTeamPlayers.contains(player.getName()) && blueTeamSpawn != null) spawn = blueTeamSpawn;
         if (spawn != null) teleportPlayer(player, spawn);
         else randomTeleport(player, true);
+        applyTeamRespawnLocation(player);
         player.setHealth(20);
         player.setExp(0);
         player.setLevel(0);
@@ -786,6 +782,15 @@ public class Game {
             return;
         }
 
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            if (Setting.isNetherMode() && world.getEnvironment() == World.Environment.NETHER) {
+                randomTeleportFoliaNether(player, world, 0);
+            } else {
+                randomTeleportFolia(player, world, avoidOcean, 0);
+            }
+            return;
+        }
+
         Location offset;
         if (Setting.isNetherMode() && world.getEnvironment() == World.Environment.NETHER) {
             offset = findSafeNetherLocation(world, new Random());
@@ -799,28 +804,181 @@ public class Game {
 
         teleportPlayer(player, offset);
         applyPostTeleportProtection(player);
+        sendTeleportSuccessMessage(player, offset);
+    }
 
-        String x = String.format("%.1f", offset.getX());
-        String y = String.format("%.1f", offset.getY());
-        String z = String.format("%.1f", offset.getZ());
+    private static void randomTeleportFolia(Player player, World world, boolean avoidOcean, int attempts) {
+        if (player == null || world == null) {
+            return;
+        }
 
-        player.sendMessage(Message.NOTICE_TP_SUCCESS.getString().replace("%x%", x).replace("%y%", y).replace("%z%", z));
+        final int maxAttempts = 60;
+        if (attempts >= maxAttempts) {
+            Location fallback = world.getSpawnLocation().clone().add(0, 1, 0);
+            teleportPlayer(player, fallback);
+            applyPostTeleportProtection(player);
+            sendTeleportSuccessMessage(player, fallback);
+            return;
+        }
+
+        Location seed = pickOverworldTeleportSeed(world, attempts == 0);
+        Main.getFoliaLib().getScheduler().runAtLocationLater(seed, () -> {
+            Location safe = resolveOverworldCandidate(world, seed, avoidOcean);
+            if (safe == null) {
+                randomTeleportFolia(player, world, avoidOcean, attempts + 1);
+                return;
+            }
+
+            if (avoidOcean && isOceanBiome(safe.getBlock().getBiome())) {
+                if (attempts == 0 && Message.NOTICE_TP_OCEAN.getString() != null) {
+                    sendPlayerMessage(player, Message.NOTICE_TP_OCEAN.getString());
+                }
+                randomTeleportFolia(player, world, avoidOcean, attempts + 1);
+                return;
+            }
+
+            teleportPlayer(player, safe);
+            applyPostTeleportProtection(player);
+            sendTeleportSuccessMessage(player, safe);
+        }, 1L);
+    }
+
+    private static void randomTeleportFoliaNether(Player player, World world, int attempts) {
+        if (player == null || world == null) {
+            return;
+        }
+
+        final int maxAttempts = 100;
+        if (attempts >= maxAttempts) {
+            Location fallback = world.getSpawnLocation().clone().add(0, 1, 0);
+            teleportPlayer(player, fallback);
+            applyPostTeleportProtection(player);
+            sendTeleportSuccessMessage(player, fallback);
+            return;
+        }
+
+        Location seed = pickNetherTeleportSeed(world);
+        Main.getFoliaLib().getScheduler().runAtLocationLater(seed, () -> {
+            Location safe = resolveNetherCandidate(world, seed);
+            if (safe == null) {
+                randomTeleportFoliaNether(player, world, attempts + 1);
+                return;
+            }
+
+            teleportPlayer(player, safe);
+            applyPostTeleportProtection(player);
+            sendTeleportSuccessMessage(player, safe);
+        }, 1L);
+    }
+
+    private static Location pickOverworldTeleportSeed(World world, boolean preferCandidatePool) {
+        if (preferCandidatePool) {
+            Location candidate = pollRandomTeleportCandidate();
+            if (candidate != null) {
+                return new Location(world, candidate.getX(), world.getMinHeight(), candidate.getZ());
+            }
+        }
+
+        Random random = new Random();
+        double randX = random.nextInt(20000) - 10000;
+        double randZ = random.nextInt(20000) - 10000;
+        return new Location(world, randX, world.getMinHeight(), randZ);
+    }
+
+    private static Location pickNetherTeleportSeed(World world) {
+        Random random = new Random();
+        double randX = random.nextInt(20000) - 10000;
+        double randZ = random.nextInt(20000) - 10000;
+        return new Location(world, randX, world.getMinHeight(), randZ);
+    }
+
+    private static Location resolveOverworldCandidate(World world, Location seed, boolean avoidOcean) {
+        Location loc = world.getHighestBlockAt(new Location(world, seed.getBlockX(), 0, seed.getBlockZ())).getLocation();
+        loc.setY(loc.getY() + 1);
+        if (avoidOcean && isOceanBiome(loc.getBlock().getBiome())) {
+            return null;
+        }
+        return loc;
+    }
+
+    private static Location resolveNetherCandidate(World world, Location seed) {
+        int ceilingLimit = Math.min(world.getMaxHeight() - 5, 118);
+        for (int y = ceilingLimit; y >= 20; y--) {
+            org.bukkit.block.Block floor = world.getBlockAt(seed.getBlockX(), y, seed.getBlockZ());
+            if (!isSafeNetherFloor(world, floor)) {
+                continue;
+            }
+            org.bukkit.block.Block head = floor.getRelative(0, 1, 0);
+            org.bukkit.block.Block above = floor.getRelative(0, 2, 0);
+            if (!isSafeNetherAir(world, head) || !isSafeNetherAir(world, above)) {
+                continue;
+            }
+            Location candidate = head.getLocation().add(0.5, 0, 0.5);
+            if (candidate.getBlock().getType() == Material.LAVA) {
+                continue;
+            }
+            return candidate;
+        }
+        return null;
+    }
+
+    private static Location resolveSafeOverworldLocationFolia(World world, boolean avoidOcean, int attempt, int maxAttempts) {
+        if (world == null) {
+            return null;
+        }
+        if (attempt >= maxAttempts) {
+            return world.getSpawnLocation().clone().add(0, 1, 0);
+        }
+
+        CompletableFuture<Location> future = new CompletableFuture<>();
+        Location seed = pickOverworldTeleportSeed(world, attempt == 0);
+        Main.getFoliaLib().getScheduler().runAtLocationLater(seed, () -> {
+            try {
+                future.complete(resolveOverworldCandidate(world, seed, avoidOcean));
+            } catch (Throwable throwable) {
+                future.completeExceptionally(throwable);
+            }
+        }, 1L);
+
+        try {
+            Location location = future.get(5, TimeUnit.SECONDS);
+            if (location != null) {
+                return location;
+            }
+        } catch (Exception ignored) {
+        }
+        return resolveSafeOverworldLocationFolia(world, avoidOcean, attempt + 1, maxAttempts);
+    }
+
+    private static Location resolveSafeNetherLocationFolia(World world, int attempt, int maxAttempts) {
+        if (world == null) {
+            return null;
+        }
+        if (attempt >= maxAttempts) {
+            return world.getSpawnLocation().clone().add(0, 1, 0);
+        }
+
+        CompletableFuture<Location> future = new CompletableFuture<>();
+        Location seed = pickNetherTeleportSeed(world);
+        Main.getFoliaLib().getScheduler().runAtLocationLater(seed, () -> {
+            try {
+                future.complete(resolveNetherCandidate(world, seed));
+            } catch (Throwable throwable) {
+                future.completeExceptionally(throwable);
+            }
+        }, 1L);
+
+        try {
+            Location location = future.get(5, TimeUnit.SECONDS);
+            if (location != null) {
+                return location;
+            }
+        } catch (Exception ignored) {
+        }
+        return resolveSafeNetherLocationFolia(world, attempt + 1, maxAttempts);
     }
 
     private static Location findSafeOverworldLocation(World world, boolean avoidOcean) {
-        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
-            Location candidate = pollRandomTeleportCandidate();
-            if (candidate != null) {
-                return new Location(world,
-                        candidate.getX() + 0.5,
-                        candidate.getY(),
-                        candidate.getZ() + 0.5,
-                        candidate.getYaw(),
-                        candidate.getPitch());
-            }
-            return randomFoliaLocation(world, 10000);
-        }
-
         // Try to use a candidate from the pool first
         Location candidate = pollRandomTeleportCandidate();
         if (candidate != null) {
@@ -878,6 +1036,49 @@ public class Game {
         } else {
             action.run();
         }
+    }
+
+    private static void sendTeleportSuccessMessage(Player player, Location offset) {
+        String x = String.format("%.1f", offset.getX());
+        String y = String.format("%.1f", offset.getY());
+        String z = String.format("%.1f", offset.getZ());
+        sendPlayerMessage(player, Message.NOTICE_TP_SUCCESS.getString().replace("%x%", x).replace("%y%", y).replace("%z%", z));
+    }
+
+    private static void sendPlayerMessage(Player player, String message) {
+        if (player == null || message == null) {
+            return;
+        }
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> player.sendMessage(message));
+            return;
+        }
+        player.sendMessage(message);
+    }
+
+    public static void applyTeamRespawnLocation(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        Location spawn = null;
+        if (redTeamPlayers.contains(player.getName())) {
+            spawn = redTeamSpawn;
+        } else if (blueTeamPlayers.contains(player.getName())) {
+            spawn = blueTeamSpawn;
+        }
+
+        if (spawn == null) {
+            return;
+        }
+
+        Location respawnLocation = spawn.clone();
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> player.setRespawnLocation(respawnLocation, true));
+            return;
+        }
+
+        player.setRespawnLocation(respawnLocation, true);
     }
 
     public static synchronized void addRandomTeleportCandidate(Location location) {
@@ -943,16 +1144,81 @@ public class Game {
         };
     }
 
+    public static String getWaypointBiome(String team, int index) {
+        return switch (team) {
+            case "red" -> redWaypointBiomeCache.getOrDefault(index, "N/A");
+            case "blue" -> blueWaypointBiomeCache.getOrDefault(index, "N/A");
+            default -> "N/A";
+        };
+    }
+
     public static void setWaypoint(Player player, String team, int index) {
         Location waypoint = player.getLocation();
+        String biomeLabel = "N/A";
+        CompMaterial icon = resolveWaypointIconAtRecord(waypoint);
+        try {
+            biomeLabel = BiomeTranslation.getValue(waypoint.getBlock().getBiome());
+        } catch (IllegalStateException ignored) {
+            // In Folia, world access can be thread-restricted. Fallback keeps menu rendering safe.
+        }
+
         switch (team) {
             case "red" -> {
                 redWaypoint.put(index, waypoint);
+                redWaypointBiomeCache.put(index, biomeLabel);
+                redWaypointIconCache.put(index, icon);
             }
             case "blue" -> {
                 blueWaypoint.put(index, waypoint);
+                blueWaypointBiomeCache.put(index, biomeLabel);
+                blueWaypointIconCache.put(index, icon);
             }
         }
+    }
+
+    private static CompMaterial resolveWaypointIconAtRecord(Location waypoint) {
+        if (waypoint == null || waypoint.getWorld() == null) {
+            return CompMaterial.FILLED_MAP;
+        }
+
+        try {
+            org.bukkit.block.Block block = waypoint.getBlock();
+            while (block.isEmpty() && block.getY() > waypoint.getWorld().getMinHeight()) {
+                block = block.getRelative(0, -1, 0);
+            }
+
+            if (!block.isEmpty()) {
+                CompMaterial material = CompMaterial.fromBlock(block);
+                if (material != null) {
+                    return material;
+                }
+            }
+        } catch (Exception ignored) {
+            // Fallback to environment icon when block material cannot be resolved safely.
+        }
+
+        return switch (waypoint.getWorld().getEnvironment()) {
+            case NORMAL -> CompMaterial.GRASS_BLOCK;
+            case NETHER -> CompMaterial.NETHERRACK;
+            case THE_END -> CompMaterial.END_STONE;
+            default -> CompMaterial.FILLED_MAP;
+        };
+    }
+
+    public static boolean removeWaypoint(String team, int index) {
+        return switch (team) {
+            case "red" -> {
+                redWaypointIconCache.remove(index);
+                redWaypointBiomeCache.remove(index);
+                yield redWaypoint.remove(index) != null;
+            }
+            case "blue" -> {
+                blueWaypointIconCache.remove(index);
+                blueWaypointBiomeCache.remove(index);
+                yield blueWaypoint.remove(index) != null;
+            }
+            default -> false;
+        };
     }
 
     private static void teleportPlayer(Player player, Location location) {
@@ -988,7 +1254,7 @@ public class Game {
 
     private static void startInGameLoop() {
         stopInGameLoop();
-        inGameTask = Main.getFoliaLib().getScheduler().runTimer(Game::tickInGame, 0L, 5L);
+        inGameTask = Main.getFoliaLib().getScheduler().runTimer(Game::tickInGame, 0L, 2L);
     }
 
     private static void stopInGameLoop() {
@@ -1055,7 +1321,18 @@ public class Game {
     }
 
     private static void showRanking() {
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(collectAmount.entrySet());
+        Map<String, Integer> rankingMap = new HashMap<>();
+        for (String member : redTeamPlayers) {
+            rankingMap.put(member, collectAmount.getOrDefault(member, 0));
+        }
+        for (String member : blueTeamPlayers) {
+            rankingMap.put(member, collectAmount.getOrDefault(member, 0));
+        }
+        for (Map.Entry<String, Integer> entry : collectAmount.entrySet()) {
+            rankingMap.put(entry.getKey(), entry.getValue());
+        }
+
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(rankingMap.entrySet());
         entries.sort((a, b) -> b.getValue().compareTo(a.getValue()));
         sendAll(Message.NOTICE_RANKING.getString());
         for (Map.Entry<String, Integer> entry : entries) {
@@ -1145,6 +1422,11 @@ public class Game {
     }
 
     private static void setLocateScore() {
+        if (Setting.getCurrentGameMode() == Setting.GameMode.TIME) {
+            locateCost = 16;
+            return;
+        }
+
         if (Setting.getCurrentGameMode() == Setting.GameMode.RACING) {
             locateCost = 16;
             return;
@@ -1646,5 +1928,6 @@ public class Game {
         Game.currentGameState = currentGameState;
         BlockRacingVoicechatPlugin.syncAllPlayers();
         Motd.refresh();
+        updateScoreboard();
     }
 }

@@ -9,9 +9,9 @@ loadbefore:
   - BlockRacingAddon
 softdepend:
   - voicechat
+depend:
   - PlaceholderAPI
-  - Scoreboard
-  - Scoreboard-Folia
+  - SimpleScore
 commands:
   tp:
     usage: "/tp <Teammate>"

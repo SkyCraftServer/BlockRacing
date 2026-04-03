@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import top.lqsnow.blockracing.managers.*;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 

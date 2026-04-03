@@ -1,4 +1,4 @@
-package top.lqsnow.blockracing.managers;
+package top.lqsnow.blockracing.scoreboard;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -7,7 +7,11 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Team;
 import top.lqsnow.blockracing.Main;
-import top.lqsnow.blockracing.scoreboard.ScoreboardFoliaIntegration;
+import top.lqsnow.blockracing.managers.Block;
+import top.lqsnow.blockracing.managers.Game;
+import top.lqsnow.blockracing.managers.Message;
+import top.lqsnow.blockracing.managers.Setting;
+import top.lqsnow.blockracing.scoreboard.SimpleScoreIntegration;
 import top.lqsnow.blockracing.utils.MiniMessageUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
 
@@ -50,7 +54,7 @@ public class Scoreboard {
             if (externalScoreboardMode) {
                 return;
             }
-            if (ScoreboardFoliaIntegration.install()) {
+            if (installExternalScoreboardProvider()) {
                 externalScoreboardMode = true;
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sb reload");
                 return;
@@ -58,7 +62,7 @@ public class Scoreboard {
 
             externalScoreboardMode = false;
             available = false;
-            Main.getInstance().getLogger().warning("Folia detected but Scoreboard/PlaceholderAPI integration is unavailable. Sidebar display is disabled.");
+            Main.getInstance().getLogger().warning("Folia detected but no compatible external scoreboard integration (SimpleScore or Scoreboard-Folia with PlaceholderAPI) is available. Sidebar display is disabled.");
             return;
         }
         if (scoreboard != null && sidebar != null) {
@@ -99,7 +103,10 @@ public class Scoreboard {
             if (externalScoreboardMode) {
                 return true;
             }
-            externalScoreboardMode = ScoreboardFoliaIntegration.install();
+            externalScoreboardMode = installExternalScoreboardProvider();
+            if (externalScoreboardMode) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sb reload");
+            }
             return externalScoreboardMode;
         }
         if (scoreboard == null || sidebar == null) {
@@ -308,17 +315,25 @@ public class Scoreboard {
     public static void showScoreboard(Player player) {
         if (!ensureInitialized()) return;
         if (isFolia()) {
-            Main.getFoliaLib().getScheduler().runNextTick(task ->
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sb show blockracing " + player.getName()));
             return;
         }
-        player.setScoreboard(scoreboard);
+        player.setScoreboard(scoreboard != null ? scoreboard : Bukkit.getScoreboardManager().getNewScoreboard());
+    }
+
+    private static boolean installExternalScoreboardProvider() {
+        if (SimpleScoreIntegration.install()) {
+            return true;
+        }
+        return false;
     }
 
     public static void updateScoreboard() {
         if (deferToGlobalIfNeeded(Scoreboard::updateScoreboard)) return;
         if (!ensureInitialized()) return;
-        if (isFolia()) return;
+        if (isFolia()) {
+            refreshComebackEffects();
+            return;
+        }
         if (getCurrentGameState().equals(GameState.PREGAME)) {
             setPreGameScoreboard();
         } else if (getCurrentGameState().equals(GameState.INGAME)) {

@@ -2,21 +2,27 @@ package top.lqsnow.blockracing.scoreboard;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
+import top.lqsnow.blockracing.Main;
+
+import java.util.Locale;
 
 public class BlockRacingPlaceholderExpansion extends PlaceholderExpansion {
     @Override
     public String getIdentifier() {
-        return "blockracing";
+        return Main.getInstance().getDescription().getName().toLowerCase(Locale.ROOT);
     }
 
     @Override
     public String getAuthor() {
-        return "LQ_Snow";
+        if (Main.getInstance().getDescription().getAuthors().isEmpty()) {
+            return "";
+        }
+        return Main.getInstance().getDescription().getAuthors().get(0);
     }
 
     @Override
     public String getVersion() {
-        return "3.6";
+        return Main.getInstance().getDescription().getVersion();
     }
 
     @Override
@@ -31,6 +37,6 @@ public class BlockRacingPlaceholderExpansion extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, String params) {
-        return ScoreboardFoliaIntegration.resolvePlaceholder(params);
+        return BlockRacingScoreboardLayout.resolvePlaceholder(params);
     }
 }

@@ -12,9 +12,9 @@ import org.jetbrains.annotations.Nullable;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Gui;
 import top.lqsnow.blockracing.managers.Message;
-import top.lqsnow.blockracing.managers.Scoreboard;
 import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.menus.GameMenu;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,9 +69,9 @@ public class Menu implements CommandExecutor, TabCompleter {
 
             if (args.length == 1) {
                 if (redTeamPlayers.contains(player.getName())) {
-                    new GameMenu().new WayPointMenu(redWaypoint,redWaypointIconCache).displayTo(player);
+                    new GameMenu().new WayPointMenu("red", redWaypoint, redWaypointIconCache).displayTo(player);
                 } else if (blueTeamPlayers.contains(player.getName())) {
-                    new GameMenu().new WayPointMenu(blueWaypoint,blueWaypointIconCache).displayTo(player);
+                    new GameMenu().new WayPointMenu("blue", blueWaypoint, blueWaypointIconCache).displayTo(player);
                 }
                 return true;
             }

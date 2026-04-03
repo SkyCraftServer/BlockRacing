@@ -1,24 +1,29 @@
-本分支修改内容:  
-支持Java 1.21.11  
-支持1.21.6-1.21.11新方块  
-调整评分和方块权重逻辑,极速模式不再额外获取积分  
-适应性修改: 在所有世界中将 LOCATOR_BAR 游戏规则设置为 false  
-添加基于队伍的出生点位置及重生逻辑以避免开局游戏过于卡顿  
-添加 MiniMessage 支持以实现颜色格式化  
-添加启动时方块文件验证  
-添加 /breload 命令以重载配置和方块  
-修复随机组队无法使用的问题  
-新增计时模式，规则如下：  
-- 核心目标：统计各队伍在限定时间内的任务完成总量；
-- 常规结算：当倒计时结束时，任务完成数量最多的队伍直接获胜；若倒计时结束前，有一个队伍率先完成了方块库中所有方块，则该队伍胜利； 
-- 平局处理机制：当倒计时结束时，若所有队伍完成数量完全一致，自动触发加时赛 —— 加时赛无时间限制，任何队伍率先完成 1 次任务，立即判定为加时赛胜利并结束整场比赛。  
-- 权重计算规则调整 在计时模式下，任务完成的权重计算逻辑变更为：不在游戏开始时定义方块列表，将基于游戏进程动态调整权重的规则改为基于剩余时间动态调整权重的规则；剩余时间越少，困难方块刷新的权重值越高
+## 本分支修改内容
 
-新增争夺模式：双方共享同一方块库，先完成者得分且立即刷新，下一个目标继续争夺  
-新增下界模式：开启后仅使用 NetherBlocks.txt 方块库，并将出生与随机传送限定在下界（阻止通过下界门返回主世界），可与普通/竞速/争夺/计时模式及极速模式叠加  
-支持群系名和世界名翻译  
-重构语言文件处理
-【额外】新增Addon方块支持及[BlockRacingAddon](https://github.com/SkyCraftServer/BlockRacingAddon)支持(原版做不到的特性,可选)
+1. 调整评分与方块权重逻辑，极速模式不再额外获取积分。
+2. 新增基于队伍的出生点与重生逻辑，降低开局卡顿。
+3. 新增 MiniMessage 支持，用于颜色与文本格式化。
+4. 新增启动时方块文件校验。
+5. 新增 `/breload` 命令，用于重载配置与方块列表。
+6. 新增计时模式（`time`）：限时统计队伍完成量、倒计时结束高分获胜、可提前清空方块库直接获胜、平分进入无时限加时赛（先完成 1 次任务者胜），并将权重改为基于剩余时间动态变化（剩余时间越少困难方块权重越高）。
+7. 新增争夺模式（`contest`）：双方共享目标，先完成者得分并刷新下一目标。
+8. 新增下界模式（`nether-mode`）：仅使用 `NetherBlocks.txt`，并将出生与随机传送限定在下界（阻止通过下界门返回主世界）。
+9. 支持群系名与世界名翻译。
+10. 重构语言文件处理。
+11. 新增 [BlockRacingAddon](https://github.com/SkyCraftServer/BlockRacingAddon)扩展支持(原版做不到的特性,可选)。
+12. 新增 Folia 兼容。
+13. 重构记分板显示逻辑，优化结算展示与 UI 细节。
+14. 新增 `/forcestart` 强制开局命令，并补充菜单提示信息。
+15. 定位系统重构：定位指令参数校验增强，且仅在定位成功时扣费。
+16. 新增定位成功后的队友通知，便于队内协作。
+17. 新增语音聊天联动与 MOTD 相关支持。
+18. 新增同点出生配置 `shared-team-spawn`，可提升对抗性。
+19. 新增末地门坐标广播开关 `end-portal-coordinate-broadcast`。
+20. 新增落后补偿阈值 `comeback-buff-threshold` 及可配置补偿效果。
+21. 新增极速模式与落后补偿效果自定义物品与药水效果。
+22. 增加“双方同时到达目标”的平局处理逻辑。
+23. 新增公开 API接口。
+
 
 
 [English](./docs/en/README-en.md) | [简体中文](./README.md)
@@ -209,101 +214,8 @@ en_us.json 翻译文件
 `/debug setteam <team> <add|remove> <player>`
 - 将指定玩家添加到或从指定队伍移除。
 
-# 更新日志
-
-### 2025.5.8 - BlockRacing 3.4
-**感谢[@xiaojiuwo233](https://github.com/xiaojiuwo233): https://github.com/LQSnow/BlockRacing/pull/13**
-- 更新游戏版本至1.21.5
-- 添加 1.21.5 新方块
-- 移除 沉重核心，火把花，瓶子草
-- 移动 磁石 至 简单方块 （合成配方 下届合金 -> 铁锭）
-
-### 2025.1.23 - BlockRacing 3.3
-**感谢[@FHSHKL](https://github.com/FHSHKL): https://github.com/LQSnow/BlockRacing/pull/8**
-- 更新游戏版本至1.21.4
-- 添加团队箱子个数设置
-- 添加团队路径点个数设置
-- 添加路径点群系描述
-- 修改路径点图标为脚下方块
-- 对方队伍获得方块时，优先放入标号大的箱子
-
-### 2024.10.4 - BlockRacing 3.2
-**感谢[@xiaojiuwo233](https://github.com/xiaojiuwo233): https://github.com/LQSnow/BlockRacing/pull/6**
-- 更新游戏版本至1.21.1
-- 新增1.21新方块（为考虑平衡性，铜类只添加到轻微锈蚀，使玩家不必须寻找遗迹，在比赛时间中足够完成）
-- 新增1.21 locate和语言文件（完整提取 可用）
-- 移动 瓶子草 和 火把花 到 困难方块
-- 极速模式将食物修改为金胡萝卜 增加 速度2 抗性2 效果
-- 增加初始工具 石镐、石斧、石铲
-- 游戏开始初始化新增 删除世界掉落物 重置世界天气
-
-### 2024.4.13 - BlockRacing 3.1
-
-- 修复了使用指令进行随机传送时不扣积分的Bug
-- 游戏结束时会显示方块收集排行榜
-- 添加了语言文件与配置文件的版本检查
-- 添加了block指令，如果记分板的方块名显示不全，可以使用该指令查询完整方块名
-- 移除了EasyBlocks中的GRASS
-- 更新游戏版本至1.20.4
-
-### 2024.1.30 - BlockRacing 3.0
-
-- 重构了所有代码和执行逻辑
-- 增加了语言文件与配置文件
-- 修改了locate指令执行方式，拆分为两个指令
-- 服务器开启时会自动读取配置文件，加载上一局的配置
-- 不同难度方块在游戏的不同时期，生成权重将不一样，更有助于游戏推进
-- 现在轮换方块改为队伍内所有**在线**玩家申请即可轮换
-- 游戏开始前的准备可以取消了
-- 玩家发言拥有队伍前缀
-- 删除记录点需要在聊天框确认
-
-### 2023.9.28 - BlockRacing 2.2.1
-
-- 修复了极速模式下急迫效果等级不正确的Bug
-- 修复了随机传送世界错误的Bug
-- /locate指令追加1.20生物群系
-- 极速模式下初始道具中鞘翅的RepairCost改为15
-- 修改了部分物品描述错误
-- /menu指令追加了更多功能
-- 优化了部分代码和执行逻辑
-
-### 2023.9.25 - BlockRacing 2.2
-
-- 轮换方块次数改为3次，并且不再只能Roll到简单方块（[@BlockyDeer](https://github.com/BlockyDeer)）
-- 添加极速模式，开局有额外物资和效果（[@xiaojiuwo233](https://github.com/xiaojiuwo233)）
-- 更换了新的准备菜单GUI
-- 游戏开始前限制世界边界防止提前探图
-- 添加了指令/menu，可以通过指令打开各种菜单
-- 修复了方块数量无法正常修改的Bug
-- 修复了选队后退出游戏重进会被判定为旁观者的Bug
-- 修复了死亡复活后药水效果丢失的Bug
-- 优化了部分代码和执行逻辑
-- 更新游戏版本至1.20.2
-
-### 2023.9.18 - BlockRacing 2.1
-
-- 玩家进入游戏将获得无限夜视效果
-- 全队玩家全部申请轮换方块之后才会替换本队方块
-- 添加了Debug命令（需要OP权限）
-- 修复了玩家重进游戏能再次免费随机传送的Bug
-- 修复了下界疣显示为Null的Bug
-- 修复了部分显示错误
-- 优化了部分代码和执行逻辑
-- 更新游戏版本至1.19.4
-
-# 意见反馈
-
-游戏反馈：lq_snow@outlook.com
-
-联系方式：
-
->  邮箱：lq_snow@outlook.com
-> 
->  QQ：2784628010
-
 # 版权说明
 
-该项目签署 [**GNU Affero General Public License v3.0**](https://github.com/LQSnow/BlockRacing/blob/main/LICENSE) 授权许可
+该项目签署 [**GNU Affero General Public License v3.0**](https://github.com/LQSnow/BlockRacing/blob/main/LICENSE) 授权许可,原作者lq_snow
 
-The project is licensed under the [**GNU Affero General Public License v3.0**](https://github.com/LQSnow/BlockRacing/blob/main/LICENSE)
+The project is licensed under the [**GNU Affero General Public License v3.0**](https://github.com/LQSnow/BlockRacing/blob/main/LICENSE),Author lq_snow

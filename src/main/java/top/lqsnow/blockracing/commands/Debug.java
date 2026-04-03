@@ -12,13 +12,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.utils.TranslationUtil;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static top.lqsnow.blockracing.managers.Block.*;
 import static top.lqsnow.blockracing.managers.Game.*;
-import static top.lqsnow.blockracing.managers.Scoreboard.updateScoreboard;
+import static top.lqsnow.blockracing.scoreboard.Scoreboard.updateScoreboard;
 import static top.lqsnow.blockracing.managers.Team.*;
 import static top.lqsnow.blockracing.utils.ColorUtil.t;
 

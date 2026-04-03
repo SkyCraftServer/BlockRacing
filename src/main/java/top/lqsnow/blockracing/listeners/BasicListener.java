@@ -5,22 +5,27 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.managers.*;
 import top.lqsnow.blockracing.menus.PreGameMenu;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static top.lqsnow.blockracing.managers.Gui.updateMenu;
-import static top.lqsnow.blockracing.managers.Scoreboard.updateScoreboard;
+import static top.lqsnow.blockracing.scoreboard.Scoreboard.updateScoreboard;
 import static top.lqsnow.blockracing.managers.Team.isPlayerInBlueTeam;
 import static top.lqsnow.blockracing.managers.Team.isPlayerInRedTeam;
 import static top.lqsnow.blockracing.utils.ColorUtil.t;
@@ -34,7 +39,7 @@ public class BasicListener implements Listener {
         COMEBACK_THRESHOLD
     }
 
-    public static Map<String, EditType> editAmountPlayer = new HashMap<>();
+    public static Map<String, EditType> editAmountPlayer = new ConcurrentHashMap<>();
 
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
@@ -104,20 +109,38 @@ public class BasicListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerRespawn(PlayerRespawnEvent event) {
-        // If in game, and player has no bed spawn, use team spawn as low-priority respawn
+        // If personal respawn is not actually used (invalid/missing bed or anchor), fallback to team spawn.
         if (Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
             Player p = event.getPlayer();
-            if (p.getBedSpawnLocation() == null) {
-                if (isPlayerInRedTeam(p) && Game.redTeamSpawn != null) {
-                    event.setRespawnLocation(Game.redTeamSpawn);
-                } else if (isPlayerInBlueTeam(p) && Game.blueTeamSpawn != null) {
-                    event.setRespawnLocation(Game.blueTeamSpawn);
+            Location teamSpawn = getTeamSpawn(p);
+            if (teamSpawn != null) {
+                if (!event.isBedSpawn() && !event.isAnchorSpawn()) {
+                    event.setRespawnLocation(teamSpawn);
+                } else if (isInOriginRange(event.getRespawnLocation())) {
+                    event.setRespawnLocation(teamSpawn);
                 }
             }
         }
         event.getPlayer().sendMessage(Message.NOTICE_SPAWN_PROTECT.getString());
+
+        Main.getFoliaLib().getScheduler().runAtEntityLater(event.getPlayer(), () -> {
+            if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+                return;
+            }
+            Player p = event.getPlayer();
+            Location teamSpawn = getTeamSpawn(p);
+            if (teamSpawn == null) {
+                return;
+            }
+            if (isInOriginRange(p.getLocation())) {
+                p.teleport(teamSpawn);
+            }
+            // Keep player's personal respawn fallback aligned to team spawn during the match.
+            Game.applyTeamRespawnLocation(p);
+        }, 20L);
+
         Main.getFoliaLib().getScheduler().runAtEntityLater(event.getPlayer(), () -> {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
             if (Game.getCurrentGameState().equals(Game.GameState.INGAME) && Setting.isSpeedMode()) {
@@ -127,15 +150,52 @@ public class BasicListener implements Listener {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
             Game.refreshComebackEffects();
         }, 10L);
+
+        Main.getFoliaLib().getScheduler().runAtEntityLater(event.getPlayer(), () -> {
+            if (Game.getCurrentGameState().equals(Game.GameState.INGAME) && Setting.isSpeedMode()) {
+                Game.applyConfiguredSpeedModeEffects(event.getPlayer());
+            }
+        }, 60L);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
+    private void onPlayerDeath(PlayerDeathEvent event) {
+        if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+            return;
+        }
+
+        event.setKeepInventory(true);
+        event.setKeepLevel(true);
+        event.setDroppedExp(0);
+        event.getDrops().clear();
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     private void onPlayerPortal(PlayerPortalEvent event) {
         if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) return;
         if (!Setting.isNetherMode()) return;
-        if (event.getCause() == TeleportCause.NETHER_PORTAL && event.getFrom().getWorld().getEnvironment() == org.bukkit.World.Environment.NETHER) {
+        if (event.getCause() == TeleportCause.NETHER_PORTAL) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(Message.NOTICE_NETHER_PORTAL_BLOCKED.getString());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    private void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) return;
+        if (!Setting.isNetherMode()) return;
+        if (event.getCause() == TeleportCause.NETHER_PORTAL) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(Message.NOTICE_NETHER_PORTAL_BLOCKED.getString());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    private void onPortalCreate(PortalCreateEvent event) {
+        if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) return;
+        if (!Setting.isNetherMode()) return;
+        if (event.getReason() == PortalCreateEvent.CreateReason.FIRE) {
+            event.setCancelled(true);
         }
     }
 
@@ -182,6 +242,27 @@ public class BasicListener implements Listener {
 
     private boolean hasNearbyEndPortal(Location center) {
         return findNearbyEndPortal(center) != null;
+    }
+
+    private Location getTeamSpawn(Player player) {
+        if (isPlayerInRedTeam(player)) {
+            return Game.redTeamSpawn;
+        }
+        if (isPlayerInBlueTeam(player)) {
+            return Game.blueTeamSpawn;
+        }
+        return null;
+    }
+
+    private boolean isInOriginRange(Location location) {
+        if (location == null) {
+            return false;
+        }
+
+        // Treat coordinates near world origin (0,0,0) as fallback-spawn area.
+        return Math.abs(location.getX()) <= 256.0
+                && Math.abs(location.getY()) <= 256.0
+                && Math.abs(location.getZ()) <= 256.0;
     }
 
     private Location findNearbyEndPortal(Location center) {

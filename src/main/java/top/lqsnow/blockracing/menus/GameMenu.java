@@ -16,12 +16,12 @@ import org.mineacademy.fo.remain.CompMaterial;
 
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
-import top.lqsnow.blockracing.managers.Scoreboard;
 import top.lqsnow.blockracing.managers.Setting;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import static top.lqsnow.blockracing.managers.Game.*;
@@ -97,8 +97,8 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
         this.waypoint = new Button() {
             @Override
             public void onClickedInMenu(Player player, Menu menu, ClickType click) {
-                if (redTeamPlayers.contains(player.getName())) new WayPointMenu(redWaypoint,redWaypointIconCache).displayTo(player);
-                else if (blueTeamPlayers.contains(player.getName())) new WayPointMenu(blueWaypoint,blueWaypointIconCache).displayTo(player);
+                if (redTeamPlayers.contains(player.getName())) new WayPointMenu("red", redWaypoint, redWaypointIconCache).displayTo(player);
+                else if (blueTeamPlayers.contains(player.getName())) new WayPointMenu("blue", blueWaypoint, blueWaypointIconCache).displayTo(player);
             }
 
             @Override
@@ -201,8 +201,11 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
     }
 
     public class WayPointMenu extends Menu {
-        public WayPointMenu(HashMap<Integer, Location> wayPointMap,HashMap<Integer,CompMaterial> wayPointIconCache) {
+        private final String team;
+
+        public WayPointMenu(String team, Map<Integer, Location> wayPointMap, Map<Integer, CompMaterial> wayPointIconCache) {
             super(GameMenu.this);
+            this.team = team;
 
             setTitle(Message.MENU_WAYPOINT_TITLE.getString());
 
@@ -227,29 +230,18 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
 
                         if (wayPoint != null) {
                             CompMaterial icon = wayPointIconCache.get(ith);
-                            
-                            if(icon == null){
-                                Block block = wayPoint.getBlock();
-                                while (block.isEmpty()&&block.getY()>-64) {
-                                    block = block.getRelative(0, -1, 0);
-                                }
-                                icon = CompMaterial.fromBlock(block);
-                                if(block.isEmpty()){
-                                    switch(block.getWorld().getEnvironment()){
-                                        case NORMAL:icon = CompMaterial.GRASS_BLOCK;break;
-                                        case NETHER:icon = CompMaterial.NETHERRACK;break;
-                                        case THE_END:icon = CompMaterial.END_STONE;break;
-                                        default:icon = CompMaterial.FILLED_MAP;break;
-                                    }
-                                }
-                                wayPointIconCache.put(ith,icon);
+
+                            if (icon == null) {
+                                icon = resolveWaypointIcon(wayPoint);
+                                wayPointIconCache.put(ith, icon);
                             }
-                            
+                            String biome = getWaypointBiome(team, ith);
+
                             ItemStack itemStack;
                             try {
-                                itemStack = ItemCreator.from(icon, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), BiomeTranslation.getValue(wayPoint.getBlock().getBiome()))).make();
+                                itemStack = ItemCreator.from(icon, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), biome)).make();
                             } catch (Exception e) {
-                                itemStack = ItemCreator.from(CompMaterial.FILLED_MAP, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), BiomeTranslation.getValue(wayPoint.getBlock().getBiome()))).make();
+                                itemStack = ItemCreator.from(CompMaterial.FILLED_MAP, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), biome)).make();
                             }
                             return itemStack;
                         } else {
@@ -281,6 +273,19 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
         protected boolean addReturnButton() {
             return false;
         }
+    }
+
+    private CompMaterial resolveWaypointIcon(Location wayPoint) {
+        if (wayPoint == null || wayPoint.getWorld() == null) {
+            return CompMaterial.FILLED_MAP;
+        }
+
+        return switch (wayPoint.getWorld().getEnvironment()) {
+            case NORMAL -> CompMaterial.GRASS_BLOCK;
+            case NETHER -> CompMaterial.NETHERRACK;
+            case THE_END -> CompMaterial.END_STONE;
+            default -> CompMaterial.FILLED_MAP;
+        };
     }
 
     private Collection<String> replacePlaceholders(Collection<String> lore) {

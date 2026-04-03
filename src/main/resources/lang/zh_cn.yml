@@ -11,9 +11,9 @@
 prefix: "[<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>]"
 
 # 记分板
-# slot项中，如果引号里没有任何字符表示这一行不显示，如果引号里加空格表示这一行为空行
+# 计分板由 SimpleScore 根据 blockracing_scoreboard_line_count 自动选择行数布局。
+# 如果某一行不需要显示，直接返回空字符串即可；如果需要保留空行，请返回一个空格。
 # 注意！最终显示在记分板上的每一行，总字符数不能超过30，这是一行的最大显示范围！
-# 超出范围的文字将无法显示！
 scoreboard:
   game-mode:
     normal: "&a普通模式"
@@ -49,7 +49,7 @@ scoreboard:
     slot4: "&b目标方块库："
     slot3: "%blocks%"
     slot2: " "
-    slot1: "<gray>BlockRacing</gray> <yellow>v%version%</yellow>"
+    slot1: ""
     time-mode-info: "&b计时模式时间：&e%minutes% 分钟"
   ingame:
     title: "<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>"

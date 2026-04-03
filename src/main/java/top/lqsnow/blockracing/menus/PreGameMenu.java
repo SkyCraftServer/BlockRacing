@@ -14,13 +14,14 @@ import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.managers.Team;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static top.lqsnow.blockracing.listeners.BasicListener.editAmountPlayer;
 import static top.lqsnow.blockracing.managers.Gui.updateMenu;
-import static top.lqsnow.blockracing.managers.Scoreboard.updateScoreboard;
+import static top.lqsnow.blockracing.scoreboard.Scoreboard.updateScoreboard;
 import static top.lqsnow.blockracing.managers.Team.redTeam;
 
 public class PreGameMenu extends Menu {
