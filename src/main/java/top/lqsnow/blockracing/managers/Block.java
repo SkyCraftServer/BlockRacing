@@ -196,11 +196,15 @@ public class Block {
         }
 
         int easyWeight = easyTemp.isEmpty() ? 0 : calculateEasyBlocksWeight(progress);
-        int mediumWeight = mediumTemp.isEmpty() ? 0 : (Setting.isEnableMediumBlock() ? calculateMediumBlocksWeight(progress) : 0);
-        int hardWeight = hardTemp.isEmpty() ? 0 : (Setting.isEnableHardBlock() ? calculateHardBlocksWeight(progress) : 0);
+        int mediumWeight = mediumTemp.isEmpty() ? 0 : (Setting.isEnableMediumBlock() ? calculateTimeModeMediumBlocksWeight(progress) : 0);
+        int hardWeight = hardTemp.isEmpty() ? 0
+            : (Setting.isEnableHardBlock() ? (progress < 0.3f ? 0 : calculateHardBlocksWeight(progress)) : 0);
         int dyedWeight = dyedTemp.isEmpty() ? 0 : (Setting.isEnableDyedBlock() ? calculateDyedBlocksWeight(progress) : 0);
-        int endWeight = endTemp.isEmpty() ? 0 : (Setting.isEnableEndBlock() ? calculateEndBlocksWeight(progress) : 0);
-        int addonWeight = addonTemp.isEmpty() ? 0 : (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() ? calculateAddonBlocksWeight(progress) : 0);
+        int endWeight = endTemp.isEmpty() ? 0 : (Setting.isEnableEndBlock() ? calculateTimeModeEndBlocksWeight(progress) : 0);
+        int addonWeight = addonTemp.isEmpty() ? 0
+            : (Setting.isAddonAvailable() && Setting.isEnableAddonBlock()
+            ? (progress < 0.5f ? 0 : calculateAddonBlocksWeight(progress))
+            : 0);
 
         int totalWeight = easyWeight + mediumWeight + hardWeight + dyedWeight + endWeight + addonWeight;
 
@@ -405,6 +409,17 @@ public class Block {
         }
     }
 
+    // Time mode medium weight: start from 0 and ramp to 60 by 40% progress.
+    private static int calculateTimeModeMediumBlocksWeight(float progress) {
+        if (progress <= 0f) {
+            return 0;
+        }
+        if (progress >= 0.4f) {
+            return 60;
+        }
+        return (int) (60 * progress / 0.4f);
+    }
+
     // Calculate weight for hard blocks
     // Weight increases from 1 to 20 as progress goes from 0 to 0.5,
     // then increases from 20 to 60 as progress goes from 0.5 to 1
@@ -423,15 +438,15 @@ public class Block {
     }
 
     // Calculate weight for end blocks
-    // Weight is 0 for progress from 0 to 0.8 (Unless only the end block is left),
-    // then increases to 60 as progress goes from 0.8 to 1
+    // Weight is 0 for early progress (unless only end blocks remain),
+    // then increases and caps at 40 in late game
     public static int calculateEndBlocksWeight(float progress) {
         float prop = (float) endBlocks.size() / blocks.size();
         if (progress <= 1 - prop) {
             if (progress <= 0.7) return 0;
-            if (progress > 0.7) return (int) (70 * (progress - 0.7) / 0.2);
+            if (progress > 0.7) return (int) (40 * (progress - 0.7) / 0.2);
         } else {
-            return 60;
+            return 40;
         }
         return 0;
     }
@@ -443,6 +458,17 @@ public class Block {
             return 10;
         }
         return Math.max(1, (int) Math.ceil(10 * (progress / 0.75f)));
+    }
+
+    // Time mode end weight: starts at 20 from 70% progress, ramps to 40 by 100%.
+    private static int calculateTimeModeEndBlocksWeight(float progress) {
+        if (progress < 0.7f) {
+            return 0;
+        }
+        if (progress >= 1f) {
+            return 40;
+        }
+        return (int) (20 + 20 * ((progress - 0.7f) / 0.3f));
     }
 
     // Check if there are any problems with the blocks imported from the file

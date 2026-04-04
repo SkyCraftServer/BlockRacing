@@ -115,9 +115,14 @@ public class Main extends BukkitPlugin {
         foliaLib.getScheduler().runLater(() -> {
             World world = Bukkit.getWorlds().get(0);
             world.setDifficulty(Difficulty.PEACEFUL);
+            Bukkit.setSpawnRadius(10);
             for (World w : Bukkit.getWorlds()) {
                 w.setGameRule(GameRule.KEEP_INVENTORY, true);
                 w.setGameRule(GameRule.LOCATOR_BAR, false);
+                setRespawnRadiusGameRule(w, 10);
+                // Avoid chunk access on Folia global scheduler thread.
+                int spawnY = Math.max(w.getMinHeight() + 1, w.getSpawnLocation().getBlockY());
+                w.setSpawnLocation(0, spawnY, 0);
             }
             world.setTime(1000);
         }, 5);
@@ -179,5 +184,28 @@ public class Main extends BukkitPlugin {
         }
 
         BlockRacingVoicechatPlugin.register(this);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setRespawnRadiusGameRule(World world, int value) {
+        if (world == null) {
+            return;
+        }
+        for (GameRule<?> rule : GameRule.values()) {
+            String name = rule.getName();
+            if (name == null) {
+                continue;
+            }
+            if (name.equalsIgnoreCase("respawn_radius")
+                    || name.equalsIgnoreCase("respawnRadius")
+                    || name.equalsIgnoreCase("spawnRadius")) {
+                try {
+                    world.setGameRule((GameRule<Integer>) rule, value);
+                } catch (ClassCastException ignored) {
+                    // Ignore non-integer gamerules.
+                }
+                return;
+            }
+        }
     }
 }

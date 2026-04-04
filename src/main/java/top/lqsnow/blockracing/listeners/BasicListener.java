@@ -1,5 +1,6 @@
 package top.lqsnow.blockracing.listeners;
 
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,6 +14,8 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import top.lqsnow.blockracing.Main;
@@ -22,6 +25,7 @@ import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static top.lqsnow.blockracing.managers.Gui.updateMenu;
@@ -40,6 +44,7 @@ public class BasicListener implements Listener {
     }
 
     public static Map<String, EditType> editAmountPlayer = new ConcurrentHashMap<>();
+    private static final Map<UUID, WrappedTask> respawnFallbackTasks = new ConcurrentHashMap<>();
 
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
@@ -48,6 +53,7 @@ public class BasicListener implements Listener {
 
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
+        cancelRespawnFallbackTask(event.getPlayer().getUniqueId());
         Game.playerQuit(event.getPlayer());
     }
 
@@ -110,7 +116,7 @@ public class BasicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    private void onPlayerRespawn(PlayerRespawnEvent event) {
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
         // If personal respawn is not actually used (invalid/missing bed or anchor), fallback to team spawn.
         if (Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
             Player p = event.getPlayer();
@@ -134,40 +140,122 @@ public class BasicListener implements Listener {
             if (teamSpawn == null) {
                 return;
             }
-            if (isInOriginRange(p.getLocation())) {
+            boolean personalRespawnLikelyValid = event.isBedSpawn() || event.isAnchorSpawn();
+            if (!personalRespawnLikelyValid || shouldFallbackToTeamSpawn(p, teamSpawn)) {
                 p.teleport(teamSpawn);
             }
             // Keep player's personal respawn fallback aligned to team spawn during the match.
             Game.applyTeamRespawnLocation(p);
         }, 20L);
 
-        Main.getFoliaLib().getScheduler().runAtEntityLater(event.getPlayer(), () -> {
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
-            if (Game.getCurrentGameState().equals(Game.GameState.INGAME) && Setting.isSpeedMode()) {
-                Game.applyConfiguredSpeedModeEffects(event.getPlayer());
-            }
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
-            Game.refreshComebackEffects();
-        }, 10L);
+        applyPostRespawnEffects(event.getPlayer());
+    }
 
-        Main.getFoliaLib().getScheduler().runAtEntityLater(event.getPlayer(), () -> {
-            if (Game.getCurrentGameState().equals(Game.GameState.INGAME) && Setting.isSpeedMode()) {
-                Game.applyConfiguredSpeedModeEffects(event.getPlayer());
-            }
-        }, 60L);
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryCloseForFoliaRespawn(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) {
+            return;
+        }
+        if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+            return;
+        }
+        if (event.getInventory().getType() != InventoryType.CRAFTING) {
+            return;
+        }
+        // Folia workaround from issue #105: detect respawn flow via closing player's crafting inventory while dead.
+        if (!player.isDead() || !player.isOnline() || player.getHealth() > 0.0D) {
+            return;
+        }
+        scheduleRespawnFallback(player);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    private void onPlayerDeath(PlayerDeathEvent event) {
+    public void onPlayerDeath(PlayerDeathEvent event) {
         if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
             return;
         }
 
-        event.setKeepInventory(true);
-        event.setKeepLevel(true);
-        event.setDroppedExp(0);
-        event.getDrops().clear();
+
+
+        scheduleRespawnFallback(event.getEntity());
+    }
+
+    private void applyPostRespawnEffects(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        Main.getFoliaLib().getScheduler().runAtEntityLater(player, () -> {
+            if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+                return;
+            }
+            Location teamSpawn = getTeamSpawn(player);
+            if (teamSpawn == null) {
+                return;
+            }
+            if (shouldFallbackToTeamSpawn(player, teamSpawn)) {
+                player.teleport(teamSpawn);
+            }
+            Game.applyTeamRespawnLocation(player);
+        }, 5L);
+
+        Main.getFoliaLib().getScheduler().runAtEntityLater(player, () -> {
+            if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+                return;
+            }
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
+            if (Setting.isSpeedMode()) {
+                Game.applyConfiguredSpeedModeEffects(player, true);
+            }
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
+            Game.refreshComebackEffects();
+        }, 10L);
+
+        Main.getFoliaLib().getScheduler().runAtEntityLater(player, () -> {
+            if (Game.getCurrentGameState().equals(Game.GameState.INGAME) && Setting.isSpeedMode()) {
+                Game.applyConfiguredSpeedModeEffects(player, true);
+            }
+        }, 60L);
+    }
+
+    private void scheduleRespawnFallback(Player player) {
+        if (player == null) {
+            return;
+        }
+        UUID uuid = player.getUniqueId();
+        if (respawnFallbackTasks.containsKey(uuid)) {
+            return;
+        }
+
+        final int[] pollTicks = {0};
+        WrappedTask task = Main.getFoliaLib().getScheduler().runTimer(() -> {
+            Player online = Bukkit.getPlayer(uuid);
+            if (online == null || !online.isOnline() || !Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+                cancelRespawnFallbackTask(uuid);
+                return;
+            }
+
+            pollTicks[0]++;
+            if (!online.isDead() && online.getHealth() > 0.0D) {
+                cancelRespawnFallbackTask(uuid);
+                applyPostRespawnEffects(online);
+                return;
+            }
+
+            if (pollTicks[0] >= 200) {
+                cancelRespawnFallbackTask(uuid);
+            }
+        }, 1L, 1L);
+
+        respawnFallbackTasks.put(uuid, task);
+    }
+
+    private void cancelRespawnFallbackTask(UUID uuid) {
+        WrappedTask task = respawnFallbackTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -255,14 +343,32 @@ public class BasicListener implements Listener {
     }
 
     private boolean isInOriginRange(Location location) {
-        if (location == null) {
+        if (location == null || location.getWorld() == null) {
             return false;
         }
+        Location origin = new Location(location.getWorld(), 0.0, location.getY(), 0.0);
+        return origin.distanceSquared(location) <= 20.0D;
+    }
 
-        // Treat coordinates near world origin (0,0,0) as fallback-spawn area.
-        return Math.abs(location.getX()) <= 256.0
-                && Math.abs(location.getY()) <= 256.0
-                && Math.abs(location.getZ()) <= 256.0;
+    private boolean shouldFallbackToTeamSpawn(Player player, Location teamSpawn) {
+        if (player == null || teamSpawn == null || player.getWorld() == null) {
+            return false;
+        }
+        Location current = player.getLocation();
+        if (current == null) {
+            return true;
+        }
+        if (!current.getWorld().equals(teamSpawn.getWorld())) {
+            return true;
+        }
+        if (isInOriginRange(current)) {
+            return true;
+        }
+        Location worldSpawn = player.getWorld().getSpawnLocation();
+        return worldSpawn != null
+                && worldSpawn.getWorld() != null
+                && worldSpawn.getWorld().equals(current.getWorld())
+            && worldSpawn.distanceSquared(current) <= 20.0D;
     }
 
     private Location findNearbyEndPortal(Location center) {

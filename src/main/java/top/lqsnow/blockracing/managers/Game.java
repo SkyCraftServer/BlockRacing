@@ -86,6 +86,7 @@ public class Game {
     private static WrappedTask timeModeTask;
     private static WrappedTask preGameTask;
     private static WrappedTask inGameTask;
+    private static int effectMaintenanceTicks;
     private static int timeModeRemainingSeconds;
     private static int timeModeDurationSeconds;
     private static boolean timeModeOvertime;
@@ -1294,6 +1295,13 @@ public class Game {
         checkRedInventory();
         checkBlueInventory();
 
+        // Keep persistent in-game effects stable across death/respawn timing differences.
+        effectMaintenanceTicks++;
+        if (effectMaintenanceTicks >= 10) {
+            effectMaintenanceTicks = 0;
+            maintainIngamePlayerEffects();
+        }
+
         // Win check
         if (!isContestModeActive()) {
             if (redTeamRemainingBlocks.isEmpty()) {
@@ -1347,6 +1355,36 @@ public class Game {
                         .replace("%amount%", entry.getValue().toString()));
             }
         }
+    }
+
+    private static void maintainIngamePlayerEffects() {
+        if (!getCurrentGameState().equals(GameState.INGAME)) {
+            return;
+        }
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player == null) {
+                continue;
+            }
+            if (!redTeamPlayers.contains(player.getName()) && !blueTeamPlayers.contains(player.getName())) {
+                continue;
+            }
+            if (player.getGameMode() == GameMode.SPECTATOR) {
+                continue;
+            }
+
+            runOnEntityThread(player, () -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
+            });
+
+            if (Setting.isSpeedMode()) {
+                applyConfiguredSpeedModeEffects(player, true);
+            }
+        }
+
+        refreshComebackEffects();
     }
 
     private static void checkRedRoll() {
@@ -1796,6 +1834,10 @@ public class Game {
     }
 
     public static void applyConfiguredSpeedModeEffects(Player player) {
+        applyConfiguredSpeedModeEffects(player, false);
+    }
+
+    public static void applyConfiguredSpeedModeEffects(Player player, boolean ignoreDelayTicks) {
         if (player == null || !Setting.isSpeedMode()) {
             return;
         }
@@ -1803,7 +1845,7 @@ public class Game {
             if (option == null || option.getEffect() == null) {
                 continue;
             }
-            if (option.getDelayTicks() > 0L) {
+            if (!ignoreDelayTicks && option.getDelayTicks() > 0L) {
                 Main.getFoliaLib().getScheduler().runAtEntityLater(player,
                         () -> player.addPotionEffect(option.getEffect()), option.getDelayTicks());
             } else {

@@ -94,6 +94,7 @@ public class Team {
             }
             redTeamPlayers.add(player.getName());
             setPlayerListNameByTeam(player, true);
+            schedulePlayerListNameRefresh(player, true);
             if (sendMessage) {
                 sendAll(Message.NOTICE_JOIN_RED.getString().replace("%player%", player.getName()));
             }
@@ -116,6 +117,7 @@ public class Team {
             }
             blueTeamPlayers.add(player.getName());
             setPlayerListNameByTeam(player, false);
+            schedulePlayerListNameRefresh(player, false);
             if (sendMessage) {
                 sendAll(Message.NOTICE_JOIN_BLUE.getString().replace("%player%", player.getName()));
             }
@@ -163,13 +165,33 @@ public class Team {
         }
 
         String color = red ? Message.TEAM_RED_COLOR.getString() : Message.TEAM_BLUE_COLOR.getString();
-        Runnable action = () -> player.setPlayerListName(color + player.getName());
+        if (color == null || color.isBlank()) {
+            color = red ? ChatColor.RED.toString() : ChatColor.BLUE.toString();
+        }
+        String coloredName = color + player.getName();
+        Runnable action = () -> player.setPlayerListName(coloredName);
 
         if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
             Main.getFoliaLib().getScheduler().runAtEntity(player, task -> action.run());
             return;
         }
         action.run();
+    }
+
+    private static void schedulePlayerListNameRefresh(Player player, boolean red) {
+        if (player == null || Main.getFoliaLib() == null) {
+            return;
+        }
+
+        Runnable apply = () -> setPlayerListNameByTeam(player, red);
+        if (Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntityLater(player, apply, 1L);
+            Main.getFoliaLib().getScheduler().runAtEntityLater(player, apply, 20L);
+            return;
+        }
+
+        Main.getFoliaLib().getScheduler().runLater(apply, 1L);
+        Main.getFoliaLib().getScheduler().runLater(apply, 20L);
     }
 
 }
