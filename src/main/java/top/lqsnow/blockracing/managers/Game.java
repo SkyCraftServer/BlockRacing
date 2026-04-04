@@ -635,9 +635,13 @@ public class Game {
         player.setFoodLevel(20);
         player.setSaturation(10);
         player.setGameMode(GameMode.SURVIVAL);
-        player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.STONE_PICKAXE).amount(1).make());
-        player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.STONE_AXE).amount(1).make());
-        player.getInventory().addItem(ItemCreator.fromMaterial(CompMaterial.STONE_SHOVEL).amount(1).make());
+        List<ItemStack> openingItems = Setting.isSpeedMode() ? Setting.getSpeedModeItems() : Setting.getBaseModeItems();
+        for (ItemStack stack : openingItems) {
+            if (stack == null) {
+                continue;
+            }
+            player.getInventory().addItem(stack.clone());
+        }
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
@@ -648,15 +652,7 @@ public class Game {
         } else {
             applyInitialPotionEffects(player);
         }
-
-        // Speed mode
         if (Setting.isSpeedMode()) {
-            for (ItemStack stack : Setting.getSpeedModeItems()) {
-                if (stack == null) {
-                    continue;
-                }
-                player.getInventory().addItem(stack.clone());
-            }
             if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
                 Main.getFoliaLib().getScheduler().runAtEntityLater(player,
                         () -> applyConfiguredSpeedModeEffects(player), 6L);

@@ -23,7 +23,7 @@ game-mode: normal
 # 计时模式配置
 # 持续时间单位：分钟，默认 90 分钟
 time-mode:
-  duration: 90
+  duration: 120
 
 # 极速模式：
 # 开启极速模式后，开局时将会给予玩家部分道具和效果，以加快游戏进度
@@ -40,14 +40,30 @@ shared-team-spawn: false
 # 关闭后不会广播
 end-portal-coordinate-broadcast: false
 
-# 极速模式物品配置（支持任意物品）
+# 非极速模式开局物品配置
 # material: 材质名（如 IRON_PICKAXE）
 # amount: 数量（默认1，范围1-64）
 # enchants: 直接附魔（格式：附魔名: 等级）
 # stored-enchants: 附魔书存储附魔（仅 ENCHANTED_BOOK 生效）
 # damage-max-offset: 设置耐久值
 # repair-cost: 铁砧花费
+base-mode-items:
+  - material: STONE_PICKAXE
+    amount: 1
+    enchants:
+      SILK_TOUCH: 1
+  - material: STONE_AXE
+    amount: 1
+  - material: STONE_SHOVEL
+    amount: 1
+
+# 极速模式物品配置（支持任意物品）
+# 配置规则与 base-mode-items 完全一致
 speed-mode-items:
+  - material: STONE_AXE
+    amount: 1
+  - material: STONE_SHOVEL
+    amount: 1
   - material: IRON_PICKAXE
     amount: 1
     enchants:
@@ -105,12 +121,12 @@ nether-mode: false
 # 团队箱子个数
 # 默认：8
 # 最大：53
-max-team-chest-num: 8
+max-team-chest-num: 24
 
 # 路径点个数
 # 默认：8
 # 最大：53
-max-team-waypoint-num: 8
+max-team-waypoint-num: 24
 
 # 世界重新生成设置
 # 警告：开启后，每次插件启动时将删除并重新生成主世界、下界和末地！

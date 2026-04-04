@@ -53,6 +53,8 @@ public class Setting {
     @Getter
     private static int timeModeDurationMinutes;
     @Getter
+    private static List<ItemStack> baseModeItems = List.of();
+    @Getter
     private static List<ItemStack> speedModeItems = List.of();
     @Getter
     private static List<SpeedModeEffectOption> speedModeEffects = List.of();
@@ -148,9 +150,13 @@ public class Setting {
     }
 
     private static void loadSpeedModeKitConfig() {
+        List<ItemStack> parsedBaseItems = parseConfiguredItems("base-mode-items", "base-mode item");
         List<ItemStack> parsedItems = parseSpeedModeItems();
         List<SpeedModeEffectOption> parsedEffects = parseSpeedModeEffects();
 
+        if (parsedBaseItems.isEmpty()) {
+            parsedBaseItems = createDefaultBaseModeItems();
+        }
         if (parsedItems.isEmpty()) {
             parsedItems = createDefaultSpeedModeItems();
         }
@@ -158,13 +164,18 @@ public class Setting {
             parsedEffects = createDefaultSpeedModeEffects();
         }
 
+        baseModeItems = List.copyOf(parsedBaseItems);
         speedModeItems = List.copyOf(parsedItems);
         speedModeEffects = List.copyOf(parsedEffects);
     }
 
     private static List<ItemStack> parseSpeedModeItems() {
+        return parseConfiguredItems("speed-mode-items", "speed-mode item");
+    }
+
+    private static List<ItemStack> parseConfiguredItems(String path, String logLabel) {
         List<ItemStack> result = new ArrayList<>();
-        List<Map<?, ?>> rawItems = Config.getConfig().getMapList("speed-mode-items");
+        List<Map<?, ?>> rawItems = Config.getConfig().getMapList(path);
         for (Map<?, ?> rawItem : rawItems) {
             try {
                 ItemStack item = buildItemFromConfig(rawItem);
@@ -172,7 +183,7 @@ public class Setting {
                     result.add(item);
                 }
             } catch (Exception ex) {
-                Bukkit.getLogger().warning("[BlockRacing] Invalid speed-mode item config: " + rawItem);
+                Bukkit.getLogger().warning("[BlockRacing] Invalid " + logLabel + " config: " + rawItem);
             }
         }
         return result;
@@ -343,6 +354,14 @@ public class Setting {
         }
         defaults.add(mendingBook);
 
+        return defaults;
+    }
+
+    private static List<ItemStack> createDefaultBaseModeItems() {
+        List<ItemStack> defaults = new ArrayList<>();
+        defaults.add(new ItemStack(Material.STONE_PICKAXE, 1));
+        defaults.add(new ItemStack(Material.STONE_AXE, 1));
+        defaults.add(new ItemStack(Material.STONE_SHOVEL, 1));
         return defaults;
     }
 
