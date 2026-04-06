@@ -54,6 +54,7 @@ public class BasicListener implements Listener {
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
         cancelRespawnFallbackTask(event.getPlayer().getUniqueId());
+        Game.clearRenameRequest(event.getPlayer().getName());
         Game.playerQuit(event.getPlayer());
     }
 
@@ -69,6 +70,13 @@ public class BasicListener implements Listener {
     @EventHandler
     private void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
+
+        if (Game.hasRenameRequest(player)) {
+            event.setCancelled(true);
+            String input = event.getMessage();
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> Game.handleRenameInput(player, input));
+            return;
+        }
 
         // Change block amount
         EditType editType = editAmountPlayer.get(player.getName());
@@ -207,8 +215,6 @@ public class BasicListener implements Listener {
             if (Setting.isSpeedMode()) {
                 Game.applyConfiguredSpeedModeEffects(player, true);
             }
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
             Game.refreshComebackEffects();
         }, 10L);
 

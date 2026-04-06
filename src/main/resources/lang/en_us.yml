@@ -184,7 +184,9 @@ menu:
     random-tp-dimension-nether: "Nether"
   team-chest-select-menu:
     title: "&0Team Chest Selection"
-    chest: "&gTeam Chest "
+    chest: "&bTeam Chest "
+    chest-lore:
+      - "&bLeft-click to open, right-click to rename"
   team-chest:
     red-chest: "&cRed Team Chest "
     blue-chest: "&9Blue Team Chest "
@@ -192,15 +194,16 @@ menu:
     title: "&0Waypoints"
     empty:
       waypoint: "&dWaypoint "
-      lore: "&bLeft-click to create a waypoint"
+      lore:
+        - "&bLeft-click to create a waypoint"
     filled:
       waypoint: "&6Waypoint "
       lore:
         - "&aDimension: %dimension%"
         - "&aCoordinates: %coords%"
         - "&aBiom: %biome%"
-        - "&bLeft-click to teleport, right-click to delete"
-        - "&bDeleting waypoints requires confirmation in the chat"
+        - "&bLeft-click to teleport, right-click to rename"
+        - "&bShift+left-click to delete"
   all:
     return-back: "&cReturn"
 
@@ -229,6 +232,14 @@ notice:
   set-comeback-threshold: "&eSend the comeback trigger block scores gap (0 to disable), or 'quit' to cancel"
   set-comeback-threshold-success: "&aComeback threshold set to: %points% block scores"
   set-comeback-threshold-error: "&cPlease enter a valid number! Use 0 to disable, or 'quit' to cancel"
+  set-team-chest-name: "&eEnter a name for Team Chest %index%. Send 'reset' to restore default or 'quit' to cancel"
+  set-waypoint-name: "&eEnter a name for Waypoint %index%. Send 'reset' to restore default or 'quit' to cancel"
+  set-custom-name-quit: "&aRename cancelled"
+  set-custom-name-empty: "&cName cannot be empty. Please enter a valid name"
+  set-team-chest-name-success: "&aTeam Chest %index% renamed to: %name%"
+  set-waypoint-name-success: "&aWaypoint %index% renamed to: %name%"
+  reset-team-chest-name-success: "&aTeam Chest %index% has been reset to default name"
+  reset-waypoint-name-success: "&aWaypoint %index% has been reset to default name"
   spawn-protect-notice: "&bNote: If you can't place or break blocks near spawn, it's due to spawn protection. Move away from spawn!"
   exist-error-block: "&4Item named %s does not exist! Check the configuration file!"
   not-enough-score: "&cInsufficient points!"

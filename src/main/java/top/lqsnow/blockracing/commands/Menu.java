@@ -45,14 +45,14 @@ public class Menu implements CommandExecutor, TabCompleter {
             }
             if (redTeamPlayers.contains(player.getName())) {
                 if (args.length == 1) {
-                    new GameMenu().new TeamChestSelectMenu().displayTo(player);
+                    new GameMenu().new TeamChestSelectMenu("red").displayTo(player);
                     return true;
                 }
                 int ith = Integer.parseInt(args[1]);
                 player.openInventory(redTeamChest.get(ith-1));
             } else if (blueTeamPlayers.contains(player.getName())) {
                 if (args.length == 1) {
-                    new GameMenu().new TeamChestSelectMenu().displayTo(player);
+                    new GameMenu().new TeamChestSelectMenu("blue").displayTo(player);
                     return true;
                 }
                 int ith = Integer.parseInt(args[1]);

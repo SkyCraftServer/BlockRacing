@@ -211,8 +211,9 @@ menu:
     random-tp-dimension-nether: "下界"
   team-chest-select-menu:
     title: "&0队伍箱子选择"
-    chest: "&g队伍箱子"
     chest: "&b队伍箱子"
+    chest-lore:
+      - "&b左键打开，右键重命名"
   team-chest:
     red-chest: "&c红队队伍箱子"
     blue-chest: "&9蓝队队伍箱子"
@@ -220,15 +221,16 @@ menu:
     title: "&0记录点"
     empty:
       waypoint: "&d记录点"
-      lore: "&b左键点击创建记录点"
+      lore:
+        - "&b左键点击创建记录点"
     filled:
       waypoint: "&6记录点"
       lore:
         - "&a维度：%dimension%"
         - "&a坐标：%coords%"
         - "&a群系：%biome%"
-        - "&b左键点击传送，右键点击删除"
-        - "&b删除记录点需要在聊天框确认"
+        - "&b左键点击传送，右键点击重命名"
+        - "&bShift+左键点击删除"
   all:
     return-back: "&c返回"
 
@@ -257,6 +259,14 @@ notice:
   set-comeback-threshold: "&e请直接发送落后补偿触发分差（输入0关闭），发送quit取消输入"
   set-comeback-threshold-success: "&a落后补偿阈值已设置为：%points% 分"
   set-comeback-threshold-error: "&c请输入正确数字！输入0可关闭；发送quit退出输入模式"
+  set-team-chest-name: "&e请输入队伍箱子%index%的名称，发送reset恢复默认，发送quit取消"
+  set-waypoint-name: "&e请输入记录点%index%的名称，发送reset恢复默认，发送quit取消"
+  set-custom-name-quit: "&a已取消重命名"
+  set-custom-name-empty: "&c名称不能为空，请重新输入"
+  set-team-chest-name-success: "&a队伍箱子%index%已重命名为：%name%"
+  set-waypoint-name-success: "&a记录点%index%已重命名为：%name%"
+  reset-team-chest-name-success: "&a队伍箱子%index%已恢复默认名称"
+  reset-waypoint-name-success: "&a记录点%index%已恢复默认名称"
   spawn-protect-notice: "&b提示：如果出生点附近无法放置或破坏方块，是因为服务器带有出生点保护，离开出生点附近即可！"
   exist-error-block: "&4名为 %s 的物品不存在！请检查配置文件！"
   not-enough-score: "&c积分不足！"

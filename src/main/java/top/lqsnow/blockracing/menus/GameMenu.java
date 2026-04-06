@@ -55,8 +55,21 @@ public class GameMenu extends Menu {
         setSize(1 * 9);
 
         // Open team chest menu
-        this.teamChest = new ButtonMenu(new TeamChestSelectMenu(),
-ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Message.MENU_TEAM_CHEST_LORE.getStringList()).make());
+        this.teamChest = new Button() {
+            @Override
+            public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                if (redTeamPlayers.contains(player.getName())) {
+                    new TeamChestSelectMenu("red").displayTo(player);
+                } else if (blueTeamPlayers.contains(player.getName())) {
+                    new TeamChestSelectMenu("blue").displayTo(player);
+                }
+            }
+
+            @Override
+            public ItemStack getItem() {
+                return ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Message.MENU_TEAM_CHEST_LORE.getStringList()).make();
+            }
+        };
 
         // Roll
         this.roll = new Button() {
@@ -152,9 +165,11 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
 
     // Team chest select menu
     public class TeamChestSelectMenu extends Menu {
+        private final String team;
 
-        public TeamChestSelectMenu() {
+        public TeamChestSelectMenu(String team) {
             super(GameMenu.this);
+            this.team = team;
 
             setTitle(Message.MENU_TEAM_CHEST_SELECT_TITLE.getString());
 
@@ -166,12 +181,22 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
                 Button button = new Button(i) {
                     @Override
                     public void onClickedInMenu(Player player, Menu menu, ClickType click) {
+                        int index = this.getSlot() + 1;
+                        if (click.isRightClick()) {
+                            Game.beginTeamChestRename(player, index);
+                            return;
+                        }
                         openTeamChest(player, this.getSlot());
                     }
 
                     @Override
                     public ItemStack getItem() {
-                        return ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST_SELECT_CHEST.getString() + (this.getSlot() + 1)).make();
+                        int index = this.getSlot() + 1;
+                        return ItemCreator.from(
+                                CompMaterial.CHEST,
+                                Game.getTeamChestDisplayName(team, index),
+                                Message.MENU_TEAM_CHEST_SELECT_CHEST_LORE.getStringList())
+                                .make();
                     }
                 };
 
@@ -239,14 +264,14 @@ ItemCreator.from(CompMaterial.CHEST, Message.MENU_TEAM_CHEST.getString(), Messag
 
                             ItemStack itemStack;
                             try {
-                                itemStack = ItemCreator.from(icon, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), biome)).make();
+                                itemStack = ItemCreator.from(icon, Game.getWaypointDisplayName(team, ith, true), replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), biome)).make();
                             } catch (Exception e) {
-                                itemStack = ItemCreator.from(CompMaterial.FILLED_MAP, Message.MENU_WAYPOINT_FILLED.getString() + ith, replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), biome)).make();
+                                itemStack = ItemCreator.from(CompMaterial.FILLED_MAP, Game.getWaypointDisplayName(team, ith, true), replacePlaceholders(Message.MENU_WAYPOINT_FILLED_LORE.getStringList(), WorldTranslation.getValue(wayPoint.getWorld()), getCoords(wayPoint), biome)).make();
                             }
                             return itemStack;
                         } else {
                             wayPointIconCache.remove(ith);
-                            return ItemCreator.from(CompMaterial.MAP, Message.MENU_WAYPOINT_EMPTY.getString() + ith, Message.MENU_WAYPOINT_EMPTY_LORE.getStringList()).make();
+                            return ItemCreator.from(CompMaterial.MAP, Game.getWaypointDisplayName(team, ith, false), Message.MENU_WAYPOINT_EMPTY_LORE.getStringList()).make();
                         }
                     }
 

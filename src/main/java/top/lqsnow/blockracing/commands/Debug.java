@@ -10,9 +10,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.utils.TranslationUtil;
-import top.lqsnow.blockracing.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +37,8 @@ public class Debug implements CommandExecutor, TabCompleter {
 
         // Reload
         if (args[0].equalsIgnoreCase("reload")) {
-            Message.load();
-            if (getCurrentGameState().equals(GameState.PREGAME)) {
-                reloadBlock();
-            }
-            updateScoreboard();
+            Bukkit.dispatchCommand(player, "breload");
+            return true;
         }
 
         // Skip block

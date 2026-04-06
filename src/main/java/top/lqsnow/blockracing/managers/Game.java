@@ -1,7 +1,5 @@
 package top.lqsnow.blockracing.managers;
 
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.command.CommandSender;
@@ -61,6 +59,8 @@ public class Game {
 
     public static ArrayList<Inventory> redTeamChest = new ArrayList<>();
     public static ArrayList<Inventory> blueTeamChest = new ArrayList<>();
+    public static Map<Integer, String> redTeamChestNameCache = new ConcurrentHashMap<>();
+    public static Map<Integer, String> blueTeamChestNameCache = new ConcurrentHashMap<>();
 
     public static Map<Integer, Location> redWaypoint = new ConcurrentHashMap<>();
     public static Map<Integer, Location> blueWaypoint = new ConcurrentHashMap<>();
@@ -69,6 +69,8 @@ public class Game {
     public static Map<Integer, CompMaterial> blueWaypointIconCache = new ConcurrentHashMap<>();
     public static Map<Integer, String> redWaypointBiomeCache = new ConcurrentHashMap<>();
     public static Map<Integer, String> blueWaypointBiomeCache = new ConcurrentHashMap<>();
+    public static Map<Integer, String> redWaypointNameCache = new ConcurrentHashMap<>();
+    public static Map<Integer, String> blueWaypointNameCache = new ConcurrentHashMap<>();
 
     public static int redTeamRollCount;
     public static int blueTeamRollCount;
@@ -92,6 +94,25 @@ public class Game {
     private static boolean timeModeOvertime;
     private enum ComebackBuffState { NONE, RED, BLUE }
     private static ComebackBuffState comebackBuffState = ComebackBuffState.NONE;
+
+    private enum RenameTarget {
+        TEAM_CHEST,
+        WAYPOINT
+    }
+
+    private static class RenameRequest {
+        private final RenameTarget target;
+        private final String team;
+        private final int index;
+
+        private RenameRequest(RenameTarget target, String team, int index) {
+            this.target = target;
+            this.team = team;
+            this.index = index;
+        }
+    }
+
+    private static final Map<String, RenameRequest> renameRequests = new ConcurrentHashMap<>();
 
     public static boolean isTimeModeActive() {
         return Setting.getCurrentGameMode().equals(Setting.GameMode.TIME);
@@ -152,11 +173,206 @@ public class Game {
     }
 
     public static void initChest() {
+        redTeamChest.clear();
+        blueTeamChest.clear();
+        redTeamChestNameCache.clear();
+        blueTeamChestNameCache.clear();
+
         int teamChestNum = Setting.getMaxTeamChestNum();
         for (int i = 0; i < teamChestNum; i++) {
-            redTeamChest.add(Bukkit.createInventory(null, 6 * 9, Message.MENU_RED_CHEST.getString() + (i + 1)));
-            blueTeamChest.add(Bukkit.createInventory(null, 6 * 9, Message.MENU_BLUE_CHEST.getString() + (i + 1)));
+            int index = i + 1;
+            redTeamChest.add(Bukkit.createInventory(null, 6 * 9, getTeamChestTitle("red", index)));
+            blueTeamChest.add(Bukkit.createInventory(null, 6 * 9, getTeamChestTitle("blue", index)));
         }
+    }
+
+    public static String getTeamChestDisplayName(String team, int index) {
+        String custom = getCustomName(team, index, redTeamChestNameCache, blueTeamChestNameCache);
+        if (custom != null) {
+            return custom;
+        }
+        return getTeamChestTitle(team, index);
+    }
+
+    private static String getTeamChestTitle(String team, int index) {
+        String custom = getCustomName(team, index, redTeamChestNameCache, blueTeamChestNameCache);
+        if (custom != null) {
+            return custom;
+        }
+        String base = "red".equals(team) ? Message.MENU_RED_CHEST.getString() : Message.MENU_BLUE_CHEST.getString();
+        return base + index;
+    }
+
+    public static String getWaypointDisplayName(String team, int index, boolean filled) {
+        String custom = getCustomName(team, index, redWaypointNameCache, blueWaypointNameCache);
+        if (custom != null) {
+            return custom;
+        }
+        String base = filled ? Message.MENU_WAYPOINT_FILLED.getString() : Message.MENU_WAYPOINT_EMPTY.getString();
+        return base + index;
+    }
+
+    private static String getCustomName(String team, int index, Map<Integer, String> redCache, Map<Integer, String> blueCache) {
+        String value = "red".equals(team) ? redCache.get(index) : blueCache.get(index);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value;
+    }
+
+    public static boolean hasRenameRequest(Player player) {
+        if (player == null) {
+            return false;
+        }
+        return renameRequests.containsKey(player.getName());
+    }
+
+    public static void clearRenameRequest(String playerName) {
+        if (playerName != null) {
+            renameRequests.remove(playerName);
+        }
+    }
+
+    public static void beginTeamChestRename(Player player, int index) {
+        String team = resolvePlayerTeam(player);
+        if (team.isEmpty()) {
+            return;
+        }
+        renameRequests.put(player.getName(), new RenameRequest(RenameTarget.TEAM_CHEST, team, index));
+        player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_NAME.getString().replace("%index%", String.valueOf(index)));
+        player.closeInventory();
+    }
+
+    public static void beginWaypointRename(Player player, int index) {
+        String team = resolvePlayerTeam(player);
+        if (team.isEmpty()) {
+            return;
+        }
+        renameRequests.put(player.getName(), new RenameRequest(RenameTarget.WAYPOINT, team, index));
+        player.sendMessage(Message.NOTICE_SET_WAYPOINT_NAME.getString().replace("%index%", String.valueOf(index)));
+        player.closeInventory();
+    }
+
+    public static void handleRenameInput(Player player, String input) {
+        if (player == null || input == null) {
+            return;
+        }
+
+        RenameRequest request = renameRequests.get(player.getName());
+        if (request == null) {
+            return;
+        }
+
+        String normalized = input.trim();
+        if (normalized.equalsIgnoreCase("quit")) {
+            renameRequests.remove(player.getName());
+            player.sendMessage(Message.NOTICE_SET_CUSTOM_NAME_QUIT.getString());
+            return;
+        }
+
+        boolean reset = normalized.equalsIgnoreCase("reset");
+        String customName = reset ? null : sanitizeCustomName(normalized);
+        if (!reset && customName == null) {
+            player.sendMessage(Message.NOTICE_SET_CUSTOM_NAME_EMPTY.getString());
+            return;
+        }
+
+        if (request.target == RenameTarget.TEAM_CHEST) {
+            applyTeamChestName(request.team, request.index, customName);
+            if (reset) {
+                player.sendMessage(Message.NOTICE_RESET_TEAM_CHEST_NAME_SUCCESS.getString().replace("%index%", String.valueOf(request.index)));
+            } else {
+                player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_NAME_SUCCESS.getString()
+                        .replace("%index%", String.valueOf(request.index))
+                        .replace("%name%", customName));
+            }
+        } else {
+            applyWaypointName(request.team, request.index, customName);
+            if (reset) {
+                player.sendMessage(Message.NOTICE_RESET_WAYPOINT_NAME_SUCCESS.getString().replace("%index%", String.valueOf(request.index)));
+            } else {
+                player.sendMessage(Message.NOTICE_SET_WAYPOINT_NAME_SUCCESS.getString()
+                        .replace("%index%", String.valueOf(request.index))
+                        .replace("%name%", customName));
+            }
+        }
+
+        renameRequests.remove(player.getName());
+        updateScoreboard();
+    }
+
+    private static String sanitizeCustomName(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String sanitized = raw.replace('\n', ' ').replace('\r', ' ').trim();
+        if (sanitized.isEmpty()) {
+            return null;
+        }
+        if (sanitized.length() > 32) {
+            sanitized = sanitized.substring(0, 32);
+        }
+        return ColorUtil.t(sanitized);
+    }
+
+    private static String resolvePlayerTeam(Player player) {
+        if (player == null) {
+            return "";
+        }
+        if (redTeamPlayers.contains(player.getName())) {
+            return "red";
+        }
+        if (blueTeamPlayers.contains(player.getName())) {
+            return "blue";
+        }
+        return "";
+    }
+
+    private static void applyWaypointName(String team, int index, String customName) {
+        if ("red".equals(team)) {
+            if (customName == null) {
+                redWaypointNameCache.remove(index);
+            } else {
+                redWaypointNameCache.put(index, customName);
+            }
+        } else if ("blue".equals(team)) {
+            if (customName == null) {
+                blueWaypointNameCache.remove(index);
+            } else {
+                blueWaypointNameCache.put(index, customName);
+            }
+        }
+    }
+
+    private static void applyTeamChestName(String team, int index, String customName) {
+        if ("red".equals(team)) {
+            if (customName == null) {
+                redTeamChestNameCache.remove(index);
+            } else {
+                redTeamChestNameCache.put(index, customName);
+            }
+        } else if ("blue".equals(team)) {
+            if (customName == null) {
+                blueTeamChestNameCache.remove(index);
+            } else {
+                blueTeamChestNameCache.put(index, customName);
+            }
+        }
+
+        retitleTeamChestInventory(team, index);
+    }
+
+    private static void retitleTeamChestInventory(String team, int index) {
+        ArrayList<Inventory> inventories = "red".equals(team) ? redTeamChest : blueTeamChest;
+        int slot = index - 1;
+        if (slot < 0 || slot >= inventories.size()) {
+            return;
+        }
+
+        Inventory oldInventory = inventories.get(slot);
+        Inventory newInventory = Bukkit.createInventory(null, oldInventory.getSize(), getTeamChestTitle(team, index));
+        newInventory.setContents(oldInventory.getContents());
+        inventories.set(slot, newInventory);
     }
 
     // Team spawn locations (shared by team members)
@@ -666,7 +882,6 @@ public class Game {
         if (player == null) {
             return;
         }
-        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 1200, 4, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 1200, 4, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1200, 4, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
@@ -1104,30 +1319,37 @@ public class Game {
 
         if (!team.isEmpty()) {
             Location waypoint = getWaypoint(team, index);
-            String action = "";
-            if (clickType.equals(ClickType.LEFT)) {
-                action = "left";
-            } else if (clickType.equals(ClickType.RIGHT)) {
-                action = "right";
+            if (clickType.isShiftClick() && clickType.isLeftClick() && waypoint != null) {
+                if (removeWaypoint(team, index)) {
+                    if ("red".equals(team)) {
+                        sendRed(Message.NOTICE_RED_REMOVE_WAYPOINT.getString().replace("%player%", player.getName()).replace("%index%", String.valueOf(index)));
+                    } else {
+                        sendBlue(Message.NOTICE_BLUE_REMOVE_WAYPOINT.getString().replace("%player%", player.getName()).replace("%index%", String.valueOf(index)));
+                    }
+                    return true;
+                }
+                return false;
             }
 
-            switch (action) {
-                case "left" -> {
-                    if (waypoint == null) {
-                        setWaypoint(player, team, index);
-                        return true;
-                    } else {
-                        teleportPlayer(player, waypoint);
-                        String x = String.format("%.1f", waypoint.getX());
-                        String y = String.format("%.1f", waypoint.getY());
-                        String z = String.format("%.1f", waypoint.getZ());
-
-                        player.sendMessage(Message.NOTICE_TP_SUCCESS.getString().replace("%x%", x).replace("%y%", y)
-                                .replace("%z%", z));
-                        return false;
-                    }
+            if (clickType.isLeftClick()) {
+                if (waypoint == null) {
+                    setWaypoint(player, team, index);
+                    return true;
                 }
-                case "right" -> removeWaypoint(player, index);
+                teleportPlayer(player, waypoint);
+                String x = String.format("%.1f", waypoint.getX());
+                String y = String.format("%.1f", waypoint.getY());
+                String z = String.format("%.1f", waypoint.getZ());
+
+                player.sendMessage(Message.NOTICE_TP_SUCCESS.getString().replace("%x%", x).replace("%y%", y)
+                        .replace("%z%", z));
+                return false;
+            }
+
+            if (clickType.isRightClick()) {
+                if (waypoint != null) {
+                    beginWaypointRename(player, index);
+                }
             }
         }
         return false;
@@ -1207,11 +1429,13 @@ public class Game {
             case "red" -> {
                 redWaypointIconCache.remove(index);
                 redWaypointBiomeCache.remove(index);
+                redWaypointNameCache.remove(index);
                 yield redWaypoint.remove(index) != null;
             }
             case "blue" -> {
                 blueWaypointIconCache.remove(index);
                 blueWaypointBiomeCache.remove(index);
+                blueWaypointNameCache.remove(index);
                 yield blueWaypoint.remove(index) != null;
             }
             default -> false;
@@ -1227,14 +1451,6 @@ public class Game {
             return;
         }
         player.teleport(location);
-    }
-
-    private static void removeWaypoint(Player player, int index) {
-        TextComponent message = new TextComponent(
-                Message.NOTICE_REMOVE_WAYPOINT.getString().replace("%index%", String.valueOf(index)));
-        message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/waypoint remove " + index));
-        player.spigot().sendMessage(message);
-        player.closeInventory();
     }
 
     public static void startPreGameLoop() {
@@ -1371,8 +1587,6 @@ public class Game {
 
             runOnEntityThread(player, () -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 0, false, false));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 1, false, false));
-                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 1, false, false));
             });
 
             if (Setting.isSpeedMode()) {
@@ -1854,12 +2068,9 @@ public class Game {
         if (player == null) {
             return;
         }
-        // Maintain base speed/resistance that are expected for in-game players and preserve speed-mode perks.
-        int amplifier = Setting.isSpeedMode() ? 1 : 1;
-        runOnEntityThread(player, () -> {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, amplifier, false, false));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, amplifier, false, false));
-        });
+        if (Setting.isSpeedMode()) {
+            applyConfiguredSpeedModeEffects(player, true);
+        }
     }
 
     private static void clearComebackEffects(List<String> members) {
