@@ -2,6 +2,7 @@ package top.lqsnow.blockracing.listeners;
 
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,6 +13,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -49,6 +51,13 @@ public class BasicListener implements Listener {
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
         Game.playerLogin(event.getPlayer());
+    }
+
+    @EventHandler
+    private void onWorldLoad(WorldLoadEvent event) {
+        // Keep world gamerules consistent for late-loaded dimensions on Folia.
+        event.getWorld().setGameRule(GameRule.KEEP_INVENTORY, true);
+        event.getWorld().setGameRule(GameRule.LOCATOR_BAR, false);
     }
 
     @EventHandler
@@ -183,6 +192,12 @@ public class BasicListener implements Listener {
             return;
         }
 
+        // Explicitly keep inventory/level as a Folia-safe fallback.
+        // Some dimensions may not have KEEP_INVENTORY gamerule applied in time.
+        event.setKeepInventory(true);
+        event.getDrops().clear();
+        event.setKeepLevel(true);
+        event.setDroppedExp(0);
 
 
         scheduleRespawnFallback(event.getEntity());
