@@ -832,7 +832,7 @@ public class Game {
             return;
         }
         if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
-            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> initPlayerInternal(player));
+            Main.getFoliaLib().getScheduler().runAtLocation(player.getLocation(), task -> initPlayerInternal(player));
             return;
         }
         initPlayerInternal(player);
