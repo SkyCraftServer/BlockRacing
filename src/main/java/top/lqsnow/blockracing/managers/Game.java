@@ -20,7 +20,7 @@ import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
     
 import top.lqsnow.blockracing.Main;
-import top.lqsnow.blockracing.voicechat.BlockRacingVoicechatPlugin;
+import top.lqsnow.blockracing.voicechat.VoicechatSyncManager;
 import top.lqsnow.blockracing.utils.BiomeTranslation;
 import top.lqsnow.blockracing.utils.ColorUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
@@ -500,7 +500,10 @@ public class Game {
             player.sendMessage(Message.NOTICE_WELCOME.getString());
             player.sendMessage(t(
                     "&eNot your language? Please follow the tutorial to change the language: https://github.com/SkyCraftServer/BlockRacing/blob/3.0/docs/en/TranslationTutorial-en.md"));
+            // Delay teleport by 1 tick to avoid conflict with player chunk loader initialization on Folia
+            Main.getFoliaLib().getScheduler().runNextTick(task -> {
                 teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
+            });
         } else if (getCurrentGameState().equals(GameState.INGAME)) {
             // Spectator
             if (!redTeamPlayers.contains(player.getName()) && !blueTeamPlayers.contains(player.getName())) {
@@ -517,7 +520,7 @@ public class Game {
             }
         }
 
-        BlockRacingVoicechatPlugin.syncPlayer(player);
+        VoicechatSyncManager.syncPlayer(player);
         checkUpdate(player);
     }
 
@@ -785,7 +788,7 @@ public class Game {
             refreshComebackEffects();
         }
 
-        BlockRacingVoicechatPlugin.syncAllPlayers();
+        VoicechatSyncManager.syncAllPlayers();
 
         Bukkit.getLogger().info("Red team players: " + redTeamPlayers.toString());
         Bukkit.getLogger().info("Blue team players: " + blueTeamPlayers.toString());
@@ -1958,7 +1961,7 @@ public class Game {
         sendAll(Message.NOTICE_RED_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
-        BlockRacingVoicechatPlugin.syncAllPlayers();
+        VoicechatSyncManager.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -1972,7 +1975,7 @@ public class Game {
         sendAll(Message.NOTICE_BLUE_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
-        BlockRacingVoicechatPlugin.syncAllPlayers();
+        VoicechatSyncManager.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -1987,7 +1990,7 @@ public class Game {
         sendAll(drawMessage);
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
-        BlockRacingVoicechatPlugin.syncAllPlayers();
+        VoicechatSyncManager.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -2175,7 +2178,7 @@ public class Game {
 
     public static void setCurrentGameState(GameState currentGameState) {
         Game.currentGameState = currentGameState;
-        BlockRacingVoicechatPlugin.syncAllPlayers();
+        VoicechatSyncManager.syncAllPlayers();
         Motd.refresh();
         updateScoreboard();
     }
