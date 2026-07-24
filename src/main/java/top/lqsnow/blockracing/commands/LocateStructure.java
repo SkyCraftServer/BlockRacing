@@ -2,6 +2,8 @@ package top.lqsnow.blockracing.commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -57,11 +59,8 @@ public class LocateStructure implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Structure structure;
-        try {
-            java.lang.reflect.Field field = Structure.class.getField(structureId.toUpperCase(Locale.ROOT));
-            structure = (Structure) field.get(null);
-        } catch (Exception ex) {
+        Structure structure = Registry.STRUCTURE.get(NamespacedKey.minecraft(structureId.toLowerCase(Locale.ROOT)));
+        if (structure == null) {
             player.sendMessage(Message.NOTICE_LOCATE_STRUCTURE_INVALID.getString());
             return true;
         }

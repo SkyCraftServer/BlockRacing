@@ -2,8 +2,11 @@ package top.lqsnow.blockracing.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
@@ -213,7 +216,7 @@ public class Setting {
         Object enchantsObj = rawItem.get("enchants");
         if (enchantsObj instanceof Map<?, ?> enchants) {
             for (Map.Entry<?, ?> entry : enchants.entrySet()) {
-                Enchantment enchantment = Enchantment.getByName(String.valueOf(entry.getKey()).toUpperCase());
+                Enchantment enchantment = Registry.ENCHANTMENT.get(NamespacedKey.minecraft(String.valueOf(entry.getKey()).toLowerCase()));
                 if (enchantment == null) {
                     continue;
                 }
@@ -225,7 +228,7 @@ public class Setting {
         Object storedObj = rawItem.get("stored-enchants");
         if (storedObj instanceof Map<?, ?> stored && meta instanceof EnchantmentStorageMeta storageMeta) {
             for (Map.Entry<?, ?> entry : stored.entrySet()) {
-                Enchantment enchantment = Enchantment.getByName(String.valueOf(entry.getKey()).toUpperCase());
+                Enchantment enchantment = Registry.ENCHANTMENT.get(NamespacedKey.minecraft(String.valueOf(entry.getKey()).toLowerCase()));
                 if (enchantment == null) {
                     continue;
                 }
@@ -246,8 +249,11 @@ public class Setting {
 
         int damageMaxOffset = parseInt(rawItem.get("damage-max-offset"), 0);
         if (damageMaxOffset > 0 && item.getType().getMaxDurability() > 0) {
-            short damage = (short) Math.max(0, item.getType().getMaxDurability() - damageMaxOffset);
-            item.setDurability(damage);
+            ItemMeta damageMeta = item.getItemMeta();
+            if (damageMeta instanceof Damageable damageable) {
+                damageable.setDamage(Math.max(0, item.getType().getMaxDurability() - damageMaxOffset));
+                item.setItemMeta(damageMeta);
+            }
         }
 
         return item;
@@ -308,7 +314,7 @@ public class Setting {
         if (typeObj == null) {
             return null;
         }
-        PotionEffectType effectType = PotionEffectType.getByName(String.valueOf(typeObj).toUpperCase());
+        PotionEffectType effectType = Registry.EFFECT.get(NamespacedKey.minecraft(String.valueOf(typeObj).toLowerCase()));
         if (effectType == null) {
             return null;
         }
@@ -336,10 +342,12 @@ public class Setting {
         defaults.add(new ItemStack(Material.GOLDEN_CARROT, 64));
 
         ItemStack elytra = new ItemStack(Material.ELYTRA, 1);
-        if (elytra.getType().getMaxDurability() > 0) {
-            elytra.setDurability((short) (elytra.getType().getMaxDurability() - 1));
-        }
         ItemMeta elytraMeta = elytra.getItemMeta();
+        if (elytraMeta instanceof Damageable damageable && elytra.getType().getMaxDurability() > 0) {
+            damageable.setDamage(elytra.getType().getMaxDurability() - 1);
+            elytra.setItemMeta(elytraMeta);
+        }
+        elytraMeta = elytra.getItemMeta();
         if (elytraMeta instanceof Repairable repairable) {
             repairable.setRepairCost(15);
             elytra.setItemMeta((ItemMeta) repairable);
