@@ -6,17 +6,17 @@
 
     <groupId>lq.snow</groupId>
     <artifactId>BlockRacing</artifactId>
-    <version>3.6</version>
+    <version>26.2.1</version>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <repositories>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
             <id>placeholderapi-repo</id>
@@ -44,21 +44,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>26.1.2-R0.1-SNAPSHOT</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>26.2.build.84-stable</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mineacademy</groupId>
-            <artifactId>foundation-bukkit</artifactId>
-            <version>7.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mineacademy</groupId>
-            <artifactId>foundation-core</artifactId>
-            <version>7.0.0</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -99,8 +88,26 @@
             <version>2.11.6</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>en-us</directory>
+                <includes>
+                    <include>lang.yml</include>
+                </includes>
+                <targetPath>languages/en_us</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -135,25 +142,16 @@
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <artifactSet>
                         <includes>
-                            <!-- Important: This will ensure only Foundation is shaded to your jar.
-                            If you have
-                     other dependencies that should be compiled, duplicate this line for each. 
-                     
-                     ONLY ADD THE LIBRARIES HERE YOU WANT TO BE INCLUDED IN YOUR PLUGIN.JAR
-                     -->
-                            <include>org.mineacademy:foundation-bukkit*</include>
-                            <include>org.mineacademy:foundation-core*</include>
+                            <include>com.googlecode.json-simple:json-simple</include>
                             <include>net.kyori:adventure-text-minimessage</include>
                             <include>net.kyori:adventure-text-serializer-legacy</include>
                             <include>com.tcoded:FoliaLib</include>
                         </includes>
                     </artifactSet>
                     <relocations>
-                        <!-- This moves Foundation into your own package in "lib" subpackage to
-                        prevent interference. -->
                         <relocation>
-                            <pattern>org.mineacademy.fo</pattern>
-                            <!--shadedPattern>your.plugin.main.package.lib</shadedPattern-->
+                            <pattern>org.json.simple</pattern>
+                            <shadedPattern>top.lqsnow.blockracing.lib.jsonsimple</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.tcoded.folialib</pattern>

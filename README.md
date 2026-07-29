@@ -1,221 +1,260 @@
-## 本分支修改内容
-
-1. 调整评分与方块权重逻辑，极速模式不再额外获取积分。
-2. 新增基于队伍的出生点与重生逻辑，降低开局卡顿。
-3. 新增 MiniMessage 支持，用于颜色与文本格式化。
-4. 新增启动时方块文件校验。
-5. 新增 `/breload` 命令，用于重载配置与方块列表。
-6. 新增计时模式（`time`）：限时统计队伍完成量、倒计时结束高分获胜、可提前清空方块库直接获胜、平分进入无时限加时赛（先完成 1 次任务者胜），并将权重改为基于剩余时间动态变化（剩余时间越少困难方块权重越高）。
-7. 新增争夺模式（`contest`）：双方共享目标，先完成者得分并刷新下一目标。
-8. 新增下界模式（`nether-mode`）：仅使用 `NetherBlocks.txt`，并将出生与随机传送限定在下界（阻止通过下界门返回主世界）。
-9. 支持群系名与世界名翻译。
-10. 重构语言文件处理。
-11. 新增 [BlockRacingAddon](https://github.com/SkyCraftServer/BlockRacingAddon)扩展支持(原版做不到的特性,可选)。
-12. 新增 Folia 兼容。
-13. 重构记分板显示逻辑，优化结算展示与 UI 细节。
-14. 新增 `/forcestart` 强制开局命令，并补充菜单提示信息。
-15. 定位系统重构：定位指令参数校验增强，且仅在定位成功时扣费。
-16. 新增定位成功后的队友通知，便于队内协作。
-17. 新增语音聊天联动与 MOTD 相关支持。
-18. 新增同点出生配置 `shared-team-spawn`，可提升对抗性。
-19. 新增末地门坐标广播开关 `end-portal-coordinate-broadcast`。
-20. 新增落后补偿阈值 `comeback-buff-threshold` 及可配置补偿效果。
-21. 新增极速模式与落后补偿效果自定义物品与药水效果。
-22. 增加“双方同时到达目标”的平局处理逻辑。
-23. 新增公开 API接口。
-
-
-
-[English](./docs/en/README-en.md) | [简体中文](./README.md)
+[English](./README.md) | [简体中文](./docs/zh/README-zh.md)
 
 [Translation Tutorial](./docs/en/TranslationTutorial-en.md) | [翻译教程](./TranslationTutorial.md)
 
-# 方块竞速BlockRacing
+# BlockRacing
 
-这是一个Minecraft多人竞速小游戏，分为两个队伍，先收集完指定方块的队伍获胜。
+This is a multiplayer racing mini-game in Minecraft, divided into two teams, where the team that collects the specified blocks first wins.
 
-版本：Java 1.21.11
+Plugin version: 26.2.1
 
-# 特色功能
+Requirements: Minecraft Java Edition 26.2, Paper 26.2, and Java 25. BlockRacing uses Paper APIs directly and does not support Spigot.
 
-1. 队伍箱子：每个队伍都有3个队伍箱子，箱子里的物品对同队伍成员共享。
+## Upgrade Notice
 
-2. 奖励机制：每收集一个方块，对方队伍将会获得一组该方块（存放在队伍箱子里）。
+Replacing only the plugin JAR does not update existing configuration files. If the versions in an old `config.yml` or `lang.yml` do not match the plugin, an in-game warning is displayed and new settings or messages may not work correctly.
 
-3. 队伍TP：同队伍之间可以自由TP。
+Back up `plugins/BlockRacing` before upgrading, then choose one method:
 
-4. 轮换方块：当前所需方块太难获取时，可以轮换掉，每局仅限三次。
+1. No customizations: delete the old `config.yml`, `lang.yml`, five block pools, and two translation JSON files, then restart the server to generate current files.
+2. Customized files: manually merge your changes into the current default files. Do not change only the version number at the end of a file.
 
-5. 定位：玩家可以花费队伍积分购买locate指令，用于定位群系或结构。
+See the current default configuration and resource files in the [`src/main/resources` directory](./src/main/resources).
 
-6. 记录点：每个队伍有3个记录点，可以自由保存、传送、删除。
+# Features
 
-# 玩法说明
+1. Team Chests: Each team has shared storage. The chest count is configurable with `max-team-chest-num`.
 
-## 准备阶段
+2. Reward Mechanism: Collecting a block grants the opposing team 64 blocks of that block (stored in the team chests).
 
-- 进入游戏后，按Shift+F打开菜单。
-- 在菜单进行选队，或使用/randomteam进行随机组队。
-- 菜单中可以设置目标方块库，可以选择性开启中等难度方块、困难难度方块、染色方块和末地方块。
-- 菜单中可以设置目标方块数量。
-- 菜单中可以切换模式（普通模式、竞速模式或计时模式，可选开启极速模式）
-- 所有玩家准备后，即可在菜单点击钻石开始游戏。
-- 所有玩家输入/restartgame可以关闭服务器（通过后续设置可以实现自动重启）。
+3. Team Teleportation: Players within the same team can freely teleport to each other.
 
-## 游戏阶段
+4. Roll Blocks: A team can vote to replace difficult current targets. The per-game limit is configurable with `max-roll-count`.
 
-- 随机传送后，按照记分板上的内容，开始收集方块吧。
-  
-- Shift+F可以打开菜单，在菜单里可以使用队伍箱子、Roll、定位、记录点、随机传送功能。
-  
-- 购买定位权限后，可以使用/locatestrcture或/locatebiome进行定位。
-  
-- 输入/tp \<teammates>可以TP队友。
+5. Locate: Players can spend team points to purchase the locate command for finding biomes or structures.
 
+6. Waypoints: Each team can save, teleport to, and delete shared waypoints. Their count is configurable with `max-team-waypoint-num`.
 
-# 安装教程
+7. Per-player languages: Messages, titles, menus, team prefixes, block names, and scoreboards can follow the Minecraft client language or be switched manually between English and Simplified Chinese.
 
-1. 准备一个Paper服务器（也可以是Spigot或Purpur）（如果不会，可以去看我的博客里的相关文章，网址lqsnow.top）
+8. Team Chat: During a game, messages are team-only by default, with `/shout`, `@`, and `!` available for global chat.
 
-2. 下载插件，将插件放到服务器目录下的`plugins`文件夹中
+9. Recovery: Unfinished games, scores, targets, team storage, and waypoints are restored after an unexpected shutdown.
 
-3. （**推荐**）在`server.properties`文件中，更改如下设置：
+10. Team Utilities: The menus include balanced random teams, teammate teleportation, and purchasable Speed Mode supplies.
 
-   ```
-   pvp=false
-   seed=
-   ```
+# Gameplay Instructions
 
-   推荐关闭PVP，让玩家沉浸于方块收集。
+## Preparation Phase
 
-   推荐将种子留空，玩完一局后将`world` `world_nether` `world_the_end`三个文件夹删除，起到重置种子的作用。
+- After entering the game, open the menu with Shift+F.
+- Choose a team in the menu.
+- Set the target block library in the menu, optionally enabling medium difficulty blocks, hard difficulty blocks, dyed blocks, and End dimension blocks.
+- Set the target block quantity in the menu.
+- Switch between modes (normal mode or racing mode, with an option to enable extreme speed mode).
+- Once all players are ready, click the diamond in the menu to start the game.
+- After a finished game, all players can approve `/restartgame` to reset the worlds on the next server startup.
 
-   你也可以更改服务器启动文件（start.bat）以自动重启、自动重置种子（seed留空就是随机种子）：
+## Game Phase
 
-   ```
-   :start
-   java -Xmx4G -Xms4G -jar server.jar nogui
-   rd /s /q world
-   rd /s /q world_nether
-   rd /s /q world_the_end
-   timeout /nobreak /t 5
-   goto start
-   ```
+- After random teleportation, follow the scoreboard and start collecting blocks.
 
-   记得修改server.jar为你的服务器核心文件名，并按实际情况分配内存。
+- Shift+F opens the menu, where players can use team chests, roll, locate,
+  waypoints, teammate teleportation, random teleportation, and Speed Mode supplies.
+- Team chat is used by default while a game is active. Use `/shout <message>` or
+  begin a message with `@` or `!` to send it to everyone.
+- Unfinished games are saved to `game-progress.yml` and restored automatically
+  after an unexpected server stop.
 
-# 目标方块库修改
+- After purchasing locate permissions, use /locatestructure or /locatebiome for positioning.
 
-在服务器文件夹下的plugins\BlockRacing目录中，存在下面这几个文件：
+- Use /tp \<teammates> to teleport to teammates.
+
+# Installation Guide
+
+1. Set up a Paper 26.2 server running Java 25.
+
+2. Download the plugin and place it in the `plugins` folder in the server directory.
+
+3. (**Recommended**) Set the `spawn-protection` value to 0 in `server.properties` (to allow breaking blocks at the spawn point).
+
+4. (**Recommended**) In the `server.properties` file, make the following changes:
 
 ```
-EasyBlocks.txt 简单方块库
-MediumBlocks.txt 中等方块库
-HardBlocks.txt 困难方块库
-DyedBlocks.txt 染色方块库
-EndBlocks.txt 末地方块库
-config.yml 配置文件
-lang.yml 语言文件
-zh_cn.json 翻译文件
-en_us.json 翻译文件
+pvp=false
+level-seed=
 ```
 
-5个方块库文件你可以自由修改，但请注意：
+It's recommended to disable PVP for a block-collecting immersion.
 
-1. 每行只写一个方块名
-   
-2. 方块名使用全大写的方块命名空间
-   
-3. 5个方块库中不要有重复方块
-   
-4. 不要有空行、空格等字符
-   
-5. 不要修改文件名，不要删除文件
-   
-6. 游戏内除了简单方块库必选以外，剩下的都可以选择性开启，如非特殊需要不要动这5个文件
+Leave the seed empty if each new game should use a random world.
 
-# 不同难度方块的生成权重变化
+After an approved `/restartgame` vote, BlockRacing shuts Paper down and records
+an intentional reset. On the next startup, the plugin runs before the default
+world is opened, moves the old worlds into a dated `world-backups` folder, and
+lets Paper generate fresh worlds. A crash creates no reset request, so the
+existing worlds and saved game progress are restored unchanged.
 
-简单：游戏进程从0%到100%，权重从100减小到20。
+No world-deletion commands are required in `start.bat`. If the hosting panel
+already restarts stopped/crashed servers, no script change is needed. A simple
+local auto-restart loop is enough:
 
-中等：游戏进程从0%到40%，权重从20增加到60；游戏进程从40%到100%，权重保持60不变。
+```bat
+:start
+java -Xmx4G -Xms4G -jar server.jar nogui
+timeout /nobreak /t 5
+goto start
+```
 
-困难：游戏进程从0%到50%，权重从1增加到20；游戏进程从50%到100%，权重从20增加到60。
+Remember to change `server.jar` to your server core file name and adjust memory allocation accordingly.
 
-染色：游戏进程从0%到100%，权重保持10不变。
+# Modifying Target Block Libraries
 
-末地：当游戏进程超过非末地方块在总方块的占比时，权重固定为60。当游戏进程未达到非末地方块在总方块的占比时：游戏进程从0%到80%，权重为0；游戏进程从80%到100%，权重从0增加到60。（参考数据：默认方块库，如果所有方块难度全部启用，末地方块占比约为2%，非末地方块占比约为98%）
+In the `plugins/BlockRacing` directory under the server folder, there are the following files:
 
-# 指令对照表
+```
+EasyBlocks.txt - Simple block library
+MediumBlocks.txt - Medium block library
+HardBlocks.txt - Difficult block library
+DyedBlocks.txt - Dyed block library
+EndBlocks.txt - End dimension block library
+config.yml - Configuration file
+lang.yml - Language file
+languages/en_us/lang.yml - English language file
+language-preferences.yml - Saved player language preferences
+zh_cn.json - Translation file (Simplified Chinese)
+en_us.json - Translation file (English)
+```
 
-### /tp - 传送
+The default `config.yml` comments are written in English. Player language is not
+controlled by `config.yml`; use `/language` in game. Custom language text can be
+edited in `lang.yml` and `languages/en_us/lang.yml`.
+
+You can freely modify the 5 block library files, but please note:
+
+1. Only one block name per line.
+
+2. Use the uppercase block namespace for block names.
+
+3. Avoid duplicate blocks in the 5 block libraries.
+
+4. No empty lines or spaces.
+
+5. Do not modify file names or delete files.
+
+6. Except for the required easy block library, the rest can be selectively enabled. Avoid modifying these 5 files unless necessary.
+
+# Changes in Generation Weight for Blocks of Different Difficulties
+
+Easy: Game progress from 0% to 100%, weight decreases from 100 to 20.
+
+Medium: Game progress from 0% to 40%, weight increases from 20 to 60; game progress from 40% to 100%, weight stays at 60.
+
+Hard: Game progress from 0% to 50%, weight increases from 1 to 20; game progress from 50% to 100%, weight increases from 20 to 60.
+
+Dyed: Game progress from 0% to 100%, weight stays at 10.
+
+End: When game progress exceeds the percentage of non-End dimension blocks in total blocks, weight is fixed at 60. If game progress is below the percentage of non-End dimension blocks in total blocks: game progress from 0% to 80%, weight is 0; game progress from 80% to 100%, weight increases from 0 to 60. (Reference data: Default block library, if all block difficulties are enabled, End dimension block percentage is about 2%, non-End dimension block percentage is about 98%).
+
+# Command Reference
+
+### /language - Change Language
+
+`/language [auto|en_us|zh_cn]`
+- With no argument, opens the language menu.
+- `auto`: Follow the player's Minecraft client language.
+- `en_us` / `zh_cn`: Always use the selected language.
+
+### /tp - Teleport
 
 `/tp <player>`
-- `<player>`: 要传送到的玩家名称。只能传送到同队玩家。
+- `<player>`: The name of the player to teleport to. Can only teleport to players on the same team.
 
-**注意，/tp命令已被插件修改，如果想使用原版tp的指令，请输入/teleport或/minecraft:tp**
+**Note: The /tp command has been modified by the plugin. To use the original tp command, please enter /teleport or /minecraft:tp**
 
-### /menu - 打开菜单
+### /menu - Open Menu
 
 `/menu [main|chest|waypoints|roll|locate|randomTP]`
-- `main`: 打开主菜单。
-- `chest [1|2|3]`: 打开队伍箱子菜单或指定队伍箱子。
-- `waypoints [use <index>]`: 打开路径点菜单或使用指定路径点。
-- `roll`: 执行轮换操作。
-- `locate`: 购买定位指令使用权限。
-- `randomTP`: 随机传送。
+- `main`: Open the main menu.
+- `chest [index]`: Open the team chest menu or a specific team chest.
+- `waypoints [use <index>]`: Open the waypoints menu or use a specific waypoint.
+- `roll`: Execute a roll operation.
+- `locate`: Buy locate command permission.
+- `randomTP`: Perform a random teleportation.
 
-### /locatebiome - 定位生物群系
+### /locatebiome - Locate Biome
 
 `/locatebiome <biome>`
-- `<biome>`: 要定位的生物群系名称。
+- `<biome>`: The name of the biome to locate.
 
-### /locatestructure - 定位结构
+### /locatestructure - Locate Structure
 
 `/locatestructure <structure>`
-- `<structure>`: 要定位的结构名称。
+- `<structure>`: The name of the structure to locate.
 
-### /restart - 重启服务器
+### /restartgame - Restart Server
 
-`/restart`
-- 在所有玩家确认重启之后，关闭服务器并重新启动。
+`/restartgame`
+- After all players confirm, mark the worlds for reset and safely shut down the server. The hosting panel or startup loop must start Paper again.
+- When a recovered game has actually ended, this vote also discards its saved progress.
 
-### /getblock - 获取方块信息
+### /shout - Global Chat
 
-`/getblock <red|blue> <index>`
-- `<red|blue>`: 队伍颜色。
-- `<index>`: 方块索引（1, 2, 3 或 4）。
+`/shout <message>`
 
-### /waypoint - 管理路径点
+- During an active game, sends a highlighted message to every player. `@message` and `!message` are shortcuts.
+
+### /randomteam - Random Teams
+
+`/randomteam [confirm]`
+
+- Requests a balanced random assignment of all online players before the game.
+- Confirmation can be completed with the clickable chat button or `/randomteam confirm`.
+
+### /block - Get Block Information
+
+`/block <red|blue> <index>`
+- `<red|blue>`: The team color.
+- `<index>`: The block index (1, 2, 3, or 4).
+
+### /waypoint - Manage Waypoints
 
 `/waypoint remove <index>`
-- `<index>`: 要删除的路径点索引（1, 2 或 3）。
+- `<index>`: The configurable waypoint index to remove.
 
-### /debug - 调试命令（需要管理员权限）
+### /debug - Debug Commands (Admin Only)
 
 `/debug reload`
-- 重新加载游戏消息和方块信息，并在游戏进行中重载方块。
+- Reload game messages and block information, and reload blocks during gameplay.
 
 `/debug skip <team> [block number|all]`
-- 跳过指定队伍的指定方块任务，或跳过全部方块任务。
+- Skip specific block tasks for the specified team, or skip all block tasks.
 
 `/debug setscore <team> <score>`
-- 设置指定队伍的分数。
+- Set the score for a specified team.
 
 `/debug getblock <team> <type>`
-- 查询指定队伍的方块信息，包括剩余方块和所有方块。
+- Retrieve block information for a specified team, including remaining and all blocks.
 
 `/debug gettranslation <team> <block number>`
-- 获取指定队伍的指定方块的翻译信息和 Minecraft 中的键。
+- Get translation information and Minecraft key for a specified block in the specified team.
 
 `/debug getteam`
-- 获取当前红蓝队伍的玩家列表。
+- Get the list of players in the current red and blue teams.
 
 `/debug setteam <team> <add|remove> <player>`
-- 将指定玩家添加到或从指定队伍移除。
+- Add or remove a specified player from the specified team.
 
-# 版权说明
+# Feedback
 
-该项目签署 [**GNU Affero General Public License v3.0**](https://github.com/LQSnow/BlockRacing/blob/main/LICENSE) 授权许可,原作者lq_snow
+Report bugs and request features through [GitHub Issues](https://github.com/LQSnow/BlockRacing/issues).
 
-The project is licensed under the [**GNU Affero General Public License v3.0**](https://github.com/LQSnow/BlockRacing/blob/main/LICENSE),Author lq_snow
+Contact:
+
+> Discord: `ikarion1`
+>
+> QQ: 2784628010
+
+# License
+
+This project is licensed under the [**GNU Affero General Public License v3.0**](./LICENSE).

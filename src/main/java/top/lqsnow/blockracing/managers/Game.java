@@ -16,9 +16,7 @@ import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
-import org.mineacademy.fo.menu.model.ItemCreator;
-import org.mineacademy.fo.remain.CompMaterial;
-    
+
 import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.voicechat.VoicechatSyncManager;
 import top.lqsnow.blockracing.utils.BiomeTranslation;
@@ -65,8 +63,8 @@ public class Game {
     public static Map<Integer, Location> redWaypoint = new ConcurrentHashMap<>();
     public static Map<Integer, Location> blueWaypoint = new ConcurrentHashMap<>();
 
-    public static Map<Integer, CompMaterial> redWaypointIconCache = new ConcurrentHashMap<>();
-    public static Map<Integer, CompMaterial> blueWaypointIconCache = new ConcurrentHashMap<>();
+    public static Map<Integer, Material> redWaypointIconCache = new ConcurrentHashMap<>();
+    public static Map<Integer, Material> blueWaypointIconCache = new ConcurrentHashMap<>();
     public static Map<Integer, String> redWaypointBiomeCache = new ConcurrentHashMap<>();
     public static Map<Integer, String> blueWaypointBiomeCache = new ConcurrentHashMap<>();
     public static Map<Integer, String> redWaypointNameCache = new ConcurrentHashMap<>();
@@ -1377,7 +1375,7 @@ public class Game {
     public static void setWaypoint(Player player, String team, int index) {
         Location waypoint = player.getLocation();
         String biomeLabel = "N/A";
-        CompMaterial icon = resolveWaypointIconAtRecord(waypoint);
+        Material icon = resolveWaypointIconAtRecord(waypoint);
         try {
             biomeLabel = BiomeTranslation.getValue(waypoint.getBlock().getBiome());
         } catch (IllegalStateException ignored) {
@@ -1398,9 +1396,9 @@ public class Game {
         }
     }
 
-    private static CompMaterial resolveWaypointIconAtRecord(Location waypoint) {
+    private static Material resolveWaypointIconAtRecord(Location waypoint) {
         if (waypoint == null || waypoint.getWorld() == null) {
-            return CompMaterial.FILLED_MAP;
+            return Material.FILLED_MAP;
         }
 
         try {
@@ -1410,7 +1408,7 @@ public class Game {
             }
 
             if (!block.isEmpty()) {
-                CompMaterial material = CompMaterial.fromBlock(block);
+                Material material = block.getType();
                 if (material != null) {
                     return material;
                 }
@@ -1420,10 +1418,10 @@ public class Game {
         }
 
         return switch (waypoint.getWorld().getEnvironment()) {
-            case NORMAL -> CompMaterial.GRASS_BLOCK;
-            case NETHER -> CompMaterial.NETHERRACK;
-            case THE_END -> CompMaterial.END_STONE;
-            default -> CompMaterial.FILLED_MAP;
+            case NORMAL -> Material.GRASS_BLOCK;
+            case NETHER -> Material.NETHERRACK;
+            case THE_END -> Material.END_STONE;
+            default -> Material.FILLED_MAP;
         };
     }
 
@@ -1885,7 +1883,7 @@ public class Game {
                 if (emptyPos == -1) {
                     continue;
                 }
-                chest.setItem(emptyPos, ItemCreator.fromMaterial(CompMaterial.valueOf(block)).amount(64).make());
+                chest.setItem(emptyPos, new ItemStack(Material.valueOf(block), 64));
                 return;
             }
             sendAll(Message.NOTICE_TEAM_CHEST_FULL.getString().replace("%team%", Message.TEAM_BLUE_NAME.getString())
@@ -1943,7 +1941,7 @@ public class Game {
                 if (emptyPos == -1) {
                     continue;
                 }
-                chest.setItem(emptyPos, ItemCreator.fromMaterial(CompMaterial.valueOf(block)).amount(64).make());
+                chest.setItem(emptyPos, new ItemStack(Material.valueOf(block), 64));
                 return;
             }
             sendAll(Message.NOTICE_TEAM_CHEST_FULL.getString().replace("%team%", Message.TEAM_RED_NAME.getString())

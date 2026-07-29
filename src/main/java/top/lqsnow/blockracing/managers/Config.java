@@ -7,6 +7,7 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import top.lqsnow.blockracing.Main;
 
@@ -27,7 +28,8 @@ public enum Config {
     COMEBACK_BUFF_THRESHOLD("comeback-buff-threshold"),
     CONFIG_VERSION("config-version"),
     MAX_TEAM_CHEST_NUM("max-team-chest-num"),
-    MAX_TEAM_WAYPOINT_NUM("max-team-waypoint-num");
+    MAX_TEAM_WAYPOINT_NUM("max-team-waypoint-num"),
+    MAX_ROLL_COUNT("max-roll-count");
 
     private static File file;
     private static FileConfiguration config;
@@ -48,10 +50,22 @@ public enum Config {
         if (file == null) {
             file = new File(Main.getInstance().getDataFolder(), "config.yml");
         }
-        config = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration loaded = new YamlConfiguration();
+        loaded.options().parseComments(true);
+        try {
+            loaded.load(file);
+        } catch (IOException | InvalidConfigurationException ex) {
+            Main.getInstance().getLogger().log(Level.SEVERE, "[BlockRacing] Error reading config.yml!", ex);
+        }
+        config = loaded;
+        boolean missingMaxRollCount = !config.contains(MAX_ROLL_COUNT.path);
         try (Reader reader = new InputStreamReader(Main.getInstance().getResource("config.yml"), StandardCharsets.UTF_8)) {
             YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(reader);
             config.setDefaults(defConfig);
+            if (missingMaxRollCount) {
+                config.set(MAX_ROLL_COUNT.path, defConfig.getInt(MAX_ROLL_COUNT.path));
+                saveConfig();
+            }
         } catch (IOException ioe) {
             Main.getInstance().getLogger().log(Level.SEVERE, "[BlockRacing] Error reading config.yml!", ioe);
         }

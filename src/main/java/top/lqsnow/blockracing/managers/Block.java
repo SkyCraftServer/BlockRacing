@@ -3,9 +3,7 @@ package top.lqsnow.blockracing.managers;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.mineacademy.fo.menu.model.ItemCreator;
-import org.mineacademy.fo.remain.CompMaterial;
-    
+
 import top.lqsnow.blockracing.Main;
 
 import java.io.BufferedReader;
@@ -482,7 +480,7 @@ public class Block {
         }
         for (String str : candidates) {
             try {
-                ItemStack item = ItemCreator.fromMaterial(CompMaterial.fromMaterial(Material.valueOf(str))).amount(64).make();
+                ItemStack item = new ItemStack(Material.valueOf(str), 64);
                 checkBlockInventory.setItem(0, item);
             } catch (Exception e) {
                 Bukkit.getLogger().severe(String.format("[BlockRacing] " + Message.NOTICE_ERROR_BLOCK.getString(), str));

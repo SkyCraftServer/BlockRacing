@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.lqsnow.blockracing.managers.Game;
+import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.utils.TranslationUtil;
 
 import java.util.ArrayList;
@@ -16,8 +17,6 @@ import java.util.List;
 
 import static top.lqsnow.blockracing.managers.Game.getCurrentBlocks;
 import static top.lqsnow.blockracing.managers.Game.getCurrentGameState;
-import static top.lqsnow.blockracing.utils.ColorUtil.t;
-
 public class GetBlock implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
@@ -28,29 +27,38 @@ public class GetBlock implements CommandExecutor, TabCompleter {
         }
 
         if (getCurrentGameState().equals(Game.GameState.PREGAME)) {
-            player.sendMessage(t("&cThis command can only be used after the start of the game!"));
+            player.sendMessage(Message.NOTICE_GAME_NOT_START.getString(player));
             return true;
         }
 
-        if (args.length == 0) {
-            player.sendMessage(t("&cMissing parameters"));
+        if (args.length != 2) {
+            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString(player));
             return true;
         }
 
-        if (args[1].isEmpty()) {
-            player.sendMessage(t("&cMissing parameters"));
+        if (!args[0].equalsIgnoreCase("red") && !args[0].equalsIgnoreCase("blue")) {
+            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString(player));
             return true;
-        } else if (Integer.parseInt(args[1]) > 4) {
-            player.sendMessage(t("&cParameters error"));
+        }
+        int index;
+        try {
+            index = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString(player));
+            return true;
+        }
+        List<String> currentBlocks = getCurrentBlocks(args[0].toLowerCase());
+        if (index < 1 || index > currentBlocks.size()) {
+            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString(player));
             return true;
         }
 
         if (args[0].equalsIgnoreCase("red")) {
-            String block = getCurrentBlocks("red").get(Integer.parseInt(args[1]) - 1);
-            sender.sendMessage(String.format(TranslationUtil.getValue(block)));
+            String block = currentBlocks.get(index - 1);
+            player.sendMessage(TranslationUtil.getValue(block, player));
         } else if (args[0].equalsIgnoreCase("blue")) {
-            String block = getCurrentBlocks("blue").get(Integer.parseInt(args[1]) - 1);
-            sender.sendMessage(String.format(TranslationUtil.getValue(block)));
+            String block = currentBlocks.get(index - 1);
+            player.sendMessage(TranslationUtil.getValue(block, player));
         }
         return true;
     }

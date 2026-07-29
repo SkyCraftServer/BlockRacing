@@ -1,16 +1,13 @@
 # BlockRacing 游戏设置
 # 如果服务器已启动，请前往游戏中的设置界面进行设置，不要在这里调整
 
-# 语言
-lang: zh_cn
-
-# 除去easy-block以外的四种额外方块库设置
+# Optional block pools in addition to the required easy pool
 medium-block: false
 hard-block: false
 dyed-block: false
 end-block: false
 
-# 一局游戏需要收集的方块总数
+# Total number of target blocks in one game
 block-amount: 50
 
 # 游戏模式：
@@ -128,9 +125,12 @@ max-team-chest-num: 24
 # 最大：53
 max-team-waypoint-num: 24
 
+# 每队每局最大重掷次数
+max-roll-count: 3
+
 # 世界重新生成设置
 # 警告：开启后，每次插件启动时将删除并重新生成主世界、下界和末地！
 regenerate-worlds-on-startup: false
 
 # 如果你不知道这是什么，不要动它
-config-version: 3.6
+config-version: 26.2.1

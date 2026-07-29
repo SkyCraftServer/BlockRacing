@@ -1,7 +1,7 @@
 name: BlockRacing
-version: 3.6
+version: 26.2.1
 main: top.lqsnow.blockracing.Main
-api-version: 26.1.2
+api-version: '26.2'
 authors: [ LQ_Snow, xiaojiuwo233, FHSHKL ]
 description: The first team to collect the required blocks wins
 folia-supported: true
@@ -43,10 +43,17 @@ commands:
     description: "Reload BlockRacing config and block lists."
     permission: op
   randomteam:
-    usage: "/randomteam"
-    description: "Randomly assign players to teams."
-    permission: op
+    usage: "/randomteam [confirm]"
+    description: "Request or confirm balanced random teams."
   forcestart:
     usage: "/forcestart"
     description: "Force start the game and ignore ready status."
     permission: op
+  shout:
+    aliases: [all]
+    usage: "/shout <message>"
+    description: "Send a message to every player."
+  language:
+    aliases: [lang]
+    usage: "/language [auto|zh_cn|en_us]"
+    description: "Select your display language."

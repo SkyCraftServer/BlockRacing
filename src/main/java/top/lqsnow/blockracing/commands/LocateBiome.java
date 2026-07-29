@@ -1,5 +1,7 @@
 package top.lqsnow.blockracing.commands;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -29,6 +31,10 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
             Bukkit.getLogger().info("This command can only be run by a player.");
+            return true;
+        }
+        if (args.length != 1) {
+            player.sendMessage(Message.NOTICE_ERROR_COMMAND.getString(player));
             return true;
         }
 

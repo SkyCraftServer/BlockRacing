@@ -4,9 +4,9 @@ import lombok.Getter;
 import com.tcoded.folialib.FoliaLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
-import org.bukkit.GameRule;
+import org.bukkit.GameRules;
 import org.bukkit.World;
-import org.mineacademy.fo.platform.BukkitPlugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import top.lqsnow.blockracing.commands.*;
 import top.lqsnow.blockracing.listeners.BasicListener;
 import top.lqsnow.blockracing.listeners.AddonMonitorListener;
@@ -22,14 +22,27 @@ import org.bukkit.command.CommandExecutor;
 import static org.bukkit.Bukkit.getPluginManager;
 
 
-public class Main extends BukkitPlugin {
-    @Getter
+public class Main extends JavaPlugin {
     private static Main instance;
     @Getter
     private static FoliaLib foliaLib;
 
+    public static Main getInstance() {
+        return instance;
+    }
+
+    public static String getVersion() {
+        return instance.getPluginMeta().getVersion();
+    }
+
     @Override
-    protected void onPluginStart() {
+    public void onLoad() {
+        instance = this;
+        WorldResetMarker.processPendingReset(this);
+    }
+
+    @Override
+    public void onEnable() {
         instance = this;
         foliaLib = new FoliaLib(this);
 
@@ -59,6 +72,9 @@ public class Main extends BukkitPlugin {
         registerCommand("breload", new top.lqsnow.blockracing.commands.Reload());
         registerCommand("randomteam", new RandomTeam());
         registerCommand("forcestart", new ForceStart());
+        registerCommand("shout", new Shout());
+        Language language = new Language();
+        registerCommand("language", language);
 
         // Set tab completers where applicable
         setTabCompleterIfPossible("debug", new Debug());
@@ -66,6 +82,7 @@ public class Main extends BukkitPlugin {
         setTabCompleterIfPossible("locatestructure", new LocateStructure());
         setTabCompleterIfPossible("locatebiome", new LocateBiome());
         setTabCompleterIfPossible("block", new GetBlock());
+        setTabCompleterIfPossible("language", language);
 
         // Save resources
         saveIfAbsent(
@@ -91,25 +108,30 @@ public class Main extends BukkitPlugin {
         // Load managers (Config already loaded earlier)
         Message.saveDefaultConfig();
         Message.load();
+        LanguageManager.load();
         Setting.getSettings();
         Game.initChest();
         foliaLib.getScheduler().runNextTick(task -> {
-            Scoreboard.createScoreboard();
             Team.createTeam();
-            Scoreboard.setPreGameScoreboard();
+            Scoreboard.createScoreboard();
+            new Block();
+            Block.checkBlock();
+            Block.refreshAvailableBlocksAndClampAmount();
+            boolean recoveredGame = GameProgressStore.load();
+            if (recoveredGame) {
+                Game.resumeRecoveredGame();
+                Scoreboard.setInGameScoreboard();
+            } else {
+                Scoreboard.setPreGameScoreboard();
+            }
+            GameProgressStore.startAutosave();
             Bukkit.getOnlinePlayers().forEach(Scoreboard::showScoreboard);
+            Motd.refresh();
+            registerVoicechatIntegration();
+            if (!recoveredGame) {
+                Game.startPreGameLoop();
+            }
         });
-        Motd.refresh();
-        registerVoicechatIntegration();
-        new Block();
-        // Validate blocks at plugin startup (detect missing/invalid materials in files)
-        boolean ok = top.lqsnow.blockracing.managers.Block.checkBlock();
-        if (ok) {
-            Bukkit.getLogger().info("[BlockRacing] Block file check passed.");
-        } else {
-            Bukkit.getLogger().warning("[BlockRacing] Block file check failed. Check console for details.");
-        }
-        Game.startPreGameLoop();
 
         // Init world settings
         foliaLib.getScheduler().runLater(() -> {
@@ -117,29 +139,30 @@ public class Main extends BukkitPlugin {
             world.setDifficulty(Difficulty.PEACEFUL);
             Bukkit.setSpawnRadius(10);
             for (World w : Bukkit.getWorlds()) {
-                w.setGameRule(GameRule.KEEP_INVENTORY, true);
-                w.setGameRule(GameRule.LOCATOR_BAR, false);
+                w.setGameRule(GameRules.KEEP_INVENTORY, true);
+                w.setGameRule(GameRules.LOCATOR_BAR, false);
                 // Avoid chunk access on Folia global scheduler thread.
                 int spawnY = Math.max(w.getMinHeight() + 1, w.getSpawnLocation().getBlockY());
                 w.setSpawnLocation(0, spawnY, 0);
             }
             world.setTime(1000);
+            world.getWorldBorder().setCenter(world.getSpawnLocation());
+            world.getWorldBorder().setSize(32);
         }, 5);
-
-        // Set world border
-        World world = Bukkit.getWorlds().get(0);
-        world.getWorldBorder().setCenter(world.getSpawnLocation());
-        world.getWorldBorder().setSize(32);
 
         // Complete
         Bukkit.getLogger().info("[BlockRacing] Load Complete!");
     }
 
     @Override
-    protected void onPluginStop() {
-        super.onPluginStop();
+    public void onDisable() {
         if (foliaLib != null) {
             foliaLib.getScheduler().cancelAllTasks();
+        }
+        if (Game.getCurrentGameState() == Game.GameState.INGAME) {
+            GameProgressStore.saveNow();
+        } else {
+            GameProgressStore.clear();
         }
         Config.saveConfig();
     }
@@ -155,7 +178,7 @@ public class Main extends BukkitPlugin {
                 parent.mkdirs();
             }
             if (!out.exists()) {
-                saveResource(path, false); // 只在缺失时复制，避免 WARNING
+                saveResource(path, false);
             }
         }
     }
@@ -181,8 +204,13 @@ public class Main extends BukkitPlugin {
         if (getServer().getPluginManager().getPlugin("voicechat") == null) {
             return;
         }
-
         BlockRacingVoicechatPlugin.register(this);
     }
 
+    private World getPrimaryWorld() {
+        return Bukkit.getWorlds().stream()
+                .filter(world -> world.getEnvironment() == World.Environment.NORMAL)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No overworld is loaded"));
+    }
 }
