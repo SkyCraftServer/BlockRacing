@@ -17,6 +17,8 @@ import static top.lqsnow.blockracing.utils.CommandUtil.sendAll;
 public class Team {
     public static org.bukkit.scoreboard.Team redTeam;
     public static org.bukkit.scoreboard.Team blueTeam;
+    public static org.bukkit.scoreboard.Team redTeamEn;
+    public static org.bukkit.scoreboard.Team blueTeamEn;
     public static List<String> redTeamPlayers = new CopyOnWriteArrayList<>();
     public static List<String> blueTeamPlayers = new CopyOnWriteArrayList<>();
 
@@ -28,6 +30,8 @@ public class Team {
         if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
             redTeam = null;
             blueTeam = null;
+            redTeamEn = null;
+            blueTeamEn = null;
             return;
         }
         try {
@@ -39,9 +43,22 @@ public class Team {
             if (blueTeam == null) {
                 blueTeam = Scoreboard.scoreboard.registerNewTeam("blue");
             }
+            // Also register on English scoreboard
+            if (Scoreboard.scoreboardEn != null) {
+                redTeamEn = Scoreboard.scoreboardEn.getTeam("red");
+                if (redTeamEn == null) {
+                    redTeamEn = Scoreboard.scoreboardEn.registerNewTeam("red");
+                }
+                blueTeamEn = Scoreboard.scoreboardEn.getTeam("blue");
+                if (blueTeamEn == null) {
+                    blueTeamEn = Scoreboard.scoreboardEn.registerNewTeam("blue");
+                }
+            }
         } catch (UnsupportedOperationException ex) {
             redTeam = null;
             blueTeam = null;
+            redTeamEn = null;
+            blueTeamEn = null;
             return;
         }
 
@@ -51,6 +68,16 @@ public class Team {
         blueTeam.setDisplayName(Message.TEAM_BLUE_NAME.getString());
         blueTeam.setPrefix(Message.TEAM_BLUE_PREFIX.getString());
         blueTeam.setColor(ChatColor.BLUE);
+        if (redTeamEn != null) {
+            redTeamEn.setDisplayName(Message.TEAM_RED_NAME.getString());
+            redTeamEn.setPrefix(Message.TEAM_RED_PREFIX.getString());
+            redTeamEn.setColor(ChatColor.RED);
+        }
+        if (blueTeamEn != null) {
+            blueTeamEn.setDisplayName(Message.TEAM_BLUE_NAME.getString());
+            blueTeamEn.setPrefix(Message.TEAM_BLUE_PREFIX.getString());
+            blueTeamEn.setColor(ChatColor.BLUE);
+        }
     }
 
     public static boolean joinTeam(Player player, org.bukkit.scoreboard.Team team, boolean sendMessage) {
@@ -87,10 +114,16 @@ public class Team {
                 if (blueTeam != null) {
                     blueTeam.removeEntry(player.getName());
                 }
+                if (blueTeamEn != null) {
+                    blueTeamEn.removeEntry(player.getName());
+                }
                 blueTeamPlayers.remove(player.getName());
             }
             if (redTeam != null) {
                 redTeam.addEntry(player.getName());
+            }
+            if (redTeamEn != null) {
+                redTeamEn.addEntry(player.getName());
             }
             redTeamPlayers.add(player.getName());
             setPlayerListNameByTeam(player, true);
@@ -110,10 +143,16 @@ public class Team {
                 if (redTeam != null) {
                     redTeam.removeEntry(player.getName());
                 }
+                if (redTeamEn != null) {
+                    redTeamEn.removeEntry(player.getName());
+                }
                 redTeamPlayers.remove(player.getName());
             }
             if (blueTeam != null) {
                 blueTeam.addEntry(player.getName());
+            }
+            if (blueTeamEn != null) {
+                blueTeamEn.addEntry(player.getName());
             }
             blueTeamPlayers.add(player.getName());
             setPlayerListNameByTeam(player, false);
@@ -192,6 +231,22 @@ public class Team {
 
         Main.getFoliaLib().getScheduler().runLater(apply, 1L);
         Main.getFoliaLib().getScheduler().runLater(apply, 20L);
+    }
+
+    /** Restore team membership from saved state (used by GameProgressStore). */
+    public static void restoreTeams(java.util.List<String> redNames, java.util.List<String> blueNames) {
+        redTeamPlayers.clear();
+        blueTeamPlayers.clear();
+        redTeamPlayers.addAll(redNames);
+        blueTeamPlayers.addAll(blueNames);
+        for (String name : redNames) {
+            if (redTeam != null) redTeam.addEntry(name);
+            if (redTeamEn != null) redTeamEn.addEntry(name);
+        }
+        for (String name : blueNames) {
+            if (blueTeam != null) blueTeam.addEntry(name);
+            if (blueTeamEn != null) blueTeamEn.addEntry(name);
+        }
     }
 
 }

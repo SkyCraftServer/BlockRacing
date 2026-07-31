@@ -63,12 +63,14 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-minimessage</artifactId>
-            <version>4.17.0</version>
+            <version>5.2.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>4.17.0</version>
+            <version>5.2.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>de.maxhenkel.voicechat</groupId>
@@ -143,8 +145,6 @@
                     <artifactSet>
                         <includes>
                             <include>com.googlecode.json-simple:json-simple</include>
-                            <include>net.kyori:adventure-text-minimessage</include>
-                            <include>net.kyori:adventure-text-serializer-legacy</include>
                             <include>com.tcoded:FoliaLib</include>
                         </includes>
                     </artifactSet>

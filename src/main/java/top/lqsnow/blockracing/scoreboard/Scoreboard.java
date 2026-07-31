@@ -9,6 +9,7 @@ import org.bukkit.scoreboard.Team;
 import top.lqsnow.blockracing.Main;
 import top.lqsnow.blockracing.managers.Block;
 import top.lqsnow.blockracing.managers.Game;
+import top.lqsnow.blockracing.managers.LanguageManager;
 import top.lqsnow.blockracing.managers.Message;
 import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.scoreboard.SimpleScoreIntegration;
@@ -25,9 +26,16 @@ import static top.lqsnow.blockracing.managers.Block.*;
 public class Scoreboard {
     public static org.bukkit.scoreboard.Scoreboard scoreboard;
     public static Objective sidebar;
+    public static org.bukkit.scoreboard.Scoreboard scoreboardEn;
+    private static Objective sidebarEn;
     private static boolean available = true;
     private static final Map<Integer, String> foliaSlotEntries = new HashMap<>();
     private static boolean externalScoreboardMode = false;
+
+    // Context for dual-language scoreboard building
+    private static org.bukkit.scoreboard.Scoreboard targetBoard;
+    private static Objective targetSidebar;
+    private static boolean buildingChinese = true;
 
     private static boolean isFolia() {
         return Main.getFoliaLib() != null && Main.getFoliaLib().isFolia();
@@ -73,12 +81,18 @@ public class Scoreboard {
         }
         try {
             scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-
             sidebar = scoreboard.getObjective("blockracing_sidebar");
             if (sidebar == null) {
                 sidebar = scoreboard.registerNewObjective("blockracing_sidebar", "dummy");
             }
             sidebar.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+            scoreboardEn = Bukkit.getScoreboardManager().getNewScoreboard();
+            sidebarEn = scoreboardEn.getObjective("blockracing_sidebar_en");
+            if (sidebarEn == null) {
+                sidebarEn = scoreboardEn.registerNewObjective("blockracing_sidebar_en", "dummy");
+            }
+            sidebarEn.setDisplaySlot(DisplaySlot.SIDEBAR);
 
             if (!isFolia()) {
                 for (int i = 1; i <= 15; i++) {
@@ -87,6 +101,12 @@ public class Scoreboard {
                         team = scoreboard.registerNewTeam("SLOT_" + i);
                     }
                     team.addEntry(genEntry(i));
+
+                    Team teamEn = scoreboardEn.getTeam("SLOT_" + i);
+                    if (teamEn == null) {
+                        teamEn = scoreboardEn.registerNewTeam("SLOT_" + i);
+                    }
+                    teamEn.addEntry(genEntry(i));
                 }
             }
         } catch (UnsupportedOperationException ex) {
@@ -122,7 +142,7 @@ public class Scoreboard {
         clearSlots(11);
 
         // Title
-        setTitleMini(Message.SCOREBOARD_PREGAME_TITLE.getMiniMessage());
+        setTitleLegacy(msgLang(Message.SCOREBOARD_PREGAME_TITLE));
 
         // Generate displayed game mode
         String displayedGameMode = resolveDisplayedGameModeMini();
@@ -133,15 +153,15 @@ public class Scoreboard {
         // Generate blocks / time text
         String blocks;
         if (Setting.isNetherMode()) {
-            blocks = Message.SCOREBOARD_BLOCKS_NETHER.getMiniMessage();
+            blocks = msgLang(Message.SCOREBOARD_BLOCKS_NETHER);
         } else {
             blocks = String.format("%s%s%s%s%s%s",
-                Message.SCOREBOARD_BLOCKS_EASY.getMiniMessage(),
-                (Setting.isEnableMediumBlock() ? " " + Message.SCOREBOARD_BLOCKS_MEDIUM.getMiniMessage() : ""),
-                (Setting.isEnableHardBlock() ? " " + Message.SCOREBOARD_BLOCKS_HARD.getMiniMessage() : ""),
-                (Setting.isEnableDyedBlock() ? " " + Message.SCOREBOARD_BLOCKS_DYED.getMiniMessage() : ""),
-                (Setting.isEnableEndBlock() ? " " + Message.SCOREBOARD_BLOCKS_END.getMiniMessage() : ""),
-                (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() ? " " + Message.SCOREBOARD_BLOCKS_ADDON.getMiniMessage() : ""));
+                msgLang(Message.SCOREBOARD_BLOCKS_EASY),
+                (Setting.isEnableMediumBlock() ? " " + msgLang(Message.SCOREBOARD_BLOCKS_MEDIUM) : ""),
+                (Setting.isEnableHardBlock() ? " " + msgLang(Message.SCOREBOARD_BLOCKS_HARD) : ""),
+                (Setting.isEnableDyedBlock() ? " " + msgLang(Message.SCOREBOARD_BLOCKS_DYED) : ""),
+                (Setting.isEnableEndBlock() ? " " + msgLang(Message.SCOREBOARD_BLOCKS_END) : ""),
+                (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() ? " " + msgLang(Message.SCOREBOARD_BLOCKS_ADDON) : ""));
         }
         String blockAmount = String.valueOf(Setting.getBlockAmount());
 
@@ -154,9 +174,9 @@ public class Scoreboard {
             } catch (IllegalArgumentException ex) {
                 continue;
             }
-            String originalMessage = message.getMiniMessage();
+            String originalMessage = msgLang(message);
             if (timeMode && messageKey.equals("SCOREBOARD_PREGAME_SLOT5")) {
-                originalMessage = Message.SCOREBOARD_PREGAME_TIME_MODE_INFO.getMiniMessage();
+                originalMessage = msgLang(Message.SCOREBOARD_PREGAME_TIME_MODE_INFO);
             }
             if (originalMessage == null || originalMessage.isEmpty()) continue;
             String formattedMessage = applyPlaceholders(originalMessage,
@@ -165,11 +185,11 @@ public class Scoreboard {
                     "%minutes%", String.valueOf(minutes),
                     "%blocks%", blocks);
 
-            setSlot(slot, mm(formattedMessage));
+            setSlot(slot, formattedMessage);
         }
 
         // Brand line
-        setSlot(1, mm(brandLine()));
+        setSlot(1, brandLine());
     }
 
     public static void setInGameScoreboard() {
@@ -178,17 +198,17 @@ public class Scoreboard {
         if (isFolia()) return;
         clearSlots(14);
 
-        setTitleMini(Message.SCOREBOARD_INGAME_TITLE.getMiniMessage());
+        setTitleLegacy(msgLang(Message.SCOREBOARD_INGAME_TITLE));
 
         // Mode display lines (top of 14-line layout)
-        setSlot(14, mm(modeLine()));
-        setSlot(13, mm(modeDetailLine()));
+        setSlot(14, modeLine());
+        setSlot(13, modeDetailLine());
 
         // Contest mode: both teams share the same targets, show only 4 blocks total to reduce height
         if (Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST)) {
-            setSlot(12, mm(buildTeamScoreLine(true, false)));
-            setSlot(11, mm(buildTeamScoreLine(false, false)));
-            setSlot(10, mm(Message.SCOREBOARD_DIVIDING_LINE.getMiniMessage()));
+            setSlot(12, buildTeamScoreLine(true, false));
+            setSlot(11, buildTeamScoreLine(false, false));
+            setSlot(10, msgLang(Message.SCOREBOARD_DIVIDING_LINE));
             for (int i = 0; i < 4; i++) {
                 int slotIndex = 9 - i; // 9,8,7,6
                 if (i < getCurrentBlocks("red").size()) {
@@ -198,7 +218,7 @@ public class Scoreboard {
                 }
             }
             // Keep brand at the bottom
-            setSlot(1, mm(brandLine()));
+            setSlot(1, brandLine());
             // Clear leftover slots below the shared block list
             resetSlot(5);
             resetSlot(4);
@@ -208,7 +228,7 @@ public class Scoreboard {
         }
 
         // Red team score and blocks (4 entries)
-        setSlot(12, mm(buildTeamScoreLine(true, false)));
+        setSlot(12, buildTeamScoreLine(true, false));
         for (int i = 0; i < 4; i++) {
             int slotIndex = 11 - i; // 11,10,9,8
             if (i < getCurrentBlocks("red").size()) {
@@ -219,10 +239,10 @@ public class Scoreboard {
         }
 
         // Dividing line
-        setSlot(7, mm(Message.SCOREBOARD_DIVIDING_LINE.getMiniMessage()));
+        setSlot(7, msgLang(Message.SCOREBOARD_DIVIDING_LINE));
 
         // Blue team score and blocks (4 entries)
-        setSlot(6, mm(buildTeamScoreLine(false, false)));
+        setSlot(6, buildTeamScoreLine(false, false));
         for (int i = 0; i < 4; i++) {
             int slotIndex = 5 - i; // 5,4,3,2
             if (i < getCurrentBlocks("blue").size()) {
@@ -233,7 +253,7 @@ public class Scoreboard {
         }
 
         // Bottom display (keep brand on 1)
-        setSlot(1, mm(brandLine()));
+        setSlot(1, brandLine());
     }
 
     public static void setEndGameScoreboard() {
@@ -242,19 +262,19 @@ public class Scoreboard {
         if (isFolia()) return;
         clearSlots(15);
 
-        String endTitle = Message.SCOREBOARD_END_TITLE.getMiniMessage();
+        String endTitle = msgLang(Message.SCOREBOARD_END_TITLE);
         if (endTitle == null || endTitle.isEmpty()) {
-            endTitle = Message.SCOREBOARD_INGAME_TITLE.getMiniMessage();
+            endTitle = msgLang(Message.SCOREBOARD_INGAME_TITLE);
         }
-        setTitleMini(endTitle);
+        setTitleLegacy(endTitle);
 
         // Compact layout (6 lines): mode, status, winner, red score, blue score, brand
-        setSlot(6, mm(modeLine()));
-        setSlot(5, mm(Message.SCOREBOARD_END_STATUS.getMiniMessage()));
-        setSlot(4, mm(determineWinnerLine()));
-        setSlot(3, mm(buildTeamScoreLine(true, true)));
-        setSlot(2, mm(buildTeamScoreLine(false, true)));
-        setSlot(1, mm(brandLine()));
+        setSlot(6, modeLine());
+        setSlot(5, msgLang(Message.SCOREBOARD_END_STATUS));
+        setSlot(4, determineWinnerLine());
+        setSlot(3, buildTeamScoreLine(true, true));
+        setSlot(2, buildTeamScoreLine(false, true));
+        setSlot(1, brandLine());
 
         // Remove any other slots so no blank padding remains
         for (int slot = 7; slot <= 15; slot++) {
@@ -265,27 +285,27 @@ public class Scoreboard {
     public static String getBlockDisplay(String block) {
         String difficulty;
         if (Setting.isNetherMode() && netherBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_NETHER.getMiniMessage();
+            difficulty = msgLang(Message.SCOREBOARD_BLOCK_DIFFICULTY_NETHER);
         } else if (easyBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_EASY.getMiniMessage();
+            difficulty = msgLang(Message.SCOREBOARD_BLOCK_DIFFICULTY_EASY);
         } else if (mediumBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_MEDIUM.getMiniMessage();
+            difficulty = msgLang(Message.SCOREBOARD_BLOCK_DIFFICULTY_MEDIUM);
         } else if (hardBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_HARD.getMiniMessage();
+            difficulty = msgLang(Message.SCOREBOARD_BLOCK_DIFFICULTY_HARD);
         } else if (dyedBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_DYED.getMiniMessage();
+            difficulty = msgLang(Message.SCOREBOARD_BLOCK_DIFFICULTY_DYED);
         } else if (Setting.isAddonAvailable() && Setting.isEnableAddonBlock() && addonBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_ADDON.getMiniMessage();
+            difficulty = msgLang(Message.SCOREBOARD_BLOCK_DIFFICULTY_ADDON);
         } else if (endBlocks.contains(block)) {
-            difficulty = Message.SCOREBOARD_BLOCK_DIFFICULTY_END.getMiniMessage();
+            difficulty = msgLang(Message.SCOREBOARD_BLOCK_DIFFICULTY_END);
         } else {
             return "";
         }
 
-        String blockLine = applyPlaceholders(Message.SCOREBOARD_BLOCK_FORMAT.getMiniMessage(),
+        String blockLine = applyPlaceholders(msgLang(Message.SCOREBOARD_BLOCK_FORMAT),
                 "%difficulty%", difficulty,
                 "%block%", TranslationUtil.getValue(block));
-        return mm(blockLine);
+        return blockLine;
     }
 
     private static String resolveDisplayedGameModeMini() {
@@ -295,19 +315,19 @@ public class Scoreboard {
     private static String resolveDisplayedGameModeMini(boolean includeOptionalModes) {
         String base;
         if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
-            base = Message.SCOREBOARD_MODE_NORMAL.getMiniMessage();
+            base = msgLang(Message.SCOREBOARD_MODE_NORMAL);
         } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
-            base = Message.SCOREBOARD_MODE_RACING.getMiniMessage();
+            base = msgLang(Message.SCOREBOARD_MODE_RACING);
         } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST)) {
-            base = Message.SCOREBOARD_MODE_CONTEST.getMiniMessage();
+            base = msgLang(Message.SCOREBOARD_MODE_CONTEST);
         } else {
-            base = Message.SCOREBOARD_MODE_TIME.getMiniMessage();
+            base = msgLang(Message.SCOREBOARD_MODE_TIME);
         }
         if (Setting.isNetherMode()) {
-            base = base + " + " + Message.SCOREBOARD_MODE_NETHER.getMiniMessage();
+            base = base + " + " + msgLang(Message.SCOREBOARD_MODE_NETHER);
         }
         if (includeOptionalModes && Setting.isSpeedMode()) {
-            base = base + " + " + Message.SCOREBOARD_MODE_SPEED.getMiniMessage();
+            base = base + " + " + msgLang(Message.SCOREBOARD_MODE_SPEED);
         }
         return base;
     }
@@ -317,7 +337,12 @@ public class Scoreboard {
         if (isFolia()) {
             return;
         }
-        player.setScoreboard(scoreboard != null ? scoreboard : Bukkit.getScoreboardManager().getNewScoreboard());
+        // Assign per-language scoreboard based on player preference
+        if (scoreboardEn != null && !LanguageManager.usesChinese(player)) {
+            player.setScoreboard(scoreboardEn);
+        } else {
+            player.setScoreboard(scoreboard != null ? scoreboard : Bukkit.getScoreboardManager().getNewScoreboard());
+        }
     }
 
     private static boolean installExternalScoreboardProvider() {
@@ -334,6 +359,22 @@ public class Scoreboard {
             refreshComebackEffects();
             return;
         }
+        // Build Chinese scoreboard
+        targetBoard = scoreboard;
+        targetSidebar = sidebar;
+        buildingChinese = true;
+        buildCurrentPhase();
+        // Build English scoreboard
+        if (scoreboardEn != null && sidebarEn != null) {
+            targetBoard = scoreboardEn;
+            targetSidebar = sidebarEn;
+            buildingChinese = false;
+            buildCurrentPhase();
+        }
+        refreshComebackEffects();
+    }
+
+    private static void buildCurrentPhase() {
         if (getCurrentGameState().equals(GameState.PREGAME)) {
             setPreGameScoreboard();
         } else if (getCurrentGameState().equals(GameState.INGAME)) {
@@ -341,7 +382,6 @@ public class Scoreboard {
         } else if (getCurrentGameState().equals(GameState.END)) {
             setEndGameScoreboard();
         }
-        refreshComebackEffects();
     }
 
 
@@ -361,7 +401,13 @@ public class Scoreboard {
     private static void setTitleMini(String miniTitle) {
         String legacy = mm(miniTitle);
         // Trim to max 32 visible characters while preserving color/hex sequences (do not split color codes)
-        sidebar.setDisplayName(trimLegacyToVisibleLength(legacy, 32));
+        Objective sb = targetSidebar != null ? targetSidebar : sidebar;
+        sb.setDisplayName(trimLegacyToVisibleLength(legacy, 32));
+    }
+
+    private static void setTitleLegacy(String legacyTitle) {
+        Objective sb = targetSidebar != null ? targetSidebar : sidebar;
+        sb.setDisplayName(trimLegacyToVisibleLength(legacyTitle == null ? "" : legacyTitle, 32));
     }
 
     private static String trimLegacyToVisibleLength(String input, int maxVisible) {
@@ -413,10 +459,12 @@ public class Scoreboard {
             return;
         }
 
-        Team team = scoreboard.getTeam("SLOT_" + slot);
+        org.bukkit.scoreboard.Scoreboard board = targetBoard != null ? targetBoard : scoreboard;
+        Objective obj = targetSidebar != null ? targetSidebar : sidebar;
+        Team team = board.getTeam("SLOT_" + slot);
         String entry = genEntry(slot);
-        if (!scoreboard.getEntries().contains(entry)) {
-            sidebar.getScore(entry).setScore(slot);
+        if (!board.getEntries().contains(entry)) {
+            obj.getScore(entry).setScore(slot);
         }
 
         if (text == null) {
@@ -504,6 +552,7 @@ public class Scoreboard {
             return;
         }
 
+        org.bukkit.scoreboard.Scoreboard board = targetBoard != null ? targetBoard : scoreboard;
         // Clear desired range
         for (int i = 1; i <= maxSlot; i++) {
             setSlot(i, "");
@@ -511,10 +560,10 @@ public class Scoreboard {
         // Remove any higher slots that might remain from previous phases
         for (int i = maxSlot + 1; i <= 15; i++) {
             String entry = genEntry(i);
-            if (scoreboard.getEntries().contains(entry)) {
-                scoreboard.resetScores(entry);
+            if (board.getEntries().contains(entry)) {
+                board.resetScores(entry);
             }
-            Team team = scoreboard.getTeam("SLOT_" + i);
+            Team team = board.getTeam("SLOT_" + i);
             if (team != null) {
                 team.setPrefix("");
                 team.setSuffix("");
@@ -531,11 +580,12 @@ public class Scoreboard {
             return;
         }
 
+        org.bukkit.scoreboard.Scoreboard board = targetBoard != null ? targetBoard : scoreboard;
         String entry = genEntry(slot);
-        if (scoreboard.getEntries().contains(entry)) {
-            scoreboard.resetScores(entry);
+        if (board.getEntries().contains(entry)) {
+            board.resetScores(entry);
         }
-        Team team = scoreboard.getTeam("SLOT_" + slot);
+        Team team = board.getTeam("SLOT_" + slot);
         if (team != null) {
             team.setPrefix("");
             team.setSuffix("");
@@ -543,9 +593,9 @@ public class Scoreboard {
     }
 
     private static String modeLine() {
-        String template = Message.SCOREBOARD_COMMON_MODE_LINE.getMiniMessage();
+        String template = msgLang(Message.SCOREBOARD_COMMON_MODE_LINE);
         if (template == null || template.isEmpty()) {
-            template = "<aqua>Mode:</aqua> <yellow>%mode%</yellow>";
+            template = "§bMode: §e%mode%";
         }
         boolean includeSpeed = !getCurrentGameState().equals(GameState.INGAME);
         return applyPlaceholders(template, "%mode%", resolveDisplayedGameModeMini(includeSpeed));
@@ -554,47 +604,42 @@ public class Scoreboard {
     private static String modeDetailLine() {
         if (Game.isTimeModeActive()) {
             if (Game.isTimeModeOvertime()) {
-                String template = Message.SCOREBOARD_COMMON_MODE_DETAIL_OVERTIME.getMiniMessage();
+                String template = msgLang(Message.SCOREBOARD_COMMON_MODE_DETAIL_OVERTIME);
                 if (template == null || template.isEmpty()) {
-                    template = "<red>Overtime</red>";
+                    template = "§cOvertime";
                 }
                 return template;
             }
-            String template = Message.SCOREBOARD_COMMON_MODE_DETAIL_TIME_LEFT.getMiniMessage();
+            String template = msgLang(Message.SCOREBOARD_COMMON_MODE_DETAIL_TIME_LEFT);
             if (template == null || template.isEmpty()) {
-                template = "<gold>Time Left: <white>%time%</white></gold>";
+                template = "§6Time Left: §f%time%";
             }
             return applyPlaceholders(template, "%time%", Game.getFormattedTimeModeRemaining());
         }
 
-        String template = Message.SCOREBOARD_COMMON_MODE_DETAIL_DEFAULT.getMiniMessage();
+        String template = msgLang(Message.SCOREBOARD_COMMON_MODE_DETAIL_DEFAULT);
         return template == null ? "" : template;
     }
 
     private static String brandLine() {
-        String template = Message.SCOREBOARD_COMMON_BRAND.getMiniMessage();
+        String template = msgLang(Message.SCOREBOARD_COMMON_BRAND);
         if (template == null || template.isEmpty()) {
-            template = "<gray>BlockRacing</gray> <yellow>v%version%</yellow>";
+            template = "§7BlockRacing §ev%version%";
         }
-        String addonSuffix = Setting.isAddonAvailable()
-                ? " <gradient:#b7d9af:#8bd9c0:#5fd9d1:#32d9e2:#06d9f3>ADDON</gradient>"
-                : "";
+        String addonSuffix = Setting.isAddonAvailable() ? " §bADDON" : "";
         return applyPlaceholders(template + addonSuffix, "%version%", Main.getInstance().getDescription().getVersion());
     }
 
     private static String determineWinnerLine() {
-        String fallbackRed = "<red>Red team wins!</red>";
-        String fallbackBlue = "<blue>Blue team wins!</blue>";
-        String fallbackDraw = "<yellow>Draw</yellow>";
         if (redTeamScore > blueTeamScore) {
-            String value = Message.SCOREBOARD_END_WINNER_RED.getMiniMessage();
-            return (value == null || value.isEmpty()) ? fallbackRed : value;
+            String value = msgLang(Message.SCOREBOARD_END_WINNER_RED);
+            return (value == null || value.isEmpty()) ? "§cRed team wins!" : value;
         } else if (blueTeamScore > redTeamScore) {
-            String value = Message.SCOREBOARD_END_WINNER_BLUE.getMiniMessage();
-            return (value == null || value.isEmpty()) ? fallbackBlue : value;
+            String value = msgLang(Message.SCOREBOARD_END_WINNER_BLUE);
+            return (value == null || value.isEmpty()) ? "§9Blue team wins!" : value;
         }
-        String value = Message.SCOREBOARD_END_WINNER_DRAW.getMiniMessage();
-        return (value == null || value.isEmpty()) ? fallbackDraw : value;
+        String value = msgLang(Message.SCOREBOARD_END_WINNER_DRAW);
+        return (value == null || value.isEmpty()) ? "§eDraw" : value;
     }
 
     private static String buildTeamScoreLine(boolean red, boolean endPhase) {
@@ -603,24 +648,24 @@ public class Scoreboard {
         String template;
         if (endPhase) {
             if (timeMode) {
-                template = red ? Message.SCOREBOARD_END_RED_SCORE_TIME.getMiniMessage()
-                        : Message.SCOREBOARD_END_BLUE_SCORE_TIME.getMiniMessage();
+                template = red ? msgLang(Message.SCOREBOARD_END_RED_SCORE_TIME)
+                        : msgLang(Message.SCOREBOARD_END_BLUE_SCORE_TIME);
             } else {
-                template = red ? Message.SCOREBOARD_END_RED_SCORE.getMiniMessage()
-                        : Message.SCOREBOARD_END_BLUE_SCORE.getMiniMessage();
+                template = red ? msgLang(Message.SCOREBOARD_END_RED_SCORE)
+                        : msgLang(Message.SCOREBOARD_END_BLUE_SCORE);
             }
         } else {
             if (timeMode) {
-                template = red ? Message.SCOREBOARD_RED_SCORE_TIME.getMiniMessage()
-                        : Message.SCOREBOARD_BLUE_SCORE_TIME.getMiniMessage();
+                template = red ? msgLang(Message.SCOREBOARD_RED_SCORE_TIME)
+                        : msgLang(Message.SCOREBOARD_BLUE_SCORE_TIME);
             } else {
-                template = red ? Message.SCOREBOARD_RED_SCORE.getMiniMessage()
-                        : Message.SCOREBOARD_BLUE_SCORE.getMiniMessage();
+                template = red ? msgLang(Message.SCOREBOARD_RED_SCORE)
+                        : msgLang(Message.SCOREBOARD_BLUE_SCORE);
             }
         }
 
         if (template == null || template.isEmpty()) {
-            template = red ? Message.SCOREBOARD_RED_SCORE.getMiniMessage() : Message.SCOREBOARD_BLUE_SCORE.getMiniMessage();
+            template = red ? msgLang(Message.SCOREBOARD_RED_SCORE) : msgLang(Message.SCOREBOARD_BLUE_SCORE);
         }
 
         String score = red ? String.valueOf(redTeamScore) : String.valueOf(blueTeamScore);
@@ -637,6 +682,18 @@ public class Scoreboard {
         return MiniMessageUtil.toLegacyString(mini == null ? "" : mini);
     }
 
+    /**
+     * Resolves a message to legacy text for the current building language context.
+     * Used in dual-language scoreboard generation.
+     */
+    private static String msgLang(Message message) {
+        try {
+            return LanguageManager.getStringForLanguage(message, buildingChinese);
+        } catch (Exception ex) {
+            return mm(message.getMiniMessage());
+        }
+    }
+
     private static String applyPlaceholders(String input, String... replacements) {
         if (input == null || input.isEmpty()) {
             return "";
@@ -648,6 +705,48 @@ public class Scoreboard {
             result = result.replace(key, value);
         }
         return result;
+    }
+
+    /**
+     * Synchronizes the Bukkit scoreboard teams with the plugin's team player lists.
+     */
+    public static void syncPlayerTeams() {
+        if (scoreboard == null) return;
+        org.bukkit.scoreboard.Team red = scoreboard.getTeam("red");
+        org.bukkit.scoreboard.Team blue = scoreboard.getTeam("blue");
+        if (red != null) {
+            for (String entry : red.getEntries()) {
+                if (!top.lqsnow.blockracing.managers.Team.redTeamPlayers.contains(entry)) {
+                    red.removeEntry(entry);
+                }
+            }
+            for (String name : top.lqsnow.blockracing.managers.Team.redTeamPlayers) {
+                if (!red.hasEntry(name)) {
+                    red.addEntry(name);
+                }
+            }
+        }
+        if (blue != null) {
+            for (String entry : blue.getEntries()) {
+                if (!top.lqsnow.blockracing.managers.Team.blueTeamPlayers.contains(entry)) {
+                    blue.removeEntry(entry);
+                }
+            }
+            for (String name : top.lqsnow.blockracing.managers.Team.blueTeamPlayers) {
+                if (!blue.hasEntry(name)) {
+                    blue.addEntry(name);
+                }
+            }
+        }
+    }
+
+    /**
+     * Refreshes the scoreboard display for a specific player.
+     * Re-assigns the correct language scoreboard and updates content.
+     */
+    public static void refreshPlayer(Player player) {
+        showScoreboard(player);
+        updateScoreboard();
     }
 
 }

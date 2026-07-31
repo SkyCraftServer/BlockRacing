@@ -57,6 +57,24 @@ public class Block {
         }
     }
 
+    public static boolean refreshAvailableBlocksAndClampAmount() {
+        addUpBlocks();
+        int clampedAmount = Math.min(Math.max(10, Setting.getBlockAmount()), maxBlockAmount);
+        if (clampedAmount == Setting.getBlockAmount()) {
+            return false;
+        }
+        Setting.setBlockAmount(clampedAmount);
+        return true;
+    }
+
+    /**
+     * Clamps a configured block amount to the valid range [10, available],
+     * or [available] when available < 10.
+     */
+    public static int clampBlockAmount(int configured, int available) {
+        return Math.min(Math.max(10, configured), available);
+    }
+
     public static void setupBlocks() {
         addUpBlocks();
         redTeamRemainingBlocks = new ArrayList<>();

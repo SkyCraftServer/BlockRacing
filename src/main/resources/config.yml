@@ -1,18 +1,18 @@
 # BlockRacing 游戏设置
 # 如果服务器已启动，请前往游戏中的设置界面进行设置，不要在这里调整
 
-# Optional block pools in addition to the required easy pool
+# 除去easy-block以外的四种额外方块库设置
 medium-block: false
 hard-block: false
 dyed-block: false
 end-block: false
 
-# Total number of target blocks in one game
+# 一局游戏需要收集的方块总数
 block-amount: 50
 
 # 游戏模式：
-# normal  - 普通模式：两个队伍需要收集的方块及顺序完全随机，收集方块会将一组该方块给到对方的队伍箱子里
-# racing  - 竞速模式：两个队伍需要收集的方块及顺序将完全相同，且收集方块将不会给予一组方块到对方队伍箱子里
+# normal  - 普通模式：两个队伍需要收集的方块及顺序完全随机
+# racing  - 竞速模式：两个队伍需要收集的方块及顺序将完全相同
 # contest - 争夺模式：双方共享同一方块库，先完成者得分且立即刷新，下一个目标继续争夺
 # time    - 计时模式：以限定时长统计队伍完成的任务数量，倒计时结束后积分高者获胜，若平局则进入加时赛
 game-mode: normal
@@ -26,6 +26,17 @@ time-mode:
 # 开启极速模式后，开局时将会给予玩家部分道具和效果，以加快游戏进度
 # 具体发放物品和效果可在 speed-mode-items / speed-mode-effects 中自定义
 speed-mode: false
+
+# 队伍箱子馈赠模式：
+# 开启后，任意队伍收集到任务方块时，会将一定数量的该方块放进对方的队伍箱子
+# 关闭后不会往对方队伍箱子塞方块
+# 该选项独立于游戏模式，可与普通/竞速/争夺/计时模式及极速模式叠加
+team-chest-gift: false
+
+# 队伍箱子馈赠数量：
+# 每次放入对方队伍箱子的该方块数量，范围 1-64
+# 也可在准备菜单中右键"队伍箱子馈赠"按钮输入修改
+team-chest-gift-amount: 64
 
 # 同点出生模式：
 # 开启后红队和蓝队将共享同一个开局出生点，增强对抗性

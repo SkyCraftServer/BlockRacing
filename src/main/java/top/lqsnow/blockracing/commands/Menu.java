@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.Gui;
 import top.lqsnow.blockracing.managers.Message;
-import top.lqsnow.blockracing.managers.Scoreboard;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.menus.GameMenu;
 

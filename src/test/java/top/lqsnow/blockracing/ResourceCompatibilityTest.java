@@ -47,8 +47,8 @@ class ResourceCompatibilityTest {
 
     @Test
     void everyConfiguredBlockHasBundledTranslations() throws Exception {
-        JSONObject english = readJson("en_us.json");
-        JSONObject chinese = readJson("zh_cn.json");
+        JSONObject english = readJson("minecraftlang/en_us.json");
+        JSONObject chinese = readJson("minecraftlang/zh_cn.json");
         for (String resource : BLOCK_LISTS) {
             for (String name : readLines(resource)) {
                 Material material = Material.getMaterial(name);

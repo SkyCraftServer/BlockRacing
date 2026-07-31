@@ -34,7 +34,7 @@ public final class GameProgressStore {
     }
 
     public static void startAutosave() {
-        Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
+        Main.getFoliaLib().getScheduler().runTimer(() -> {
             if (Game.getCurrentGameState() == Game.GameState.INGAME) {
                 saveNow();
             }

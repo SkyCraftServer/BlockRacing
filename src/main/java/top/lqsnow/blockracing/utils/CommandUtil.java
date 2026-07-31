@@ -22,7 +22,7 @@ public class CommandUtil {
 
     public static void sendAll(Message message, BiFunction<Player, String, String> formatter) {
         Bukkit.getOnlinePlayers().forEach(player ->
-                player.sendMessage(t(formatter.apply(player, message.getString(player)))));
+                player.sendMessage(t(formatter.apply(player, message.getString()))));
     }
 
     public static void sendRed(String message) {
@@ -35,7 +35,7 @@ public class CommandUtil {
     public static void sendRed(Message message, BiFunction<Player, String, String> formatter) {
         redTeamPlayers.forEach(playerName -> {
             Player player = Bukkit.getPlayerExact(playerName);
-            if (player != null) player.sendMessage(t(formatter.apply(player, message.getString(player))));
+            if (player != null) player.sendMessage(t(formatter.apply(player, message.getString())));
         });
     }
 
@@ -49,7 +49,7 @@ public class CommandUtil {
     public static void sendBlue(Message message, BiFunction<Player, String, String> formatter) {
         blueTeamPlayers.forEach(playerName -> {
             Player player = Bukkit.getPlayerExact(playerName);
-            if (player != null) player.sendMessage(t(formatter.apply(player, message.getString(player))));
+            if (player != null) player.sendMessage(t(formatter.apply(player, message.getString())));
         });
     }
 }

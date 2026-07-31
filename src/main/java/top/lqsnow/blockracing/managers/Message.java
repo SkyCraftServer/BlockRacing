@@ -24,6 +24,7 @@ public enum Message {
     SCOREBOARD_MODE_TIME("scoreboard.game-mode.time"),
     SCOREBOARD_MODE_NETHER("scoreboard.game-mode.nether"),
     SCOREBOARD_MODE_SPEED("scoreboard.game-mode.speed"),
+    SCOREBOARD_MODE_GIFT("scoreboard.game-mode.gift"),
     SCOREBOARD_BLOCKS_EASY("scoreboard.blocks.easy"),
     SCOREBOARD_BLOCKS_MEDIUM("scoreboard.blocks.medium"),
     SCOREBOARD_BLOCKS_HARD("scoreboard.blocks.hard"),
@@ -123,6 +124,8 @@ public enum Message {
     MENU_TIME_MODE("menu.pregame-menu.time-mode"),
     MENU_SPEED_MODE_ENABLED("menu.pregame-menu.speed-mode-enabled"),
     MENU_SPEED_MODE_DISABLED("menu.pregame-menu.speed-mode-disabled"),
+    MENU_TEAM_CHEST_GIFT_ENABLED("menu.pregame-menu.team-chest-gift-enabled"),
+    MENU_TEAM_CHEST_GIFT_DISABLED("menu.pregame-menu.team-chest-gift-disabled"),
     MENU_NETHER_MODE_ENABLED("menu.pregame-menu.nether-mode-enabled"),
     MENU_NETHER_MODE_DISABLED("menu.pregame-menu.nether-mode-disabled"),
     MENU_SHARED_TEAM_SPAWN_ENABLED("menu.pregame-menu.shared-team-spawn-enabled"),
@@ -134,9 +137,12 @@ public enum Message {
     MENU_CONTEST_MODE_LORE("menu.pregame-menu.contest-mode-lore"),
     MENU_TIME_MODE_LORE("menu.pregame-menu.time-mode-lore"),
     MENU_SPEED_MODE_LORE("menu.pregame-menu.speed-mode-lore"),
+    MENU_TEAM_CHEST_GIFT_LORE("menu.pregame-menu.team-chest-gift-lore"),
     MENU_NETHER_MODE_LORE("menu.pregame-menu.nether-mode-lore"),
     MENU_SHARED_TEAM_SPAWN_LORE("menu.pregame-menu.shared-team-spawn-lore"),
     MENU_END_PORTAL_BROADCAST_LORE("menu.pregame-menu.end-portal-broadcast-lore"),
+    MENU_PREGAME_INFO("menu.pregame-menu.info"),
+    MENU_PREGAME_INFO_LORE("menu.pregame-menu.info-lore"),
     MENU_LOCKED_BY_NETHER("menu.pregame-menu.locked-by-nether"),
     MENU_SELECT_TEAM("menu.pregame-menu.select-team"),
     MENU_BLOCK_SETTING("menu.pregame-menu.block-setting"),
@@ -167,7 +173,30 @@ public enum Message {
     MENU_WAYPOINT_EMPTY_LORE("menu.way-point.empty.lore"),
     MENU_WAYPOINT_FILLED("menu.way-point.filled.waypoint"),
     MENU_WAYPOINT_FILLED_LORE("menu.way-point.filled.lore"),
+    MENU_RANDOM_TEAM("menu.pregame-menu.random-team"),
+    MENU_RANDOM_TEAM_LORE("menu.pregame-menu.random-team-lore"),
+    MENU_TEAMMATE_TELEPORT("menu.game-menu.teammate-teleport"),
+    MENU_TEAMMATE_TELEPORT_LORE("menu.game-menu.teammate-teleport-lore"),
+    MENU_CURRENT_BLOCKS("menu.game-menu.current-blocks"),
+    MENU_CURRENT_BLOCKS_LORE("menu.game-menu.current-blocks-lore"),
+    MENU_SUPPLY("menu.game-menu.supply"),
+    MENU_SUPPLY_LORE("menu.game-menu.supply-lore"),
+    MENU_GAME_INFO("menu.game-menu.info"),
+    MENU_GAME_INFO_LORE("menu.game-menu.info-lore"),
+    MENU_TEAMMATE_TELEPORT_TITLE("menu.teammate-teleport.title"),
+    MENU_TEAMMATE_TELEPORT_EMPTY("menu.teammate-teleport.empty"),
+    MENU_TEAMMATE_TELEPORT_EMPTY_LORE("menu.teammate-teleport.empty-lore"),
+    MENU_TEAMMATE_TELEPORT_PLAYER_LORE("menu.teammate-teleport.player-lore"),
     MENU_ALL_RETURN_BACK("menu.all.return-back"),
+
+    // chat
+    CHAT_GLOBAL_FORMAT("chat.global-format"),
+    CHAT_TEAM_HINT("chat.team-hint"),
+
+    // rule book
+    RULE_BOOK_TITLE("rule-book.title"),
+    RULE_BOOK_AUTHOR("rule-book.author"),
+    RULE_BOOK_PAGES("rule-book.pages"),
 
     // notice
     NOTICE_WELCOME("notice.welcome"),
@@ -193,6 +222,9 @@ public enum Message {
     NOTICE_SET_COMEBACK_THRESHOLD("notice.set-comeback-threshold"),
     NOTICE_SET_COMEBACK_THRESHOLD_SUCCESS("notice.set-comeback-threshold-success"),
     NOTICE_SET_COMEBACK_THRESHOLD_ERROR("notice.set-comeback-threshold-error"),
+    NOTICE_SET_TEAM_CHEST_GIFT_AMOUNT("notice.set-team-chest-gift-amount"),
+    NOTICE_SET_TEAM_CHEST_GIFT_AMOUNT_SUCCESS("notice.set-team-chest-gift-amount-success"),
+    NOTICE_SET_TEAM_CHEST_GIFT_AMOUNT_ERROR("notice.set-team-chest-gift-amount-error"),
     NOTICE_SET_TEAM_CHEST_NAME("notice.set-team-chest-name"),
     NOTICE_SET_WAYPOINT_NAME("notice.set-waypoint-name"),
     NOTICE_SET_CUSTOM_NAME_QUIT("notice.set-custom-name-quit"),
@@ -262,10 +294,21 @@ public enum Message {
     NOTICE_VERSION_MISMATCH_TITLE("notice.version-mismatch-title"),
     NOTICE_VERSION_MISMATCH_SUBTITLE("notice.version-mismatch-subtitle"),
     NOTICE_TEAM_SHUFFLE("notice.team-shuffle"),
+    NOTICE_TEAM_SHUFFLE_CONFIRM("notice.team-shuffle-confirm"),
+    NOTICE_TEAM_SHUFFLE_CONFIRM_BUTTON("notice.team-shuffle-confirm-button"),
+    NOTICE_TEAM_SHUFFLE_CONFIRM_HOVER("notice.team-shuffle-confirm-hover"),
+    NOTICE_TEAM_SHUFFLE_CONFIRM_EXPIRED("notice.team-shuffle-confirm-expired"),
     NOTICE_OVERTIME_START("notice.overtime-start"),
     NOTICE_COMEBACK_APPLY("notice.comeback-apply"),
     NOTICE_COMEBACK_CLEAR("notice.comeback-clear"),
     NOTICE_END_PORTAL_OPEN("notice.end-portal-open"),
+    NOTICE_BLOCK_OVERVIEW_TITLE("notice.block-overview.title"),
+    NOTICE_BLOCK_OVERVIEW_RED("notice.block-overview.red"),
+    NOTICE_BLOCK_OVERVIEW_BLUE("notice.block-overview.blue"),
+    NOTICE_BLOCK_OVERVIEW_ENTRY("notice.block-overview.entry"),
+    NOTICE_BLOCK_OVERVIEW_DIVIDER("notice.block-overview.divider"),
+    NOTICE_SUPPLY_PURCHASED("notice.supply-purchased"),
+    NOTICE_SUPPLY_SPEED_ONLY("notice.supply-speed-only"),
 
     // other
     MESSAGE_PREFIX("prefix"),
@@ -362,6 +405,21 @@ public enum Message {
         return cacheString = MiniMessageUtil.toLegacyString(raw);
     }
 
+    /** Per-player language aware string resolution. */
+    public String getString(org.bukkit.entity.Player player) {
+        if (player == null) return getString();
+        try {
+            return LanguageManager.getString(this, player);
+        } catch (Exception ex) {
+            return getString();
+        }
+    }
+
+    /** Returns the config path for this message key. */
+    public String getPath() {
+        return path;
+    }
+
     /**
      * Returns the raw MiniMessage string for this key with built-in prefix substitution, without
      * converting to legacy. Useful for Adventure or when further placeholder replacement is needed.
@@ -384,6 +442,16 @@ public enum Message {
                         .collect(Collectors.toList())
         );
         return cacheStringList;
+    }
+
+    /** Per-player language aware string list resolution. */
+    public List<String> getStringList(org.bukkit.entity.Player player) {
+        if (player == null) return getStringList();
+        try {
+            return LanguageManager.getStringList(this, player);
+        } catch (Exception ex) {
+            return getStringList();
+        }
     }
 
     private String getRawValue() {

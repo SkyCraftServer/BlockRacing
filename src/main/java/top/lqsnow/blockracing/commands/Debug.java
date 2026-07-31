@@ -19,6 +19,7 @@ import java.util.List;
 import static top.lqsnow.blockracing.managers.Block.*;
 import static top.lqsnow.blockracing.managers.Game.*;
 import static top.lqsnow.blockracing.scoreboard.Scoreboard.updateScoreboard;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 import static top.lqsnow.blockracing.managers.Team.*;
 import static top.lqsnow.blockracing.utils.ColorUtil.t;
 

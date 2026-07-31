@@ -14,10 +14,8 @@ end-block: false
 block-amount: 50
 
 # Game mode:
-# normal - Teams receive different random target lists. Collecting a block gives
-#          a stack of that block to the opposing team's chests.
-# racing - Teams receive the same targets in the same order. No blocks are
-#          awarded to the opposing team.
+# normal - Teams receive different random target lists.
+# racing - Teams receive the same targets in the same order.
 game-mode: normal
 
 # Speed mode:
@@ -26,6 +24,15 @@ game-mode: normal
 # Items: Silk Touch iron pickaxe, cooked beef, damaged elytra and Mending book
 # Effect: Haste V
 speed-mode: false
+
+# Team chest gift:
+# When enabled, a configurable number of a collected target block is placed into
+# the opponent's team chest. Independent of game mode; can be combined with any mode.
+team-chest-gift: false
+
+# Number of blocks placed into the opponent's chest each time (range 1-64).
+# Can also be changed by right-clicking the "Team Chest Gift" button in the menu.
+team-chest-gift-amount: 64
 
 # Number of shared chests per team (default: 8, maximum: 53)
 max-team-chest-num: 8

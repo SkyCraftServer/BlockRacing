@@ -8,6 +8,7 @@
 # If you need to translate this file, you can directly copy the file content to ChatGPT and let him help translate it.
 
 # 当前语言: 简体中文
+lang: zh_cn
 prefix: "[<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>方块竞速</b></gradient>]"
 
 # 记分板
@@ -22,6 +23,7 @@ scoreboard:
     time: "&e计时模式"
     nether: "<gradient:#fa0000:#ff3434>下界模式</gradient>"
     speed: "<gradient:#40dbc8:#5deae1>极速模式</gradient>"
+    gift: "<gradient:#ff8c00:#ffd700>箱子馈赠</gradient>"
   blocks:
     easy: "&a简单"
     medium: "&e中等"
@@ -139,6 +141,8 @@ menu:
     time-mode: "&e计时模式"
     speed-mode-enabled: "&a当前已开启：<gradient:#40dbc8:#5deae1>极速模式</gradient>"
     speed-mode-disabled: "&e当前未开启：<gradient:#40dbc8:#5deae1>极速模式</gradient>"
+    team-chest-gift-enabled: "&a当前已开启：<gradient:#ff8c00:#ffd700>队伍箱子馈赠</gradient>"
+    team-chest-gift-disabled: "&e当前未开启：<gradient:#ff8c00:#ffd700>队伍箱子馈赠</gradient>"
     nether-mode-enabled: "&c当前已开启：<gradient:#fa0000:#ff3434>下界模式</gradient>"
     nether-mode-disabled: "&e当前未开启：<gradient:#fa0000:#ff3434>下界模式</gradient>"
     shared-team-spawn-enabled: "&a当前已开启：同点出生模式"
@@ -147,21 +151,19 @@ menu:
     end-portal-broadcast-disabled: "&e当前未开启：末地门坐标广播"
     normal-mode-lore:
       - "&e两个队伍需要收集的方块及顺序完全&l随机&r&e，"
-      - "&e收集方块会将一组该方块给到对方的队伍箱子里！"
+      - "&e率先完成本队全部目标方块的队伍获胜"
       - "&b物品：石镐、石斧、石铲"
     racing-mode-lore:
       - "&e两个队伍需要收集的方块及顺序将完全&l相同&r&e，"
-      - "&e且收集方块将&l不会&r&e给予一组方块到对方队伍！"
+      - "&e同一任务下比拼速度，率先完成的队伍获胜"
       - "&b物品：石镐、石斧、石铲"
     contest-mode-lore:
-      - "&e两个队伍需要收集的方块及顺序将完全&l相同&r&e，"
-      - "&e且收集方块将&l不会&r&e给予一组方块到对方队伍！"
-      - "&e只有率先收集的一方获得积分，后完成的一方不会加分，"
+      - "&e双方共享同一方块库，&l率先收集的一方得分&r&e，"
+      - "&e后完成的一方不会加分，"
       - "&e任意一方完成一个方块后将立即刷新方块，"
       - "&e先到达目标数量即获胜"
     time-mode-lore:
       - "&e两个队伍需要收集的方块及顺序将完全&l随机&r&e，"
-      - "&e且收集方块将&l不会&r&e给予一组方块到对方队伍！"
       - "&e在限定时间内完成更多任务即可获胜，"
       - "&e时间结束后若积分相同，将自动进入加时赛！"
     speed-mode-lore:
@@ -170,6 +172,13 @@ menu:
       - "&b物品：精准采集铁镐、金胡萝卜、损坏的鞘翅、经验修补附魔书"
       - "&b效果：急迫5、速度2、抗性2"
       - "<gradient:#5fdb40:#e7b918>极速模式并非主要的游戏模式，仅是辅助功能</gradient>"
+    team-chest-gift-lore:
+      - "&a开启<gradient:#ff8c00:#ffd700>队伍箱子馈赠</gradient>&a后，"
+      - "&e任意队伍收集到任务方块时，"
+      - "&e会将&b%amount%个&e该方块放进对方的队伍箱子"
+      - "&e关闭后不会往对方队伍箱子塞方块"
+      - "&b左键：开关 &8| &e右键：设置给予的方块数量"
+      - "<gradient:#5fdb40:#e7b918>该选项独立于游戏模式，可与任意模式叠加</gradient>"
     nether-mode-lore:
       - "&a开启<gradient:#fa0000:#ff3434>下界模式</gradient>&a后，"
       - "&e将仅使用下界方块库 ，不加载其他方块库"
@@ -182,11 +191,21 @@ menu:
     end-portal-broadcast-lore:
       - "&e开启后，任意队伍开启末地门时"
       - "&e将向全服广播末地门坐标"
+    info: "&b游戏设置信息"
+    info-lore:
+      - "&7同点出生模式：%shared_spawn%"
+      - "&7队伍箱子馈赠：%team_chest_gift%"
+      - "&7末地门坐标广播：%end_portal_broadcast%"
+      - "&7落后补偿阈值：%comeback_threshold% 分"
     locked-by-nether: " &7(下界模式锁定)"
     select-team: "&a选队"
     block-setting: "&a方块设置"
     select-mode: "&a模式选择"
     ready-and-start: "&a准备和开始游戏"
+    random-team: "&d随机组队"
+    random-team-lore:
+      - "&b随机平衡所有在线玩家到两个队伍"
+      - "&e需要在聊天中确认"
   game-menu:
     title: "&0主菜单"
     team-chest: "&a队伍箱子"
@@ -209,6 +228,36 @@ menu:
       - "&b花费%cost%积分在&l%dimension%&r&b随机传送，首次免费"
     random-tp-dimension-overworld: "主世界"
     random-tp-dimension-nether: "下界"
+    teammate-teleport: "&a传送到队友"
+    teammate-teleport-lore:
+      - "&b选择一个在线队友进行传送"
+      - "&7也可以使用 /tp <玩家>"
+    current-blocks: "&6当前目标方块"
+    current-blocks-lore:
+      - "&b在聊天中显示双方队伍"
+      - "&b当前所有可见目标方块"
+    supply: "&6购买队伍补给 &8- &e5积分"
+    supply-lore:
+      - "&7给予所有在线队友："
+      - "&616个金胡萝卜 &8+ &f32个烟花火箭"
+      - "&7背包满时物品会掉落在脚下"
+    info: "&b游戏设置信息"
+    info-lore:
+      - "&7游戏模式：%game_mode%"
+      - "&7目标方块数：%block_amount%"
+      - "&7最大轮换次数：%max_roll_count%"
+      - "&7下界模式：%nether_mode%"
+      - "&7极速模式：%speed_mode%"
+      - "&7队伍箱子馈赠：%team_chest_gift%"
+      - "&7末地门坐标广播：%end_portal_broadcast%"
+      - "&7落后补偿阈值：%comeback_threshold% 分"
+  teammate-teleport:
+    title: "&0传送到队友"
+    player-lore:
+      - "&a点击传送到该队友"
+    empty: "&c没有在线队友"
+    empty-lore:
+      - "&7在线队友会显示在这里"
   team-chest-select-menu:
     title: "&0队伍箱子选择"
     chest: "&b队伍箱子"
@@ -234,9 +283,42 @@ menu:
   all:
     return-back: "&c返回"
 
+# 聊天
+chat:
+  global-format: "&8[&e&l全体&8] %team% &f%player%&7: &f%message%"
+  team-hint: "&8[&b提示&8] &7您正在队伍聊天中。使用 &f/shout 消息&7 或以 &f@ / ! &7开头可发送全体消息。"
+
+# 规则书
+rule-book:
+  title: "&b方块竞速规则"
+  author: "&7BlockRacing"
+  pages:
+    - "&b&l原版改动\n\n&0• 游戏进行中聊天为队伍聊天\n• 使用 /shout 或以 @ / ! 开头可全服喊话\n• /tp 仅能传送队友\n• 使用 /teleport 或 /minecraft:tp 执行原版传送"
+    - "&b&l管理员设置\n\n&0队伍箱子数、记录点数和每局轮换次数可在 config.yml 中修改。\n\n配置项：\nmax-team-chest-num\nmax-team-waypoint-num\nmax-roll-count"
+    - "&b&l核心规则\n\n&0两支队伍收集记分板上显示的目标方块。\n\n率先完成所有目标的队伍获胜。"
+    - "&b&l模式与积分\n\n&0普通：两队目标完全随机\n\n竞速：两队共享相同目标\n\n极速：每个目标3分\n\n给对方的队伍箱子送方块由独立开关「队伍箱子馈赠」控制"
+    - "&b&l菜单功能\n\n&0按 Shift+F 打开菜单\n\n队伍箱子：共享物品\n记录点：保存/传送\n轮换：全队投票\n定位：消耗积分\n随机传送：首次免费\n极速补给：5积分"
+    - "&b&l命令 1/2\n\n&0/language 切换语言\n/randomteam 平衡分队\n/block <队伍> <编号> 查看完整目标名\n/tp <玩家> 队友传送\n/shout <消息> 全服聊天"
+    - "&b&l命令 2/2\n\n&0/menu 打开菜单\n/waypoint remove <编号>\n/locatebiome <群系>\n/locatestructure <结构>\n/restartgame 投票重置"
+
 # 提示
 notice:
   welcome: "%prefix% &b&l欢迎来到方块竞速！按Shift+F打开菜单进行选队和准备！如果没反应，请检查潜行和切换副手的快捷键！如果记分板显示的方块名称不完整，可以使用/block <队伍> <编号> 命令来查询！"
+  welcome-lines:
+    - "&8&m--------------------------------"
+    - "&b&l方块竞速 &8| &f欢迎你，%player%！"
+    - "&7按 &bShift+F &7选择队伍并准备。"
+    - "&7如果没有反应，请检查潜行和切换副手快捷键。"
+    - "&7目标显示不全？可从主菜单查看完整目标。"
+    - "&8&m--------------------------------"
+  recovered-game:
+    - "&8&m--------------------------------"
+    - "&a&l已恢复上次未完成的游戏"
+    - "&7积分、目标、队伍箱子、记录点和队伍已恢复。"
+    - "&7如果上一局已结束，可点击下方投票重新开始。"
+    - "&8&m--------------------------------"
+  recovered-reset-button: "&c&l[上局已结束 — 投票重新开始]"
+  recovered-reset-hover: "&7点击加入 /restartgame 投票"
   join-red: "&c%player% 加入了红队！"
   join-blue: "&9%player% 加入了蓝队！"
   already-in-red: "&c您已经加入红队了！"
@@ -259,6 +341,9 @@ notice:
   set-comeback-threshold: "&e请直接发送落后补偿触发分差（输入0关闭），发送quit取消输入"
   set-comeback-threshold-success: "&a落后补偿阈值已设置为：%points% 分"
   set-comeback-threshold-error: "&c请输入正确数字！输入0可关闭；发送quit退出输入模式"
+  set-team-chest-gift-amount: "&e请直接发送队伍箱子馈赠的方块数量（1-64），发送quit取消输入"
+  set-team-chest-gift-amount-success: "&a队伍箱子馈赠数量更改为：%amount% 个"
+  set-team-chest-gift-amount-error: "&c请输入正确数字！范围1-64；发送quit退出输入模式"
   set-team-chest-name: "&e请输入队伍箱子%index%的名称，发送reset恢复默认，发送quit取消"
   set-waypoint-name: "&e请输入记录点%index%的名称，发送reset恢复默认，发送quit取消"
   set-custom-name-quit: "&a已取消重命名"
@@ -296,6 +381,9 @@ notice:
   spectator: "&c游戏已开始，由于您未选择队伍，您现在为旁观者！"
   spectator-join: "&c游戏已开始，您现在为旁观者！"
   error-command: "&c指令输入错误！"
+  locate-already-bought: "&c您已经购买过一次定位命令了！请先使用后再购买！"
+  buy-locate: "&a%player% 购买了定位命令权限！"
+  locate-no-permission: "&c您没有权限使用该命令！请在菜单中购买！"
   locate-command-hint: "&e使用 &a/locatebiome <生物群系> &e或 &a/locatestructure <结构> &e进行定位，每次成功定位消耗 &b%score% &e积分。"
   locate-not-enough-score: "&c定位失败：队伍积分不足（需要%score%分）。"
   locate-biome-usage: "&c用法错误：/locatebiome <生物群系>"
@@ -321,10 +409,22 @@ notice:
   ranking-red: "&c%player%: &b%amount%"
   ranking-blue: "&9%player%: &b%amount%"
   ranking-offline: "&7%player%: &b%amount%"
+  ranking-divider: "&8&m--------------------------------"
   version-mismatch: "&c警告！当前您的config.yml和语言文件的版本，与插件的版本不对应！您可能更新了插件，但没有更新配置文件！这可能会导致一些意料之外的错误！您可以将\\plugins\\BlockRacing文件夹中的配置文件删除，然后重启服务器，亦或是到github上下载最新版本的配置文件替换！"
+  version-mismatch-lines:
+    - "&8&m--------------------------------"
+    - "&c&l配置文件版本不匹配"
+    - "&7插件已更新，但 config.yml 或语言文件仍为旧版。"
+    - "&7请备份自定义值后更新文件以避免错误。"
+    - "&8&m--------------------------------"
   version-mismatch-title: "&c警告！版本不对应！"
   version-mismatch-subtitle: "&c请查看聊天框的具体信息！"
   team-shuffle: "&a随机组队已完成！"
+  team-shuffle-triggered: "&d%player% &a触发了随机组队，所有在线玩家已被平均分队！"
+  team-shuffle-confirm: "&e是否将所有在线玩家随机平衡分队？"
+  team-shuffle-confirm-button: "&a&l[点击确认随机组队]"
+  team-shuffle-confirm-hover: "&7这将清除当前队伍并创建新的平衡队伍"
+  team-shuffle-confirm-expired: "&c随机组队确认已过期，请重新尝试！"
   overtime-start: "&c比赛时间结束，进入加时赛！"
   comeback-apply: "%prefix% &e落后补偿：%team%落后≥%points%个方块，获得速度III与抗性III效果。"
   comeback-clear: "%prefix% &e落后补偿：方块差回到%points%以内，补偿效果已移除。"
@@ -332,6 +432,14 @@ notice:
   reload-complete: "%prefix% 重载完成。"
   reload-complete-error: "%prefix% 重载完成，但存在错误。请查看控制台以获取详细信息。"
   nether-portal-blocked: "&c下界模式下禁止通过下界传送门返回主世界！"
+  supply-purchased: "&8[&6补给&8] &f%player% &7为%team%&7购买了队伍补给。积分 &c-5&7。"
+  supply-speed-only: "&c队伍补给仅在极速模式下可用！"
+  block-overview:
+    title: "&b&l当前目标方块"
+    red: "&c&l红队"
+    blue: "&9&l蓝队"
+    entry: "&7%index%. &f%block%"
+    divider: "&8&m--------------------------------"
 
 # 如果你不知道这是什么，不要动它
-lang-version: 3.6
+lang-version: 26.2.1

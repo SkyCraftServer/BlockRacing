@@ -17,14 +17,6 @@ jobs:
           distribution: temurin
           java-version: 25
           cache: 'maven'
-
-      - name: Clone Foundation and install
-        run: |
-          git clone https://github.com/kangarko/Foundation/
-          cd Foundation
-          git checkout v7
-          mvn install
-
       - name: Build with Maven
         run: mvn package --file pom.xml
       - name: Get build artifact ready

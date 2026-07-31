@@ -59,6 +59,7 @@ public class Main extends JavaPlugin {
         getPluginManager().registerEvents(new BasicListener(), this);
         getPluginManager().registerEvents(new AddonMonitorListener(), this);
         getPluginManager().registerEvents(new MotdListener(), this);
+        getPluginManager().registerEvents(new top.lqsnow.blockracing.toolkit.menu.MenuListener(), this);
 
         // Register commands (use helper to avoid NPE if server/another plugin owns the command)
         registerCommand("debug", new Debug());
@@ -91,10 +92,10 @@ public class Main extends JavaPlugin {
                 "HardBlocks.txt",
                 "DyedBlocks.txt",
                 "EndBlocks.txt",
-                "NetherBlocks.txt",
-                "minecraftlang/zh_cn.json",
-                "minecraftlang/en_us.json"
+                "NetherBlocks.txt"
         );
+        // Always overwrite managed language/translation resources (kept in sync with plugin version)
+        saveAlways("minecraftlang/zh_cn.json", "minecraftlang/en_us.json");
 
         // Re-check addon on the first server tick after startup (other plugins are fully enabled by then)
         foliaLib.getScheduler().runLater(() -> {
@@ -112,8 +113,8 @@ public class Main extends JavaPlugin {
         Setting.getSettings();
         Game.initChest();
         foliaLib.getScheduler().runNextTick(task -> {
-            Team.createTeam();
             Scoreboard.createScoreboard();
+            Team.createTeam();
             new Block();
             Block.checkBlock();
             Block.refreshAvailableBlocksAndClampAmount();
@@ -123,14 +124,12 @@ public class Main extends JavaPlugin {
                 Scoreboard.setInGameScoreboard();
             } else {
                 Scoreboard.setPreGameScoreboard();
+                Game.startPreGameLoop();
             }
             GameProgressStore.startAutosave();
             Bukkit.getOnlinePlayers().forEach(Scoreboard::showScoreboard);
             Motd.refresh();
             registerVoicechatIntegration();
-            if (!recoveredGame) {
-                Game.startPreGameLoop();
-            }
         });
 
         // Init world settings
@@ -164,6 +163,7 @@ public class Main extends JavaPlugin {
         } else {
             GameProgressStore.clear();
         }
+        LanguageManager.shutdown();
         Config.saveConfig();
     }
 
@@ -180,6 +180,20 @@ public class Main extends JavaPlugin {
             if (!out.exists()) {
                 saveResource(path, false);
             }
+        }
+    }
+
+    private void saveAlways(String... paths) {
+        if (!getDataFolder().exists()) {
+            getDataFolder().mkdirs();
+        }
+        for (String path : paths) {
+            java.io.File out = new java.io.File(getDataFolder(), path);
+            java.io.File parent = out.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            saveResource(path, true);
         }
     }
 

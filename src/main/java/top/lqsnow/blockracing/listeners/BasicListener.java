@@ -2,7 +2,7 @@ package top.lqsnow.blockracing.listeners;
 
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
+import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -18,6 +18,7 @@ import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import top.lqsnow.blockracing.Main;
@@ -42,7 +43,8 @@ public class BasicListener implements Listener {
     public enum EditType {
         BLOCK_AMOUNT,
         TIME_MODE_MINUTES,
-        COMEBACK_THRESHOLD
+        COMEBACK_THRESHOLD,
+        TEAM_CHEST_GIFT_AMOUNT
     }
 
     public static Map<String, EditType> editAmountPlayer = new ConcurrentHashMap<>();
@@ -56,8 +58,8 @@ public class BasicListener implements Listener {
     @EventHandler
     private void onWorldLoad(WorldLoadEvent event) {
         // Keep world gamerules consistent for late-loaded dimensions on Folia.
-        event.getWorld().setGameRule(GameRule.KEEP_INVENTORY, true);
-        event.getWorld().setGameRule(GameRule.LOCATOR_BAR, false);
+        event.getWorld().setGameRule(GameRules.KEEP_INVENTORY, true);
+        event.getWorld().setGameRule(GameRules.LOCATOR_BAR, false);
     }
 
     @EventHandler
@@ -105,6 +107,8 @@ public class BasicListener implements Listener {
             } catch (Exception ex) {
                 if (editType == EditType.COMEBACK_THRESHOLD) {
                     player.sendMessage(Message.NOTICE_SET_COMEBACK_THRESHOLD_ERROR.getString());
+                } else if (editType == EditType.TEAM_CHEST_GIFT_AMOUNT) {
+                    player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_GIFT_AMOUNT_ERROR.getString());
                 } else {
                     player.sendMessage(Message.NOTICE_SET_BLOCKS_ERROR.getString());
                 }
@@ -117,6 +121,8 @@ public class BasicListener implements Listener {
                     setTimeModeDurationMinutes(blockAmount, true);
                 } else if (editType == EditType.COMEBACK_THRESHOLD) {
                     setComebackThresholdPoints(blockAmount, true);
+                } else if (editType == EditType.TEAM_CHEST_GIFT_AMOUNT) {
+                    setTeamChestGiftAmount(blockAmount, true);
                 } else {
                     setBlockAmount(blockAmount, true);
                 }
@@ -124,12 +130,19 @@ public class BasicListener implements Listener {
             }
         }
 
-        // Change chat format
-        if (isPlayerInRedTeam(player)) {
-            event.setFormat(t(Message.TEAM_RED_CHAT.getString()));
-        } else if (isPlayerInBlueTeam(player)) {
-            event.setFormat(t(Message.TEAM_BLUE_CHAT.getString()));
+        // Change chat format (only during PREGAME; INGAME team chat is handled by AsyncChatEvent)
+        if (!Game.getCurrentGameState().equals(Game.GameState.INGAME)) {
+            if (isPlayerInRedTeam(player)) {
+                event.setFormat(t(Message.TEAM_RED_CHAT.getString()));
+            } else if (isPlayerInBlueTeam(player)) {
+                event.setFormat(t(Message.TEAM_BLUE_CHAT.getString()));
+            }
         }
+    }
+
+    @EventHandler
+    private void onAsyncChat(AsyncChatEvent event) {
+        TeamChat.handle(event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -458,6 +471,19 @@ public class BasicListener implements Listener {
         }
 
         Setting.setComebackBuffThresholdPoints(finalPoints);
+        updateMenu(new PreGameMenu());
+        updateScoreboard();
+    }
+
+    public static void setTeamChestGiftAmount(int amount, Boolean sendMessage) {
+        int finalAmount = Math.max(1, Math.min(64, amount));
+
+        if (sendMessage) {
+            sendAll(Message.NOTICE_SET_TEAM_CHEST_GIFT_AMOUNT_SUCCESS.getString()
+                    .replace("%amount%", String.valueOf(finalAmount)));
+        }
+
+        Setting.setTeamChestGiftAmount(finalAmount);
         updateMenu(new PreGameMenu());
         updateScoreboard();
     }

@@ -26,7 +26,7 @@ public class TranslationUtil {
             if (block.equalsIgnoreCase("NETHER_WART")) {
                 key = "block.minecraft.nether_wart";
             }
-            String language = Message.MESSAGE_LANG.getString();
+            String language = Message.getLanguageCode();
             if (!language.equals(loadedLanguage)) {
                 reload();
             }
@@ -55,8 +55,8 @@ public class TranslationUtil {
 
     public static synchronized void reload() {
         localizedTranslations.clear();
-        String language = Message.MESSAGE_LANG.getString();
-        File file = new File(Main.getInstance().getDataFolder(), language + ".json");
+        String language = Message.getLanguageCode();
+        File file = resolveLangFile();
         try (Reader reader = new FileReader(file)) {
             JSONObject jsonObject = (JSONObject) new JSONParser().parse(reader);
             Map<String, String> loaded = new HashMap<>();

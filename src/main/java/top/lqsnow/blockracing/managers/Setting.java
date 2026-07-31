@@ -46,6 +46,10 @@ public class Setting {
     @Getter
     private static boolean speedMode;
     @Getter
+    private static boolean teamChestGift;
+    @Getter
+    private static int teamChestGiftAmount;
+    @Getter
     private static boolean sharedTeamSpawn;
     @Getter
     private static boolean endPortalCoordinateBroadcast;
@@ -131,6 +135,8 @@ public class Setting {
         netherMode = Config.NETHER_MODE.getBoolean();
         blockAmount = Config.BLOCK_AMOUNT.getInt();
         speedMode = Config.SPEED_MODE.getBoolean();
+        teamChestGift = Config.TEAM_CHEST_GIFT.getBoolean();
+        teamChestGiftAmount = Math.max(1, Math.min(64, Config.TEAM_CHEST_GIFT_AMOUNT.getInt()));
         sharedTeamSpawn = Config.SHARED_TEAM_SPAWN.getBoolean();
         endPortalCoordinateBroadcast = Config.END_PORTAL_COORDINATE_BROADCAST.getBoolean();
         int configuredThreshold = Math.max(0, Config.COMEBACK_BUFF_THRESHOLD.getInt());
@@ -486,6 +492,18 @@ public class Setting {
         persistConfigNow();
     }
 
+    public static void setTeamChestGift(boolean teamChestGift) {
+        Setting.teamChestGift = teamChestGift;
+        Config.TEAM_CHEST_GIFT.setBoolean(teamChestGift);
+        persistConfigNow();
+    }
+
+    public static void setTeamChestGiftAmount(int amount) {
+        Setting.teamChestGiftAmount = Math.max(1, Math.min(64, amount));
+        Config.TEAM_CHEST_GIFT_AMOUNT.setInt(Setting.teamChestGiftAmount);
+        persistConfigNow();
+    }
+
     public static void setSharedTeamSpawn(boolean sharedTeamSpawn) {
         Setting.sharedTeamSpawn = sharedTeamSpawn;
         Config.SHARED_TEAM_SPAWN.setBoolean(sharedTeamSpawn);
@@ -571,6 +589,10 @@ public class Setting {
         setSpeedMode(!isSpeedMode());
     }
 
+    public static void toggleTeamChestGift() {
+        setTeamChestGift(!isTeamChestGift());
+    }
+
     public static void toggleSharedTeamSpawn() {
         setSharedTeamSpawn(!isSharedTeamSpawn());
     }
@@ -581,5 +603,9 @@ public class Setting {
 
     public static void toggleComebackBuff() {
         setComebackBuffEnabled(!isComebackBuffEnabled());
+    }
+
+    public static int getMaxRollCount() {
+        return Config.MAX_ROLL_COUNT.getInt();
     }
 }

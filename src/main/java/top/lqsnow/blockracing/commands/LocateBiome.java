@@ -38,11 +38,6 @@ public class LocateBiome implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (args.length < 1) {
-            player.sendMessage(Message.NOTICE_LOCATE_BIOME_USAGE.getString());
-            return true;
-        }
-
         if (!Game.canAffordLocate(player)) {
             return true;
         }

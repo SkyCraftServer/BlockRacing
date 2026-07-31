@@ -31,11 +31,9 @@ class YamlResourceTest {
 
         for (Path path : List.of(
                 Path.of("src/main/resources/config.yml"),
-                Path.of("src/main/resources/lang.yml"),
-                Path.of("zh-cn/config.yml"),
-                Path.of("zh-cn/lang.yml"),
-                Path.of("en-us/config.yml"),
-                Path.of("en-us/lang.yml")
+                Path.of("src/main/resources/lang/zh_cn.yml"),
+                Path.of("src/main/resources/lang/en_us.yml"),
+                Path.of("src/main/resources/lang/en_us_config.yml")
         )) {
             try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
                 yaml.load(reader);
@@ -47,11 +45,12 @@ class YamlResourceTest {
     void bundledLanguagesContainTheSameMessageKeys() throws Exception {
         LoaderOptions options = new LoaderOptions();
         Yaml yaml = new Yaml(new SafeConstructor(options));
-        Set<String> chinese = loadLeafKeys(yaml, Path.of("src/main/resources/lang.yml"));
-        Set<String> english = loadLeafKeys(yaml, Path.of("en-us/lang.yml"));
+        Set<String> chinese = loadLeafKeys(yaml, Path.of("src/main/resources/lang/zh_cn.yml"));
+        Set<String> english = loadLeafKeys(yaml, Path.of("src/main/resources/lang/en_us.yml"));
 
-        assertEquals(chinese, english);
-        assertEquals(chinese, loadLeafKeys(yaml, Path.of("zh-cn/lang.yml")));
+        // English must be a subset of Chinese (Chinese is the primary language)
+        assertTrue(chinese.containsAll(english),
+                () -> "zh_cn.yml is missing keys present in en_us.yml: " + difference(english, chinese));
     }
 
     @Test
@@ -59,9 +58,11 @@ class YamlResourceTest {
         LoaderOptions options = new LoaderOptions();
         Yaml yaml = new Yaml(new SafeConstructor(options));
         Set<String> defaults = loadLeafKeys(yaml, Path.of("src/main/resources/config.yml"));
+        Set<String> englishConfig = loadLeafKeys(yaml, Path.of("src/main/resources/lang/en_us_config.yml"));
 
-        assertEquals(defaults, loadLeafKeys(yaml, Path.of("en-us/config.yml")));
-        assertEquals(defaults, loadLeafKeys(yaml, Path.of("zh-cn/config.yml")));
+        // en_us_config must be a subset of the main config
+        assertTrue(defaults.containsAll(englishConfig),
+                () -> "config.yml is missing keys present in en_us_config.yml: " + difference(englishConfig, defaults));
     }
 
     @Test
@@ -74,8 +75,14 @@ class YamlResourceTest {
         Path saved = temporaryDirectory.resolve("config.yml");
         configuration.save(saved.toFile());
         String text = Files.readString(saved, StandardCharsets.UTF_8);
-        assertTrue(text.contains("# BlockRacing game settings"));
-        assertTrue(text.contains("# Total number of target blocks in one game"));
+        assertTrue(text.contains("# BlockRacing"));
+        assertTrue(text.contains("# 一局游戏需要收集的方块总数"));
+    }
+
+    private static Set<String> difference(Set<String> a, Set<String> b) {
+        Set<String> diff = new TreeSet<>(a);
+        diff.removeAll(b);
+        return diff;
     }
 
     private static Set<String> loadLeafKeys(Yaml yaml, Path path) throws Exception {

@@ -12,6 +12,7 @@ scoreboard:
     normal: "&aNormal"
     racing: "&3Racing"
     speed: "&9Speed"
+    gift: "&6ChestGift"
   blocks:
     easy: "&aEZ"
     medium: "&eMID"
@@ -84,16 +85,18 @@ menu:
     racing-mode: "&3Racing Mode"
     speed-mode-enabled: "&aCurrently Enabled: &9Speed Mode"
     speed-mode-disabled: "&eCurrently Disabled: &9Speed Mode"
+    team-chest-gift-enabled: "&aCurrently Enabled: &6Team Chest Gift"
+    team-chest-gift-disabled: "&eCurrently Disabled: &6Team Chest Gift"
     normal-mode-lore:
       - "&eThe blocks that both teams need to collect"
       - "&eare completely &lrandom&r&e,"
-      - "&eCollecting a block will give 64 blocks"
-      - "&eof that block to the opponent's team chest!"
+      - "&eThe first team to complete all of its"
+      - "&etarget blocks wins"
     racing-mode-lore:
       - "&eThe blocks that both teams need to collect"
       - "&eand the order will be completely &lsynchronized&r&e,"
-      - "&eand collecting blocks will &lnot&r&e give 64 blocks"
-      - "&eof that block to the opposing team!"
+      - "&eThe first team to complete the shared"
+      - "&etargets wins"
     speed-mode-lore:
       - "&aAfter enabling Speed Mode, players will be"
       - "&e&lgiven certain items and effects&e at the start,"
@@ -102,6 +105,15 @@ menu:
       - "&bItems: Silk Touch Iron Pickaxe, Cooked Beef, "
       - "&b       Damaged Elytra, Enchanted Book of Mending"
       - "&bEffects: Haste V"
+    team-chest-gift-lore:
+      - "&aAfter enabling Team Chest Gift,"
+      - "&ewhenever a team collects a target block,"
+      - "&e&b%amount%&e of that block is placed"
+      - "&einto the opponent's team chest"
+      - "&eDisable to stop sending blocks to the enemy chest"
+      - "&bLeft click: toggle &8| &eRight click: set gift amount"
+      - "<gradient:#5fdb40:#e7b918>This option is independent of game mode"
+      - "<gradient:#5fdb40:#e7b918>and can be combined with any mode</gradient>"
     select-team: "&aSelect Team"
     block-setting: "&aBlock Setting"
     select-mode: "&aMode Selection"
@@ -110,6 +122,12 @@ menu:
     random-team-lore:
       - "&bRandomly balance all online players between both teams"
       - "&eRequires confirmation in chat"
+    info: "&bGame Settings Info"
+    info-lore:
+      - "&7Shared Team Spawn: %shared_spawn%"
+      - "&7Team Chest Gift: %team_chest_gift%"
+      - "&7End Portal Broadcast: %end_portal_broadcast%"
+      - "&7Comeback Threshold: %comeback_threshold% points"
   game-menu:
     title: "&0Main Menu"
     team-chest: "&aTeam Chest"
@@ -130,8 +148,10 @@ menu:
     waypoints-lore: "&bSave or teleport to waypoints"
     random-tp: "&9Random Teleport"
     random-tp-lore:
-      - "&bSpend 2 points to &lrandomly teleport&r&b"
-      - "&bin the &lOverworld&r&b, first time is free"
+      - "&bSpend %cost% points to &lrandomly teleport&r&b"
+      - "&bin the &l%dimension%&r&b, first time is free"
+    random-tp-dimension-overworld: "Overworld"
+    random-tp-dimension-nether: "Nether"
     current-blocks: "&6Current Target Blocks"
     current-blocks-lore:
       - "&bShow every currently visible target"
@@ -145,6 +165,16 @@ menu:
       - "&7Give every online teammate:"
       - "&616 Golden Carrots &8+ &f32 Firework Rockets"
       - "&7Items drop at their feet if inventories are full"
+    info: "&bGame Settings Info"
+    info-lore:
+      - "&7Game Mode: %game_mode%"
+      - "&7Target Blocks: %block_amount%"
+      - "&7Max Roll Count: %max_roll_count%"
+      - "&7Nether Mode: %nether_mode%"
+      - "&7Speed Mode: %speed_mode%"
+      - "&7Team Chest Gift: %team_chest_gift%"
+      - "&7End Portal Broadcast: %end_portal_broadcast%"
+      - "&7Comeback Threshold: %comeback_threshold% points"
   teammate-teleport:
     title: "&0Teleport to Teammate"
     player-lore:
@@ -181,7 +211,7 @@ rule-book:
     - "&b&lVanilla Changes\n\n&0• Chat is team-only while a game is active\n• Use /shout or start with @ or ! for global chat\n• /tp only targets teammates\n• Use /teleport or /minecraft:tp for the vanilla command"
     - "&b&lAdmin Settings\n\n&0Team chest count, waypoint count and rerolls per game can be changed in config.yml.\n\nKeys:\nmax-team-chest-num\nmax-team-waypoint-num\nmax-roll-count"
     - "&b&lCore Rules\n\n&0Both teams collect the target blocks shown on the scoreboard.\n\nThe first team to complete every target wins."
-    - "&b&lModes & Scoring\n\n&0Normal: 1 point and a stack sent to the opponent.\n\nRacing: shared targets, with no item gifts.\n\nSpeed: 3 points per target."
+    - "&b&lModes & Scoring\n\n&0Normal: fully random targets\n\nRacing: shared identical targets\n\nSpeed: 3 points per target.\n\nSending blocks to the enemy chest is the independent \"Team Chest Gift\" toggle."
     - "&b&lMenu Features\n\n&0Press Shift+F for the menu.\n\nTeam Chest: shared items\nWaypoints: save/teleport\nReroll: online team vote\nLocate: costs points\nRandom TP: first use free\nSpeed Supplies: 5 points"
     - "&b&lCommands 1/2\n\n&0/language change language\n/randomteam balance teams\n/block <red|blue> <index> show a full target name\n/tp <player> teammate teleport\n/shout <message> global chat"
     - "&b&lCommands 2/2\n\n&0/menu open menu\n/waypoint remove <index>\n/locatebiome <biome>\n/locatestructure <structure>\n/restartgame vote to reset"
@@ -221,6 +251,9 @@ notice:
   set-blocks-quit: "&aSuccessfully exited input mode!"
   set-blocks-error: "&cPlease enter a valid number! Send 'quit' to exit input mode if needed."
   set-blocks-success: "&aChanged the required block amount to: "
+  set-team-chest-gift-amount: "&ePlease directly send the Team Chest Gift block amount (1-64), send 'quit' to cancel input"
+  set-team-chest-gift-amount-success: "&aChanged the Team Chest Gift amount to: %amount%"
+  set-team-chest-gift-amount-error: "&cPlease enter a valid number! Range 1-64; send 'quit' to exit input mode."
   spawn-protect-notice: "&8[&bTip&8] &7Spawn is protected. Move away before placing or breaking blocks."
   exist-error-block: "&4Item named %s does not exist! Check the configuration file!"
   not-enough-score: "&cInsufficient points!"

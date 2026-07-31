@@ -121,13 +121,18 @@ public final class TeamChat {
         if (KNOWN_HINTS.contains(uuid) || !PENDING_HINTS.add(uuid)) {
             return;
         }
-        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+        Runnable task = () -> {
             if (!player.getPersistentDataContainer().has(key, PersistentDataType.BYTE)) {
                 player.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
                 player.sendMessage(Message.CHAT_TEAM_HINT.getString(player));
             }
             KNOWN_HINTS.add(uuid);
             PENDING_HINTS.remove(uuid);
-        });
+        };
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, t -> task.run());
+        } else {
+            Bukkit.getScheduler().runTask(Main.getInstance(), task);
+        }
     }
 }

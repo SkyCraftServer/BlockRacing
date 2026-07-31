@@ -2,6 +2,7 @@ package top.lqsnow.blockracing.scoreboard;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import top.lqsnow.blockracing.Main;
 
 import java.util.Locale;
@@ -37,6 +38,7 @@ public class BlockRacingPlaceholderExpansion extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, String params) {
-        return BlockRacingScoreboardLayout.resolvePlaceholder(params);
+        Player online = player != null ? player.getPlayer() : null;
+        return BlockRacingScoreboardLayout.resolvePlaceholder(params, online);
     }
 }

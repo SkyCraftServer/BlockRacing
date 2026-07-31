@@ -18,7 +18,7 @@ import org.bukkit.potion.PotionEffectType;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 import top.lqsnow.blockracing.Main;
-import top.lqsnow.blockracing.voicechat.VoicechatSyncManager;
+import top.lqsnow.blockracing.voicechat.VoicechatBridge;
 import top.lqsnow.blockracing.utils.BiomeTranslation;
 import top.lqsnow.blockracing.utils.ColorUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
@@ -78,6 +78,7 @@ public class Game {
     public static List<String> contestModeRollPlayers = new CopyOnWriteArrayList<>();
     public static List<String> inGamePlayers = new CopyOnWriteArrayList<>();
     public static int locateCost;
+    public static List<String> locateCommandPermission = new CopyOnWriteArrayList<>();
     public static Map<String, Integer> collectAmount = new ConcurrentHashMap<>();
     private static final Deque<Location> randomTpPool = new ArrayDeque<>();
 
@@ -491,13 +492,14 @@ public class Game {
 
     public static void playerLogin(Player player) {
         Team.refreshPlayerListName(player);
+        LanguageManager.registerFirstJoin(player);
         Scoreboard.showScoreboard(player);
 
         if (getCurrentGameState().equals(GameState.PREGAME)) {
             player.setGameMode(GameMode.ADVENTURE);
-            player.sendMessage(Message.NOTICE_WELCOME.getString());
-            player.sendMessage(t(
-                    "&eNot your language? Please follow the tutorial to change the language: https://github.com/SkyCraftServer/BlockRacing/blob/3.0/docs/en/TranslationTutorial-en.md"));
+            player.sendMessage(Message.NOTICE_WELCOME.getString(player));
+            top.lqsnow.blockracing.menus.LanguageMenu.sendFirstJoinPrompt(player);
+            giveRuleBook(player);
             // Delay teleport by 1 tick to avoid conflict with player chunk loader initialization on Folia
             Main.getFoliaLib().getScheduler().runNextTick(task -> {
                 teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
@@ -518,7 +520,7 @@ public class Game {
             }
         }
 
-        VoicechatSyncManager.syncPlayer(player);
+        VoicechatBridge.syncPlayer(player);
         checkUpdate(player);
     }
 
@@ -786,7 +788,7 @@ public class Game {
             refreshComebackEffects();
         }
 
-        VoicechatSyncManager.syncAllPlayers();
+        VoicechatBridge.syncAllPlayers();
 
         Bukkit.getLogger().info("Red team players: " + redTeamPlayers.toString());
         Bukkit.getLogger().info("Blue team players: " + blueTeamPlayers.toString());
@@ -804,6 +806,20 @@ public class Game {
     }
 
     private static void applyGlobalWorldState(World world) {
+        // Apply KEEP_INVENTORY to all loaded worlds (overworld, nether, end)
+        // On Folia, Bukkit.getWorlds() must not be called directly from event handlers
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runNextTick(task -> {
+                for (World w : Bukkit.getWorlds()) {
+                    w.setGameRule(GameRules.KEEP_INVENTORY, true);
+                }
+            });
+        } else {
+            for (World w : Bukkit.getWorlds()) {
+                w.setGameRule(GameRules.KEEP_INVENTORY, true);
+            }
+        }
+
         if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
             Main.getFoliaLib().getScheduler().runNextTick(task -> {
                 world.setDifficulty(Difficulty.EASY);
@@ -1004,20 +1020,86 @@ public class Game {
             return;
         }
 
-        Location offset;
+        // Paper async chunk API: avoid blocking the main thread
         if (Setting.isNetherMode() && world.getEnvironment() == World.Environment.NETHER) {
-            offset = findSafeNetherLocation(world, new Random());
+            randomTeleportAsyncNether(player, world, 0);
         } else {
-            offset = findSafeOverworldLocation(world, avoidOcean);
+            randomTeleportAsyncOverworld(player, world, avoidOcean, 0);
         }
+    }
 
-        if (offset == null) {
+    private static void randomTeleportAsyncOverworld(Player player, World world, boolean avoidOcean, int attempts) {
+        if (player == null || !player.isOnline()) return;
+        final int maxAttempts = 60;
+        if (attempts >= maxAttempts) {
+            Location fallback = world.getSpawnLocation().clone().add(0, 1, 0);
+            teleportPlayer(player, fallback);
+            applyPostTeleportProtection(player);
+            sendTeleportSuccessMessage(player, fallback);
             return;
         }
+        Random random = new Random();
+        int randX = random.nextInt(20000) - 10000;
+        int randZ = random.nextInt(20000) - 10000;
+        int chunkX = randX >> 4;
+        int chunkZ = randZ >> 4;
+        world.getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
+            if (!player.isOnline()) return;
+            int blockX = ((randX % 16) + 16) % 16;
+            int blockZ = ((randZ % 16) + 16) % 16;
+            org.bukkit.ChunkSnapshot snapshot = chunk.getChunkSnapshot();
+            int highestY = snapshot.getHighestBlockYAt(blockX, blockZ);
+            Location loc = new Location(world, randX + 0.5, highestY + 1, randZ + 0.5);
+            if (avoidOcean && isOceanBiome(loc.getBlock().getBiome())) {
+                randomTeleportAsyncOverworld(player, world, avoidOcean, attempts + 1);
+                return;
+            }
+            teleportPlayer(player, loc);
+            applyPostTeleportProtection(player);
+            sendTeleportSuccessMessage(player, loc);
+        }).exceptionally(ex -> {
+            Main.getInstance().getLogger().warning("[BlockRacing] Async chunk load failed for teleport: " + ex.getMessage());
+            return null;
+        });
+    }
 
-        teleportPlayer(player, offset);
-        applyPostTeleportProtection(player);
-        sendTeleportSuccessMessage(player, offset);
+    private static void randomTeleportAsyncNether(Player player, World world, int attempts) {
+        if (player == null || !player.isOnline()) return;
+        final int maxAttempts = 60;
+        if (attempts >= maxAttempts) {
+            Location fallback = world.getSpawnLocation().clone().add(0, 1, 0);
+            teleportPlayer(player, fallback);
+            applyPostTeleportProtection(player);
+            sendTeleportSuccessMessage(player, fallback);
+            return;
+        }
+        Random random = new Random();
+        int randX = random.nextInt(20000) - 10000;
+        int randZ = random.nextInt(20000) - 10000;
+        int chunkX = randX >> 4;
+        int chunkZ = randZ >> 4;
+        world.getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
+            if (!player.isOnline()) return;
+            int ceilingLimit = Math.min(world.getMaxHeight() - 5, 118);
+            for (int y = ceilingLimit; y >= 20; y--) {
+                org.bukkit.block.Block floor = world.getBlockAt(randX, y, randZ);
+                if (!isSafeNetherFloor(world, floor)) continue;
+                org.bukkit.block.Block head = floor.getRelative(0, 1, 0);
+                org.bukkit.block.Block above = floor.getRelative(0, 2, 0);
+                if (!isSafeNetherAir(world, head) || !isSafeNetherAir(world, above)) continue;
+                Location candidate = head.getLocation().add(0.5, 0, 0.5);
+                if (candidate.getBlock().getType() == Material.LAVA) continue;
+                teleportPlayer(player, candidate);
+                applyPostTeleportProtection(player);
+                sendTeleportSuccessMessage(player, candidate);
+                return;
+            }
+            // No safe spot in this chunk, try another
+            randomTeleportAsyncNether(player, world, attempts + 1);
+        }).exceptionally(ex -> {
+            Main.getInstance().getLogger().warning("[BlockRacing] Async chunk load failed for nether teleport: " + ex.getMessage());
+            return null;
+        });
     }
 
     private static void randomTeleportFolia(Player player, World world, boolean avoidOcean, int attempts) {
@@ -1471,6 +1553,11 @@ public class Game {
         inGameTask = Main.getFoliaLib().getScheduler().runTimer(Game::tickInGame, 0L, 2L);
     }
 
+    /** Resume the in-game loop after a recovered game progress. */
+    public static void resumeRecoveredGame() {
+        startInGameLoop();
+    }
+
     private static void stopInGameLoop() {
         if (inGameTask != null) {
             inGameTask.cancel();
@@ -1875,15 +1962,15 @@ public class Game {
             finalizeOvertimeWin(true);
             return;
         }
-        // Put items into the opponent's team chest
-        if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
+        // Put items into the opponent's team chest (controlled by team-chest-gift toggle)
+        if (Setting.isTeamChestGift()) {
             for (int i = blueTeamChest.size() - 1; i >= 0; i--) {
                 Inventory chest = blueTeamChest.get(i);
                 int emptyPos = chest.firstEmpty();
                 if (emptyPos == -1) {
                     continue;
                 }
-                chest.setItem(emptyPos, new ItemStack(Material.valueOf(block), 64));
+                chest.setItem(emptyPos, new ItemStack(Material.valueOf(block), Setting.getTeamChestGiftAmount()));
                 return;
             }
             sendAll(Message.NOTICE_TEAM_CHEST_FULL.getString().replace("%team%", Message.TEAM_BLUE_NAME.getString())
@@ -1933,15 +2020,15 @@ public class Game {
             finalizeOvertimeWin(false);
             return;
         }
-        // Put items into the opponent's team chest
-        if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
+        // Put items into the opponent's team chest (controlled by team-chest-gift toggle)
+        if (Setting.isTeamChestGift()) {
             for (int i = redTeamChest.size() - 1; i >= 0; i--) {
                 Inventory chest = redTeamChest.get(i);
                 int emptyPos = chest.firstEmpty();
                 if (emptyPos == -1) {
                     continue;
                 }
-                chest.setItem(emptyPos, new ItemStack(Material.valueOf(block), 64));
+                chest.setItem(emptyPos, new ItemStack(Material.valueOf(block), Setting.getTeamChestGiftAmount()));
                 return;
             }
             sendAll(Message.NOTICE_TEAM_CHEST_FULL.getString().replace("%team%", Message.TEAM_RED_NAME.getString())
@@ -1959,7 +2046,7 @@ public class Game {
         sendAll(Message.NOTICE_RED_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
-        VoicechatSyncManager.syncAllPlayers();
+        VoicechatBridge.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -1973,7 +2060,7 @@ public class Game {
         sendAll(Message.NOTICE_BLUE_WIN.getString());
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
-        VoicechatSyncManager.syncAllPlayers();
+        VoicechatBridge.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -1988,7 +2075,7 @@ public class Game {
         sendAll(drawMessage);
         playSound(Sound.UI_TOAST_CHALLENGE_COMPLETE);
         setCurrentGameState(GameState.END);
-        VoicechatSyncManager.syncAllPlayers();
+        VoicechatBridge.syncAllPlayers();
         updateScoreboard();
     }
 
@@ -2176,8 +2263,102 @@ public class Game {
 
     public static void setCurrentGameState(GameState currentGameState) {
         Game.currentGameState = currentGameState;
-        VoicechatSyncManager.syncAllPlayers();
+        VoicechatBridge.syncAllPlayers();
         Motd.refresh();
         updateScoreboard();
+    }
+
+    /**
+     * Buys team supplies (speed mode only). Costs 5 team points and gives
+     * every online teammate 16 golden carrots and 32 firework rockets.
+     */
+    public static void buySupply(Player player) {
+        if (!Setting.isSpeedMode()) {
+            player.sendMessage(Message.NOTICE_SUPPLY_SPEED_ONLY.getString(player));
+            return;
+        }
+        boolean isRed = redTeamPlayers.contains(player.getName());
+        boolean isBlue = blueTeamPlayers.contains(player.getName());
+        if (!isRed && !isBlue) return;
+
+        if (isRed && redTeamScore < 5 || isBlue && blueTeamScore < 5) {
+            player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString(player));
+            return;
+        }
+
+        if (isRed) redTeamScore -= 5;
+        else blueTeamScore -= 5;
+
+        List<String> team = isRed ? redTeamPlayers : blueTeamPlayers;
+        ItemStack carrots = new ItemStack(Material.GOLDEN_CARROT, 16);
+        ItemStack rockets = new ItemStack(Material.FIREWORK_ROCKET, 32);
+        for (String name : team) {
+            Player teammate = Bukkit.getPlayerExact(name);
+            if (teammate != null && teammate.isOnline()) {
+                if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+                    Main.getFoliaLib().getScheduler().runAtEntity(teammate, task -> {
+                        giveOrDrop(teammate, carrots.clone());
+                        giveOrDrop(teammate, rockets.clone());
+                    });
+                } else {
+                    giveOrDrop(teammate, carrots.clone());
+                    giveOrDrop(teammate, rockets.clone());
+                }
+            }
+        }
+
+        String teamName = isRed ? Message.TEAM_RED_NAME.getString() : Message.TEAM_BLUE_NAME.getString();
+        sendAll(Message.NOTICE_SUPPLY_PURCHASED,
+                (viewer, text) -> text.replace("%player%", player.getName())
+                        .replace("%team%", teamName));
+        updateScoreboard();
+        GameProgressStore.saveNow();
+    }
+
+    private static void giveOrDrop(Player player, ItemStack item) {
+        var leftover = player.getInventory().addItem(item);
+        for (ItemStack drop : leftover.values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), drop);
+        }
+    }
+
+    /**
+     * Gives a rule book to the player during pregame, in the player's language.
+     * Pages come from rule-book.pages in the lang file (bundled defaults are used
+     * when the on-disk lang file is outdated and does not contain the key).
+     */
+    private static void giveRuleBook(Player player) {
+        try {
+            ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+            org.bukkit.inventory.meta.BookMeta meta = (org.bukkit.inventory.meta.BookMeta) book.getItemMeta();
+            if (meta == null) return;
+            meta.setTitle(Message.RULE_BOOK_TITLE.getString(player));
+            meta.setAuthor(Message.RULE_BOOK_AUTHOR.getString(player));
+            for (String page : Message.RULE_BOOK_PAGES.getStringList(player)) {
+                meta.addPage(page);
+            }
+            book.setItemMeta(meta);
+            player.getInventory().addItem(book);
+        } catch (Exception ex) {
+            Main.getInstance().getLogger().warning("[BlockRacing] Failed to give rule book: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Clears the player's pregame inventory and re-gives the rule book in the
+     * player's current language. Runs on the entity scheduler so that, on Folia,
+     * the clear and the book are applied in order on the same thread.
+     */
+    public static void refreshRuleBook(Player player) {
+        if (player == null || getCurrentGameState() != GameState.PREGAME) return;
+        Runnable refresh = () -> {
+            player.getInventory().clear();
+            giveRuleBook(player);
+        };
+        if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
+            Main.getFoliaLib().getScheduler().runAtEntity(player, task -> refresh.run());
+        } else {
+            refresh.run();
+        }
     }
 }

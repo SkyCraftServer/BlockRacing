@@ -29,13 +29,20 @@ public final class LanguageManager {
     }
 
     public static void load() {
-        chinese = loadLanguage(new File(Main.getInstance().getDataFolder(), "lang.yml"), "lang.yml");
-        english = loadLanguage(
-                new File(Main.getInstance().getDataFolder(), "languages/en_us/lang.yml"),
-                "languages/en_us/lang.yml"
-        );
+        File langDir = new File(Main.getInstance().getDataFolder(), "lang");
+        if (!langDir.exists()) {
+            langDir.mkdirs();
+        }
+        chinese = loadLanguage(new File(langDir, "zh_cn.yml"), "lang/zh_cn.yml");
+        english = loadLanguage(new File(langDir, "en_us.yml"), "lang/en_us.yml");
         preferencesFile = new File(Main.getInstance().getDataFolder(), "language-preferences.yml");
         preferences = YamlConfiguration.loadConfiguration(preferencesFile);
+    }
+
+    public static void shutdown() {
+        if (preferences != null && preferencesFile != null) {
+            savePreferences();
+        }
     }
 
     public static synchronized boolean registerFirstJoin(Player player) {
@@ -70,6 +77,19 @@ public final class LanguageManager {
         return t(value);
     }
 
+    /**
+     * Gets the legacy string for a specific language (true=Chinese, false=English).
+     * Used for building per-language scoreboards without a player instance.
+     */
+    public static String getStringForLanguage(Message message, boolean chineseLang) {
+        YamlConfiguration config = chineseLang ? chinese : english;
+        String value = config.getString(message.getPath());
+        if (value == null) {
+            value = chinese.getString(message.getPath(), message.getPath());
+        }
+        return t(value);
+    }
+
     public static List<String> getStringList(Message message, Player player) {
         List<String> values = configuration(player).getStringList(message.getPath());
         if (values.isEmpty()) {
@@ -95,6 +115,13 @@ public final class LanguageManager {
     }
 
     private static YamlConfiguration loadLanguage(File file, String resourcePath) {
+        if (!file.exists()) {
+            try {
+                Main.getInstance().saveResource(resourcePath, false);
+            } catch (Exception ex) {
+                Main.getInstance().getLogger().log(Level.WARNING, "Unable to save language file " + resourcePath, ex);
+            }
+        }
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
         try (InputStreamReader reader = new InputStreamReader(
                 Main.getInstance().getResource(resourcePath),

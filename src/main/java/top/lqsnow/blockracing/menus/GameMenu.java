@@ -11,14 +11,17 @@ import top.lqsnow.blockracing.managers.Game;
 import top.lqsnow.blockracing.managers.GameProgressStore;
 import top.lqsnow.blockracing.managers.LanguageManager;
 import top.lqsnow.blockracing.managers.Message;
-import top.lqsnow.blockracing.managers.Scoreboard;
+import top.lqsnow.blockracing.scoreboard.Scoreboard;
 import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.toolkit.item.ItemBuilder;
 import top.lqsnow.blockracing.toolkit.menu.MenuButton;
 import top.lqsnow.blockracing.toolkit.menu.MenuView;
+import top.lqsnow.blockracing.utils.BiomeTranslation;
+import top.lqsnow.blockracing.utils.ColorUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
+import top.lqsnow.blockracing.utils.WorldTranslation;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -77,7 +80,7 @@ public final class GameMenu extends MenuView {
         setButton(21, MenuButton.of(
                 player -> ItemBuilder.of(Material.ENDER_PEARL)
                         .name(Message.MENU_RANDOM_TP.getString(player))
-                        .lore(Message.MENU_RANDOM_TP_LORE.getStringList(player))
+                        .lore(replaceRandomTpPlaceholders(Message.MENU_RANDOM_TP_LORE.getStringList(player), player))
                         .build(),
                 (player, click) -> handleRandomTeleport(player)
         ));
@@ -101,6 +104,14 @@ public final class GameMenu extends MenuView {
                         .lore(List.of("§7Change display language / 切换显示语言"))
                         .build(),
                 (player, click) -> new LanguageMenu().open(player)
+        ));
+        // Info button (last slot)
+        setButton(getSize() - 1, MenuButton.of(
+                player -> ItemBuilder.of(Material.WRITABLE_BOOK)
+                        .name(Message.MENU_GAME_INFO.getString(player))
+                        .lore(replaceInfoPlaceholders(Message.MENU_GAME_INFO_LORE.getStringList(player), player))
+                        .build(),
+                (player, click) -> {}
         ));
         if (Setting.isSpeedMode()) {
             setButton(31, MenuButton.of(
@@ -183,10 +194,25 @@ public final class GameMenu extends MenuView {
             for (int slot = 0; slot < Setting.getMaxTeamChestNum(); slot++) {
                 int chestIndex = slot;
                 setButton(slot, MenuButton.of(
-                        player -> ItemBuilder.of(Material.CHEST)
-                                .name(Message.MENU_TEAM_CHEST_SELECT_CHEST.getString(player) + (chestIndex + 1))
-                                .build(),
-                        (player, click) -> openTeamChest(player, chestIndex)
+                        player -> {
+                            String team = redTeamPlayers.contains(player.getName()) ? "red"
+                                    : blueTeamPlayers.contains(player.getName()) ? "blue" : "";
+                            String name = team.isEmpty()
+                                    ? Message.MENU_TEAM_CHEST_SELECT_CHEST.getString(player) + (chestIndex + 1)
+                                    : Game.getTeamChestDisplayName(team, chestIndex + 1);
+                            return ItemBuilder.of(Material.CHEST)
+                                    .name(name)
+                                    .lore(Message.MENU_TEAM_CHEST_SELECT_CHEST_LORE.getStringList(player))
+                                    .build();
+                        },
+                        (player, click) -> {
+                            if (click.isRightClick()) {
+                                Game.beginTeamChestRename(player, chestIndex + 1);
+                                player.closeInventory();
+                                return;
+                            }
+                            openTeamChest(player, chestIndex);
+                        }
                 ));
             }
             setButton(getSize() - 1, backButton());
@@ -225,10 +251,10 @@ public final class GameMenu extends MenuView {
     }
 
     public static final class WayPointMenu extends MenuView {
-        private final HashMap<Integer, Location> waypoints;
-        private final HashMap<Integer, Material> iconCache;
+        private final Map<Integer, Location> waypoints;
+        private final Map<Integer, Material> iconCache;
 
-        public WayPointMenu(HashMap<Integer, Location> waypoints, HashMap<Integer, Material> iconCache) {
+        public WayPointMenu(Map<Integer, Location> waypoints, Map<Integer, Material> iconCache) {
             super(menuSize(Setting.getMaxTeamWaypointNum()),
                     player -> Message.MENU_WAYPOINT_TITLE.getString(player));
             this.waypoints = waypoints;
@@ -259,14 +285,16 @@ public final class GameMenu extends MenuView {
             }
 
             Material icon = iconCache.computeIfAbsent(index, ignored -> findWaypointIcon(waypoint));
+            String dimensionName = WorldTranslation.getValue(waypoint.getWorld());
+            String biomeName = BiomeTranslation.getValue(waypoint.getBlock().getBiome());
             try {
                 return ItemBuilder.of(icon)
                         .name(Message.MENU_WAYPOINT_FILLED.getString(player) + index)
                         .lore(replaceWaypointPlaceholders(
                                 Message.MENU_WAYPOINT_FILLED_LORE.getStringList(player),
-                                waypoint.getWorld().getName(),
+                                dimensionName,
                                 getCoords(waypoint),
-                                waypoint.getBlock().getBiome().getKey().getKey()
+                                biomeName
                         ))
                         .build();
             } catch (IllegalArgumentException ex) {
@@ -275,9 +303,9 @@ public final class GameMenu extends MenuView {
                         .name(Message.MENU_WAYPOINT_FILLED.getString(player) + index)
                         .lore(replaceWaypointPlaceholders(
                                 Message.MENU_WAYPOINT_FILLED_LORE.getStringList(player),
-                                waypoint.getWorld().getName(),
+                                dimensionName,
                                 getCoords(waypoint),
-                                waypoint.getBlock().getBiome().getKey().getKey()
+                                biomeName
                         ))
                         .build();
             }
@@ -376,13 +404,70 @@ public final class GameMenu extends MenuView {
         return lore.replace("%count%", String.valueOf(Setting.getMaxRollCount()));
     }
 
+    private static List<String> replaceInfoPlaceholders(List<String> lore, Player player) {
+        String endPortalBroadcast = Setting.isEndPortalCoordinateBroadcast() ? "&a✓" : "&c✗";
+        String comebackThreshold = String.valueOf(Setting.getComebackBuffThresholdPoints());
+        String netherMode = Setting.isNetherMode() ? "&a✓" : "&c✗";
+        String speedMode = Setting.isSpeedMode() ? "&a✓" : "&c✗";
+        String teamChestGift = Setting.isTeamChestGift() ? "&a✓" : "&c✗";
+        String gameMode = resolveDisplayedGameMode(player);
+        String blockAmount = String.valueOf(Setting.getBlockAmount());
+        String maxRollCount = String.valueOf(Setting.getMaxRollCount());
+        return lore.stream()
+                .map(line -> ColorUtil.t(line
+                        .replace("%end_portal_broadcast%", endPortalBroadcast)
+                        .replace("%comeback_threshold%", comebackThreshold)
+                        .replace("%nether_mode%", netherMode)
+                        .replace("%speed_mode%", speedMode)
+                        .replace("%team_chest_gift%", teamChestGift)
+                        .replace("%game_mode%", gameMode)
+                        .replace("%block_amount%", blockAmount)
+                        .replace("%max_roll_count%", maxRollCount)))
+                .toList();
+    }
+
+    private static String resolveDisplayedGameMode(Player player) {
+        String base;
+        if (Setting.getCurrentGameMode().equals(Setting.GameMode.NORMAL)) {
+            base = Message.SCOREBOARD_MODE_NORMAL.getString(player);
+        } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.RACING)) {
+            base = Message.SCOREBOARD_MODE_RACING.getString(player);
+        } else if (Setting.getCurrentGameMode().equals(Setting.GameMode.CONTEST)) {
+            base = Message.SCOREBOARD_MODE_CONTEST.getString(player);
+        } else {
+            base = Message.SCOREBOARD_MODE_TIME.getString(player);
+        }
+        if (Setting.isNetherMode()) {
+            base = base + " + " + Message.SCOREBOARD_MODE_NETHER.getString(player);
+        }
+        if (Setting.isSpeedMode()) {
+            base = base + " + " + Message.SCOREBOARD_MODE_SPEED.getString(player);
+        }
+        if (Setting.isTeamChestGift()) {
+            base = base + " + " + Message.SCOREBOARD_MODE_GIFT.getString(player);
+        }
+        return base;
+    }
+
+    private static List<String> replaceRandomTpPlaceholders(List<String> lore, Player player) {
+        String cost = "2";
+        String dimension = Setting.isNetherMode()
+                ? Message.MENU_RANDOM_TP_DIM_NETHER.getString(player)
+                : Message.MENU_RANDOM_TP_DIM_OVERWORLD.getString(player);
+        return lore.stream()
+                .map(line -> ColorUtil.t(line
+                        .replace("%cost%", cost)
+                        .replace("%dimension%", dimension)))
+                .toList();
+    }
+
     private static List<String> replaceWaypointPlaceholders(List<String> lore, String dimension,
                                                              String coords, String biome) {
         return lore.stream()
-                .map(line -> line
+                .map(line -> ColorUtil.t(line
                         .replace("%dimension%", dimension)
                         .replace("%coords%", coords)
-                        .replace("%biome%", biome))
+                        .replace("%biome%", biome)))
                 .toList();
     }
 }

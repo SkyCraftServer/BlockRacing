@@ -23,6 +23,8 @@ public enum Config {
     GAME_MODE("game-mode"),
     TIME_MODE_DURATION("time-mode.duration"),
     SPEED_MODE("speed-mode"),
+    TEAM_CHEST_GIFT("team-chest-gift"),
+    TEAM_CHEST_GIFT_AMOUNT("team-chest-gift-amount"),
     SHARED_TEAM_SPAWN("shared-team-spawn"),
     END_PORTAL_COORDINATE_BROADCAST("end-portal-coordinate-broadcast"),
     COMEBACK_BUFF_THRESHOLD("comeback-buff-threshold"),
