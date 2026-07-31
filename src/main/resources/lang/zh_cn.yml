@@ -179,6 +179,10 @@ menu:
       - "&e关闭后不会往对方队伍箱子塞方块"
       - "&b左键：开关 &8| &e右键：设置给予的方块数量"
       - "<gradient:#5fdb40:#e7b918>该选项独立于游戏模式，可与任意模式叠加</gradient>"
+    team-chest-count: "&e队伍箱子数量：%count% 个"
+    team-chest-count-lore:
+      - "&e点击此处更改每队可使用的队伍箱子数量"
+      - "&e将在下一局游戏开始时生效"
     nether-mode-lore:
       - "&a开启<gradient:#fa0000:#ff3434>下界模式</gradient>&a后，"
       - "&e将仅使用下界方块库 ，不加载其他方块库"
@@ -344,6 +348,9 @@ notice:
   set-team-chest-gift-amount: "&e请直接发送队伍箱子馈赠的方块数量（1-64），发送quit取消输入"
   set-team-chest-gift-amount-success: "&a队伍箱子馈赠数量更改为：%amount% 个"
   set-team-chest-gift-amount-error: "&c请输入正确数字！范围1-64；发送quit退出输入模式"
+  set-team-chest-count: "&e请直接发送每队队伍箱子的数量（1-53），发送quit取消输入"
+  set-team-chest-count-success: "&a队伍箱子数量更改为：%count% 个"
+  set-team-chest-count-error: "&c请输入正确数字！范围1-53；发送quit退出输入模式"
   set-team-chest-name: "&e请输入队伍箱子%index%的名称，发送reset恢复默认，发送quit取消"
   set-waypoint-name: "&e请输入记录点%index%的名称，发送reset恢复默认，发送quit取消"
   set-custom-name-quit: "&a已取消重命名"

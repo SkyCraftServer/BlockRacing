@@ -481,8 +481,8 @@ public class Setting {
     }
 
     public static void setMaxTeamChestNum(int chestNum) {
-        Setting.maxTeamChestNum = chestNum;
-        Config.MAX_TEAM_CHEST_NUM.setInt(chestNum);
+        Setting.maxTeamChestNum = Math.max(1, Math.min(53, chestNum));
+        Config.MAX_TEAM_CHEST_NUM.setInt(Setting.maxTeamChestNum);
         persistConfigNow();
     }
 

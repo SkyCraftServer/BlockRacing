@@ -119,6 +119,20 @@ public final class PreGameMenu extends MenuView {
                 }
         ));
 
+        // Team chest count (slot 16) - TRAPPED_CHEST
+        setButton(16, MenuButton.of(
+                player -> ItemBuilder.of(Material.TRAPPED_CHEST)
+                        .name(Message.MENU_TEAM_CHEST_COUNT.getString(player)
+                                .replace("%count%", String.valueOf(Setting.getMaxTeamChestNum())))
+                        .lore(Message.MENU_TEAM_CHEST_COUNT_LORE.getStringList(player))
+                        .build(),
+                (player, click) -> {
+                    player.closeInventory();
+                    editAmountPlayer.put(player.getName(), EditType.TEAM_CHEST_COUNT);
+                    player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_COUNT.getString(player));
+                }
+        ));
+
         // Medium block (slot 20)
         setButton(20, blockToggleButton(
                 Setting::isEnableMediumBlock,

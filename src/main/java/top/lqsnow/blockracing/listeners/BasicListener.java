@@ -44,7 +44,8 @@ public class BasicListener implements Listener {
         BLOCK_AMOUNT,
         TIME_MODE_MINUTES,
         COMEBACK_THRESHOLD,
-        TEAM_CHEST_GIFT_AMOUNT
+        TEAM_CHEST_GIFT_AMOUNT,
+        TEAM_CHEST_COUNT
     }
 
     public static Map<String, EditType> editAmountPlayer = new ConcurrentHashMap<>();
@@ -109,6 +110,8 @@ public class BasicListener implements Listener {
                     player.sendMessage(Message.NOTICE_SET_COMEBACK_THRESHOLD_ERROR.getString());
                 } else if (editType == EditType.TEAM_CHEST_GIFT_AMOUNT) {
                     player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_GIFT_AMOUNT_ERROR.getString());
+                } else if (editType == EditType.TEAM_CHEST_COUNT) {
+                    player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_COUNT_ERROR.getString());
                 } else {
                     player.sendMessage(Message.NOTICE_SET_BLOCKS_ERROR.getString());
                 }
@@ -123,6 +126,8 @@ public class BasicListener implements Listener {
                     setComebackThresholdPoints(blockAmount, true);
                 } else if (editType == EditType.TEAM_CHEST_GIFT_AMOUNT) {
                     setTeamChestGiftAmount(blockAmount, true);
+                } else if (editType == EditType.TEAM_CHEST_COUNT) {
+                    setMaxTeamChestNum(blockAmount, true);
                 } else {
                     setBlockAmount(blockAmount, true);
                 }
@@ -484,6 +489,19 @@ public class BasicListener implements Listener {
         }
 
         Setting.setTeamChestGiftAmount(finalAmount);
+        updateMenu(new PreGameMenu());
+        updateScoreboard();
+    }
+
+    public static void setMaxTeamChestNum(int chestNum, Boolean sendMessage) {
+        int finalChestNum = Math.max(1, Math.min(53, chestNum));
+
+        if (sendMessage) {
+            sendAll(Message.NOTICE_SET_TEAM_CHEST_COUNT_SUCCESS.getString()
+                    .replace("%count%", String.valueOf(finalChestNum)));
+        }
+
+        Setting.setMaxTeamChestNum(finalChestNum);
         updateMenu(new PreGameMenu());
         updateScoreboard();
     }
