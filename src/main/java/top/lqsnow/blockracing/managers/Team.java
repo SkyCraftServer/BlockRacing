@@ -80,25 +80,6 @@ public class Team {
         }
     }
 
-    public static boolean joinTeam(Player player, org.bukkit.scoreboard.Team team, boolean sendMessage) {
-        if (team == redTeam) {
-            return joinTeam(player, "red", sendMessage);
-        }
-        if (team == blueTeam) {
-            return joinTeam(player, "blue", sendMessage);
-        }
-        if (redTeam == null || blueTeam == null) {
-            createTeam();
-        }
-        if (team == redTeam) {
-            return joinTeam(player, "red", sendMessage);
-        }
-        if (team == blueTeam) {
-            return joinTeam(player, "blue", sendMessage);
-        }
-        return false;
-    }
-
     public static boolean joinTeam(Player player, String teamName, boolean sendMessage) {
         if (redTeam == null || blueTeam == null) {
             createTeam();

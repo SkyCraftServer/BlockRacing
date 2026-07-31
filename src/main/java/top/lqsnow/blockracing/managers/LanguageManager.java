@@ -70,11 +70,13 @@ public final class LanguageManager {
     }
 
     public static String getString(Message message, Player player) {
-        String value = configuration(player).getString(message.getPath());
+        YamlConfiguration config = configuration(player);
+        String value = config.getString(message.getPath());
         if (value == null) {
+            config = chinese;
             value = chinese.getString(message.getPath(), message.getPath());
         }
-        return t(value);
+        return t(replacePrefix(value, config));
     }
 
     /**
@@ -85,17 +87,34 @@ public final class LanguageManager {
         YamlConfiguration config = chineseLang ? chinese : english;
         String value = config.getString(message.getPath());
         if (value == null) {
+            config = chinese;
             value = chinese.getString(message.getPath(), message.getPath());
         }
-        return t(value);
+        return t(replacePrefix(value, config));
     }
 
     public static List<String> getStringList(Message message, Player player) {
-        List<String> values = configuration(player).getStringList(message.getPath());
+        YamlConfiguration config = configuration(player);
+        List<String> values = config.getStringList(message.getPath());
         if (values.isEmpty()) {
+            config = chinese;
             values = chinese.getStringList(message.getPath());
         }
-        return values.stream().map(value -> t(value)).toList();
+        final YamlConfiguration prefixConfig = config;
+        return values.stream().map(value -> t(replacePrefix(value, prefixConfig))).toList();
+    }
+
+    /**
+     * Substitutes the %prefix% placeholder with the language-specific prefix
+     * (falls back to the Chinese prefix) before color/MiniMessage conversion.
+     */
+    private static String replacePrefix(String value, YamlConfiguration config) {
+        if (value == null || !value.contains("%prefix%")) return value;
+        String prefix = config.getString("prefix", "");
+        if (prefix.isEmpty()) {
+            prefix = chinese.getString("prefix", "");
+        }
+        return value.replace("%prefix%", prefix);
     }
 
     public static boolean usesChinese(Player player) {

@@ -2,7 +2,6 @@ package top.lqsnow.blockracing.menus;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -16,7 +15,6 @@ import top.lqsnow.blockracing.managers.Setting;
 import top.lqsnow.blockracing.toolkit.item.ItemBuilder;
 import top.lqsnow.blockracing.toolkit.menu.MenuButton;
 import top.lqsnow.blockracing.toolkit.menu.MenuView;
-import top.lqsnow.blockracing.utils.BiomeTranslation;
 import top.lqsnow.blockracing.utils.ColorUtil;
 import top.lqsnow.blockracing.utils.TranslationUtil;
 import top.lqsnow.blockracing.utils.WorldTranslation;
@@ -71,9 +69,9 @@ public final class GameMenu extends MenuView {
                         .build(),
                 (player, click) -> {
                     if (redTeamPlayers.contains(player.getName())) {
-                        new WayPointMenu(redWaypoint, redWaypointIconCache).open(player);
+                        new WayPointMenu(redWaypoint, redWaypointIconCache, redWaypointBiomeCache).open(player);
                     } else if (blueTeamPlayers.contains(player.getName())) {
-                        new WayPointMenu(blueWaypoint, blueWaypointIconCache).open(player);
+                        new WayPointMenu(blueWaypoint, blueWaypointIconCache, blueWaypointBiomeCache).open(player);
                     }
                 }
         ));
@@ -253,12 +251,14 @@ public final class GameMenu extends MenuView {
     public static final class WayPointMenu extends MenuView {
         private final Map<Integer, Location> waypoints;
         private final Map<Integer, Material> iconCache;
+        private final Map<Integer, String> biomeCache;
 
-        public WayPointMenu(Map<Integer, Location> waypoints, Map<Integer, Material> iconCache) {
+        public WayPointMenu(Map<Integer, Location> waypoints, Map<Integer, Material> iconCache, Map<Integer, String> biomeCache) {
             super(menuSize(Setting.getMaxTeamWaypointNum()),
                     player -> Message.MENU_WAYPOINT_TITLE.getString(player));
             this.waypoints = waypoints;
             this.iconCache = iconCache;
+            this.biomeCache = biomeCache;
 
             for (int slot = 0; slot < Setting.getMaxTeamWaypointNum(); slot++) {
                 int index = slot + 1;
@@ -284,10 +284,11 @@ public final class GameMenu extends MenuView {
                         .build();
             }
 
-            Material icon = iconCache.computeIfAbsent(index, ignored -> findWaypointIcon(waypoint));
-            String dimensionName = WorldTranslation.getValue(waypoint.getWorld());
-            String biomeName = BiomeTranslation.getValue(waypoint.getBlock().getBiome());
             try {
+                // Folia-safe: never touch waypoint.getBlock()/getBiome() while rendering the menu.
+                Material icon = iconCache.getOrDefault(index, findWaypointIconFallback(waypoint));
+                String dimensionName = WorldTranslation.getValue(waypoint.getWorld());
+                String biomeName = biomeCache.getOrDefault(index, "N/A");
                 return ItemBuilder.of(icon)
                         .name(Message.MENU_WAYPOINT_FILLED.getString(player) + index)
                         .lore(replaceWaypointPlaceholders(
@@ -297,29 +298,28 @@ public final class GameMenu extends MenuView {
                                 biomeName
                         ))
                         .build();
-            } catch (IllegalArgumentException ex) {
+            } catch (Exception ex) {
+                // A waypoint whose biome/icon/world cannot be resolved (e.g. Folia thread-restricted
+                // biome lookup, unloaded region) must never block the whole menu from opening.
                 iconCache.put(index, Material.FILLED_MAP);
                 return ItemBuilder.of(Material.FILLED_MAP)
                         .name(Message.MENU_WAYPOINT_FILLED.getString(player) + index)
                         .lore(replaceWaypointPlaceholders(
                                 Message.MENU_WAYPOINT_FILLED_LORE.getStringList(player),
-                                dimensionName,
+                                waypoint.getWorld() == null ? "" : WorldTranslation.getValue(waypoint.getWorld()),
                                 getCoords(waypoint),
-                                biomeName
+                                "N/A"
                         ))
                         .build();
             }
         }
 
-        private Material findWaypointIcon(Location waypoint) {
-            Block block = waypoint.getBlock();
-            while (block.isEmpty() && block.getY() > block.getWorld().getMinHeight()) {
-                block = block.getRelative(0, -1, 0);
+        /** Folia-safe icon fallback: only reads world environment, never block/chunk data. */
+        private Material findWaypointIconFallback(Location waypoint) {
+            if (waypoint == null || waypoint.getWorld() == null) {
+                return Material.FILLED_MAP;
             }
-            if (!block.isEmpty() && block.getType().isItem()) {
-                return block.getType();
-            }
-            return switch (block.getWorld().getEnvironment()) {
+            return switch (waypoint.getWorld().getEnvironment()) {
                 case NORMAL -> Material.GRASS_BLOCK;
                 case NETHER -> Material.NETHERRACK;
                 case THE_END -> Material.END_STONE;

@@ -3,6 +3,7 @@
 # Translation guide in this repository: docs/en/TranslationTutorial-en.md
 # Player preferences are changed with /language; this value identifies this file.
 lang: en_us
+prefix: "[<gradient:#1cfadf:#14f3ea:#0bebf4:#03e4ff><b>Block Racing</b></gradient>]"
 
 # Scoreboard
 # An empty quoted value hides the line; a single space creates a blank line.

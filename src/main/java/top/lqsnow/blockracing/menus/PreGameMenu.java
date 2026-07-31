@@ -22,7 +22,6 @@ import static top.lqsnow.blockracing.listeners.BasicListener.editAmountPlayer;
 import static top.lqsnow.blockracing.listeners.BasicListener.EditType;
 import static top.lqsnow.blockracing.managers.Gui.updateMenu;
 import static top.lqsnow.blockracing.scoreboard.Scoreboard.updateScoreboard;
-import static top.lqsnow.blockracing.managers.Team.redTeam;
 import static top.lqsnow.blockracing.utils.ColorUtil.t;
 
 public final class PreGameMenu extends MenuView {
@@ -37,12 +36,12 @@ public final class PreGameMenu extends MenuView {
         // Join red team (slot 11)
         setButton(11, MenuButton.of(
                 player -> item(Material.RED_WOOL, Message.MENU_JOIN_RED.getString(player)),
-                (player, click) -> Team.joinTeam(player, redTeam, true)
+                (player, click) -> Team.joinTeam(player, "red", true)
         ));
         // Join blue team (slot 12)
         setButton(12, MenuButton.of(
                 player -> item(Material.BLUE_WOOL, Message.MENU_JOIN_BLUE.getString(player)),
-                (player, click) -> Team.joinTeam(player, Team.blueTeam, true)
+                (player, click) -> Team.joinTeam(player, "blue", true)
         ));
 
         // Team chest gift (slot 13) - CHEST

@@ -1460,8 +1460,9 @@ public class Game {
         Material icon = resolveWaypointIconAtRecord(waypoint);
         try {
             biomeLabel = BiomeTranslation.getValue(waypoint.getBlock().getBiome());
-        } catch (IllegalStateException ignored) {
-            // In Folia, world access can be thread-restricted. Fallback keeps menu rendering safe.
+        } catch (Exception ignored) {
+            // Biome lookup can fail (Folia thread-restricted world access, unloaded region, etc.).
+            // The waypoint must still be recorded so the waypoint menu stays usable.
         }
 
         switch (team) {
@@ -2080,11 +2081,21 @@ public class Game {
     }
 
     public static List<String> getCurrentBlocks(String team) {
-        return switch (team) {
-            case "red" -> redTeamRemainingBlocks.subList(0, Math.min(redTeamRemainingBlocks.size(), 4));
-            case "blue" -> blueTeamRemainingBlocks.subList(0, Math.min(blueTeamRemainingBlocks.size(), 4));
+        List<String> source = switch (team) {
+            case "red" -> redTeamRemainingBlocks;
+            case "blue" -> blueTeamRemainingBlocks;
             default -> throw new IllegalStateException("Unexpected value: " + team);
         };
+        // Snapshot via indexed access so async scoreboard reads (SimpleScore) never iterate a
+        // live sublist that the game thread mutates concurrently (avoids ConcurrentModificationException).
+        int count = Math.min(source.size(), 4);
+        List<String> snapshot = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            if (i < source.size()) {
+                snapshot.add(source.get(i));
+            }
+        }
+        return snapshot;
     }
 
     public static List<String> getOnlinePlayersString() {

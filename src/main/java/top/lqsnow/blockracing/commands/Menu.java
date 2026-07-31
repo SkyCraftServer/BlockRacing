@@ -81,9 +81,9 @@ public class Menu implements CommandExecutor, TabCompleter {
 
             if (args.length == 1) {
                 if (redTeamPlayers.contains(player.getName())) {
-                    new GameMenu.WayPointMenu(redWaypoint, redWaypointIconCache).open(player);
+                    new GameMenu.WayPointMenu(redWaypoint, redWaypointIconCache, redWaypointBiomeCache).open(player);
                 } else if (blueTeamPlayers.contains(player.getName())) {
-                    new GameMenu.WayPointMenu(blueWaypoint, blueWaypointIconCache).open(player);
+                    new GameMenu.WayPointMenu(blueWaypoint, blueWaypointIconCache, blueWaypointBiomeCache).open(player);
                 }
                 return true;
             }
