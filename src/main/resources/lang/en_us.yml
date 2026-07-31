@@ -175,11 +175,14 @@ menu:
     teammate-teleport-lore:
       - "&bChoose an online teammate to teleport to"
       - "&7You can also use /tp <player>"
-    supply: "&6Buy Team Supplies &8- &e5 Points"
+    supply: "&6Buy Team Supplies &8- &e%price% Points"
     supply-lore:
-      - "&7Give every online teammate:"
-      - "&616 Golden Carrots &8+ &f32 Firework Rockets"
+      - "&7Give %target%:"
+      - "%items%"
       - "&7Items drop at their feet if inventories are full"
+    supply-target-team: "every online teammate"
+    supply-target-self: "yourself"
+    supply-item-line: "&8- &f%item% &8x&f%amount%"
     info: "&bGame Settings Info"
     info-lore:
       - "&7Game Mode: %game_mode%"

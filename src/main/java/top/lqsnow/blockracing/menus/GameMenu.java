@@ -114,8 +114,9 @@ public final class GameMenu extends MenuView {
         if (Setting.isSpeedMode()) {
             setButton(31, MenuButton.of(
                     player -> ItemBuilder.of(Material.FIREWORK_ROCKET)
-                            .name(Message.MENU_SUPPLY.getString(player))
-                            .lore(Message.MENU_SUPPLY_LORE.getStringList(player))
+                            .name(Message.MENU_SUPPLY.getString(player)
+                                    .replace("%price%", String.valueOf(Setting.getSupplyPrice())))
+                            .lore(supplyLore(player))
                             .flags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP)
                             .build(),
                     (player, click) -> {
@@ -386,6 +387,33 @@ public final class GameMenu extends MenuView {
 
     private static int menuSize(int contentSlots) {
         return Math.min(54, ((contentSlots / 9) + 1) * 9);
+    }
+
+    private static List<String> supplyLore(Player player) {
+        String target = Setting.isSupplyGiveAll()
+                ? Message.MENU_SUPPLY_TARGET_TEAM.getString(player)
+                : Message.MENU_SUPPLY_TARGET_SELF.getString(player);
+        String price = String.valueOf(Setting.getSupplyPrice());
+        List<String> lore = new ArrayList<>();
+        for (String line : Message.MENU_SUPPLY_LORE.getStringList(player)) {
+            if (line.contains("%items%")) {
+                for (ItemStack item : Setting.getSupplyItems()) {
+                    lore.add(Message.MENU_SUPPLY_ITEM_LINE.getString(player)
+                            .replace("%item%", supplyItemName(item, player))
+                            .replace("%amount%", String.valueOf(item.getAmount())));
+                }
+            } else {
+                lore.add(line.replace("%target%", target).replace("%price%", price));
+            }
+        }
+        return lore.stream().map(ColorUtil::t).toList();
+    }
+
+    private static String supplyItemName(ItemStack item, Player player) {
+        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+            return ColorUtil.t(item.getItemMeta().getDisplayName());
+        }
+        return TranslationUtil.getValue(item.getType().name(), player);
     }
 
     private static List<String> replaceScorePlaceholder(List<String> lore) {

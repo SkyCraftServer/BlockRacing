@@ -25,6 +25,18 @@ game-mode: normal
 # Effect: Haste V
 speed-mode: false
 
+# Team supply (speed mode menu "Buy Team Supplies"):
+# Points spent to purchase the team supply
+supply-price: 5
+# true - give every online teammate; false - give only the buying player
+supply-give-all: true
+# Items granted by the team supply (same rules as base-mode-items)
+supply-items:
+  - material: GOLDEN_CARROT
+    amount: 16
+  - material: FIREWORK_ROCKET
+    amount: 32
+
 # Team chest gift:
 # When enabled, a configurable number of a collected target block is placed into
 # the opponent's team chest. Independent of game mode; can be combined with any mode.

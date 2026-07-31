@@ -31,7 +31,9 @@ public enum Config {
     CONFIG_VERSION("config-version"),
     MAX_TEAM_CHEST_NUM("max-team-chest-num"),
     MAX_TEAM_WAYPOINT_NUM("max-team-waypoint-num"),
-    MAX_ROLL_COUNT("max-roll-count");
+    MAX_ROLL_COUNT("max-roll-count"),
+    SUPPLY_PRICE("supply-price"),
+    SUPPLY_GIVE_ALL("supply-give-all");
 
     private static File file;
     private static FileConfiguration config;
@@ -61,11 +63,26 @@ public enum Config {
         }
         config = loaded;
         boolean missingMaxRollCount = !config.contains(MAX_ROLL_COUNT.path);
+        boolean missingSupplyPrice = !config.contains(SUPPLY_PRICE.path);
+        boolean missingSupplyGiveAll = !config.contains(SUPPLY_GIVE_ALL.path);
+        boolean missingSupplyItems = !config.contains("supply-items");
         try (Reader reader = new InputStreamReader(Main.getInstance().getResource("config.yml"), StandardCharsets.UTF_8)) {
             YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(reader);
             config.setDefaults(defConfig);
             if (missingMaxRollCount) {
                 config.set(MAX_ROLL_COUNT.path, defConfig.getInt(MAX_ROLL_COUNT.path));
+                saveConfig();
+            }
+            if (missingSupplyPrice) {
+                config.set(SUPPLY_PRICE.path, defConfig.getInt(SUPPLY_PRICE.path));
+                saveConfig();
+            }
+            if (missingSupplyGiveAll) {
+                config.set(SUPPLY_GIVE_ALL.path, defConfig.getBoolean(SUPPLY_GIVE_ALL.path));
+                saveConfig();
+            }
+            if (missingSupplyItems) {
+                config.set("supply-items", defConfig.getList("supply-items"));
                 saveConfig();
             }
         } catch (IOException ioe) {

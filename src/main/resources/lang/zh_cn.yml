@@ -249,11 +249,14 @@ menu:
     current-blocks-lore:
       - "&b在聊天中显示双方队伍"
       - "&b当前所有可见目标方块"
-    supply: "&6购买队伍补给 &8- &e5积分"
+    supply: "&6购买队伍补给 &8- &e%price%积分"
     supply-lore:
-      - "&7给予所有在线队友："
-      - "&616个金胡萝卜 &8+ &f32个烟花火箭"
+      - "&7给予%target%："
+      - "%items%"
       - "&7背包满时物品会掉落在脚下"
+    supply-target-team: "所有本队在线玩家"
+    supply-target-self: "你自己"
+    supply-item-line: "&8- &f%item% &8x&f%amount%"
     info: "&b游戏设置信息"
     info-lore:
       - "&7游戏模式：%game_mode%"

@@ -105,6 +105,23 @@ speed-mode-effects:
     duration-ticks: -1
     delay-ticks: 1300
 
+# 队伍补给配置（极速模式主菜单"购买队伍补给"功能）：
+# 购买队伍补给消耗的队伍积分
+supply-price: 5
+
+# 发放范围：
+# true  - 给予所有本队在线玩家
+# false - 仅给予点击购买的玩家
+supply-give-all: false
+
+# 队伍补给发放的物品列表
+# 配置规则与 base-mode-items 完全一致
+supply-items:
+  - material: GOLDEN_CARROT
+    amount: 16
+  - material: FIREWORK_ROCKET
+    amount: 8
+
 # 落后补偿：当一队落后达到阈值方块数时，为落后队伍持续提供速度III与抗性III
 # 方块差缩小到阈值内后移除；玩家复活后会重新给予补偿效果
 # 设为 0 可关闭该机制

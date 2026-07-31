@@ -2289,8 +2289,9 @@ public class Game {
     }
 
     /**
-     * Buys team supplies (speed mode only). Costs 5 team points and gives
-     * every online teammate 16 golden carrots and 32 firework rockets.
+     * Buys team supplies (speed mode only). Costs a configurable amount of team
+     * points and gives the configured supply items to either only the buyer or
+     * to every online teammate, depending on the supply-give-all setting.
      */
     public static void buySupply(Player player) {
         if (!Setting.isSpeedMode()) {
@@ -2301,28 +2302,36 @@ public class Game {
         boolean isBlue = blueTeamPlayers.contains(player.getName());
         if (!isRed && !isBlue) return;
 
-        if (isRed && redTeamScore < 5 || isBlue && blueTeamScore < 5) {
+        int price = Setting.getSupplyPrice();
+        if (isRed && redTeamScore < price || isBlue && blueTeamScore < price) {
             player.sendMessage(Message.NOTICE_NOT_ENOUGH_SCORE.getString(player));
             return;
         }
 
-        if (isRed) redTeamScore -= 5;
-        else blueTeamScore -= 5;
+        if (isRed) redTeamScore -= price;
+        else blueTeamScore -= price;
 
-        List<String> team = isRed ? redTeamPlayers : blueTeamPlayers;
-        ItemStack carrots = new ItemStack(Material.GOLDEN_CARROT, 16);
-        ItemStack rockets = new ItemStack(Material.FIREWORK_ROCKET, 32);
-        for (String name : team) {
-            Player teammate = Bukkit.getPlayerExact(name);
-            if (teammate != null && teammate.isOnline()) {
+        List<Player> recipients = new ArrayList<>();
+        if (Setting.isSupplyGiveAll()) {
+            List<String> team = isRed ? redTeamPlayers : blueTeamPlayers;
+            for (String name : team) {
+                Player teammate = Bukkit.getPlayerExact(name);
+                if (teammate != null && teammate.isOnline()) {
+                    recipients.add(teammate);
+                }
+            }
+        } else {
+            recipients.add(player);
+        }
+
+        List<ItemStack> supply = Setting.getSupplyItems();
+        for (Player recipient : recipients) {
+            for (ItemStack item : supply) {
+                ItemStack toGive = item.clone();
                 if (Main.getFoliaLib() != null && Main.getFoliaLib().isFolia()) {
-                    Main.getFoliaLib().getScheduler().runAtEntity(teammate, task -> {
-                        giveOrDrop(teammate, carrots.clone());
-                        giveOrDrop(teammate, rockets.clone());
-                    });
+                    Main.getFoliaLib().getScheduler().runAtEntity(recipient, task -> giveOrDrop(recipient, toGive));
                 } else {
-                    giveOrDrop(teammate, carrots.clone());
-                    giveOrDrop(teammate, rockets.clone());
+                    giveOrDrop(recipient, toGive);
                 }
             }
         }

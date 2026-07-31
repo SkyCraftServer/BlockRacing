@@ -67,6 +67,12 @@ public class Setting {
     private static List<SpeedModeEffectOption> speedModeEffects = List.of();
     @Getter
     private static List<PotionEffect> comebackBuffEffects = List.of();
+    @Getter
+    private static int supplyPrice = 5;
+    @Getter
+    private static boolean supplyGiveAll = true;
+    @Getter
+    private static List<ItemStack> supplyItems = List.of();
 
     @Getter
     public static class SpeedModeEffectOption {
@@ -156,6 +162,7 @@ public class Setting {
 
         loadSpeedModeKitConfig();
         loadComebackBuffEffectConfig();
+        loadSupplyConfig();
     }
 
     private static void loadSpeedModeKitConfig() {
@@ -180,6 +187,24 @@ public class Setting {
 
     private static List<ItemStack> parseSpeedModeItems() {
         return parseConfiguredItems("speed-mode-items", "speed-mode item");
+    }
+
+    private static void loadSupplyConfig() {
+        supplyPrice = Math.max(0, Config.SUPPLY_PRICE.getInt());
+        supplyGiveAll = Config.SUPPLY_GIVE_ALL.getBoolean();
+
+        List<ItemStack> parsedItems = parseConfiguredItems("supply-items", "supply item");
+        if (parsedItems.isEmpty()) {
+            parsedItems = createDefaultSupplyItems();
+        }
+        supplyItems = List.copyOf(parsedItems);
+    }
+
+    private static List<ItemStack> createDefaultSupplyItems() {
+        List<ItemStack> defaults = new ArrayList<>();
+        defaults.add(new ItemStack(Material.GOLDEN_CARROT, 16));
+        defaults.add(new ItemStack(Material.FIREWORK_ROCKET, 32));
+        return defaults;
     }
 
     private static List<ItemStack> parseConfiguredItems(String path, String logLabel) {
