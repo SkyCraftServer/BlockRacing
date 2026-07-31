@@ -1,0 +1,59 @@
+name: Pre-release
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prerelease:
+    if: startsWith(github.event.head_commit.message, '[CI skip]') == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Resolve version and commit from pom.xml
+        run: |
+          VERSION=$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' pom.xml | head -1)
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "SHA=${GITHUB_SHA:0:7}" >> "$GITHUB_ENV"
+          echo "Resolved version: ${VERSION} / commit ${GITHUB_SHA:0:7}"
+
+      - name: Verify build artifact
+        run: |
+          ls -la target/*.jar
+          test -f "target/BlockRacing-${VERSION}.jar" \
+            || { echo "Expected jar target/BlockRacing-${VERSION}.jar not found"; exit 1; }
+
+      - name: Publish pre-release (dev)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: |-
+            **Auto-built pre-release**
+
+            - Version: ${{ env.VERSION }}
+            - Commit: ${{ env.SHA }}
+            - Branch: ${{ github.ref_name }}
+
+            Download the .jar and drop it into your server's plugins/ folder.
+        run: |
+          # Remove the previous "dev" pre-release (and its tag), then publish a fresh one
+          gh release delete dev --yes --cleanup-tag 2>/dev/null || true
+          gh release create dev \
+            "target/BlockRacing-${VERSION}.jar" \
+            --title "BlockRacing Dev Build ${VERSION}" \
+            --notes "$NOTES" \
+            --prerelease
