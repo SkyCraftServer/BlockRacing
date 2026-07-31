@@ -2,6 +2,7 @@ package top.lqsnow.blockracing.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
@@ -61,7 +62,13 @@ public final class GameProgressStore {
             Game.blueTeamTotalBlockAmount = state.getInt("progress.blue-total");
             Game.redTeamRollCount = state.getInt("rolls.red");
             Game.blueTeamRollCount = state.getInt("rolls.blue");
+            Game.contestModeRollCount = state.getInt("rolls.contest", 0);
             Game.locateCost = state.getInt("locate-cost");
+            // Restore time-mode countdown state (TIME mode); resumeRecoveredGame restarts the timer.
+            Game.restoreRecoveredTimeMode(
+                    state.getInt("time-mode.duration-seconds", 0),
+                    state.getInt("time-mode.remaining-seconds", 0),
+                    state.getBoolean("time-mode.overtime", false));
             Setting.setSpeedMode(state.getBoolean("settings.speed-mode", Setting.isSpeedMode()));
             try {
                 Setting.setCurrentGameMode(Setting.GameMode.valueOf(
@@ -83,6 +90,16 @@ public final class GameProgressStore {
 
             Game.redWaypoint = readLocations(state.getConfigurationSection("waypoints.red"));
             Game.blueWaypoint = readLocations(state.getConfigurationSection("waypoints.blue"));
+            // Restore the biome/icon caches captured when each waypoint was recorded, so the menu
+            // never has to read world biome data again (Folia thread-restricted world access).
+            Game.redWaypointBiomeCache.clear();
+            Game.blueWaypointBiomeCache.clear();
+            Game.redWaypointIconCache.clear();
+            Game.blueWaypointIconCache.clear();
+            readStringMap(state.getConfigurationSection("waypoint-biomes.red")).forEach(Game.redWaypointBiomeCache::put);
+            readStringMap(state.getConfigurationSection("waypoint-biomes.blue")).forEach(Game.blueWaypointBiomeCache::put);
+            readMaterialMap(state.getConfigurationSection("waypoint-icons.red")).forEach(Game.redWaypointIconCache::put);
+            readMaterialMap(state.getConfigurationSection("waypoint-icons.blue")).forEach(Game.blueWaypointIconCache::put);
             restoreChests(state, "chests.red", Game.redTeamChest);
             restoreChests(state, "chests.blue", Game.blueTeamChest);
             recoveredGame = true;
@@ -144,13 +161,18 @@ public final class GameProgressStore {
         state.set("progress.blue-total", Game.blueTeamTotalBlockAmount);
         state.set("rolls.red", Game.redTeamRollCount);
         state.set("rolls.blue", Game.blueTeamRollCount);
+        state.set("rolls.contest", Game.contestModeRollCount);
         state.set("locate-cost", Game.locateCost);
+        // Time-mode countdown state (so a recovered TIME game resumes its timer).
+        state.set("time-mode.duration-seconds", Game.getTimeModeDurationSeconds());
+        state.set("time-mode.remaining-seconds", Game.getTimeModeRemainingSeconds());
+        state.set("time-mode.overtime", Game.isTimeModeOvertime());
         state.set("settings.speed-mode", Setting.isSpeedMode());
         state.set("settings.game-mode", Setting.getCurrentGameMode().name());
-        state.set("blocks.red-all", new ArrayList<>(redTeamBlocks));
-        state.set("blocks.blue-all", new ArrayList<>(blueTeamBlocks));
-        state.set("blocks.red-remaining", new ArrayList<>(redTeamRemainingBlocks));
-        state.set("blocks.blue-remaining", new ArrayList<>(blueTeamRemainingBlocks));
+        state.set("blocks.red-all", snapshotStrings(redTeamBlocks));
+        state.set("blocks.blue-all", snapshotStrings(blueTeamBlocks));
+        state.set("blocks.red-remaining", snapshotStrings(redTeamRemainingBlocks));
+        state.set("blocks.blue-remaining", snapshotStrings(blueTeamRemainingBlocks));
         state.set("teams.red", new ArrayList<>(redTeamPlayers));
         state.set("teams.blue", new ArrayList<>(blueTeamPlayers));
         state.set("players.in-game", new ArrayList<>(Game.inGamePlayers));
@@ -159,6 +181,11 @@ public final class GameProgressStore {
         Game.collectAmount.forEach((name, amount) -> state.set("collected." + name, amount));
         Game.redWaypoint.forEach((index, location) -> state.set("waypoints.red." + index, location));
         Game.blueWaypoint.forEach((index, location) -> state.set("waypoints.blue." + index, location));
+        // Persist biome/icon caches captured when each waypoint was recorded.
+        Game.redWaypointBiomeCache.forEach((index, biome) -> state.set("waypoint-biomes.red." + index, biome));
+        Game.blueWaypointBiomeCache.forEach((index, biome) -> state.set("waypoint-biomes.blue." + index, biome));
+        Game.redWaypointIconCache.forEach((index, icon) -> state.set("waypoint-icons.red." + index, icon.name()));
+        Game.blueWaypointIconCache.forEach((index, icon) -> state.set("waypoint-icons.blue." + index, icon.name()));
         saveChests(state, "chests.red", Game.redTeamChest);
         saveChests(state, "chests.blue", Game.blueTeamChest);
         return state;
@@ -197,6 +224,34 @@ public final class GameProgressStore {
         return locations;
     }
 
+    private static Map<Integer, String> readStringMap(ConfigurationSection section) {
+        Map<Integer, String> values = new HashMap<>();
+        if (section == null) {
+            return values;
+        }
+        for (String key : section.getKeys(false)) {
+            String value = section.getString(key);
+            if (value != null) {
+                values.put(Integer.parseInt(key), value);
+            }
+        }
+        return values;
+    }
+
+    private static Map<Integer, Material> readMaterialMap(ConfigurationSection section) {
+        Map<Integer, Material> values = new HashMap<>();
+        if (section == null) {
+            return values;
+        }
+        for (String key : section.getKeys(false)) {
+            Material material = Material.matchMaterial(section.getString(key, ""));
+            if (material != null) {
+                values.put(Integer.parseInt(key), material);
+            }
+        }
+        return values;
+    }
+
     private static Map<String, Integer> readIntegerMap(ConfigurationSection section) {
         Map<String, Integer> values = new HashMap<>();
         if (section != null) {
@@ -208,5 +263,25 @@ public final class GameProgressStore {
     private static void replace(List<String> target, List<String> values) {
         target.clear();
         target.addAll(values);
+    }
+
+    /**
+     * Thread-safe snapshot of a list that the game thread may be mutating concurrently.
+     * On Folia the autosave runs on the global scheduler while region threads modify the
+     * block pools; indexed access avoids ConcurrentModificationException and the size
+     * re-check avoids IndexOutOfBoundsException if the list shrinks mid-copy.
+     */
+    private static List<String> snapshotStrings(List<String> source) {
+        if (source == null) {
+            return new ArrayList<>();
+        }
+        int count = source.size();
+        List<String> copy = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            if (i < source.size()) {
+                copy.add(source.get(i));
+            }
+        }
+        return copy;
     }
 }

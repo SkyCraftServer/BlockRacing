@@ -133,6 +133,13 @@ public class Game {
         return timeModeDurationSeconds;
     }
 
+    /** Restore time-mode countdown state after recovering a saved game (TIME mode). */
+    public static void restoreRecoveredTimeMode(int durationSeconds, int remainingSeconds, boolean overtime) {
+        timeModeDurationSeconds = Math.max(0, durationSeconds);
+        timeModeRemainingSeconds = Math.max(0, remainingSeconds);
+        timeModeOvertime = overtime;
+    }
+
     public static String getFormattedTimeModeRemaining() {
         int seconds = Math.max(0, timeModeRemainingSeconds);
         Duration duration = Duration.ofSeconds(seconds);
@@ -1557,6 +1564,8 @@ public class Game {
     /** Resume the in-game loop after a recovered game progress. */
     public static void resumeRecoveredGame() {
         startInGameLoop();
+        // Restart the time-mode countdown (TIME mode) so a recovered game resumes its timer.
+        startTimeModeCountdownIfNeeded();
     }
 
     private static void stopInGameLoop() {
