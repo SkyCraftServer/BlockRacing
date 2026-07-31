@@ -928,7 +928,7 @@ public class Game {
                     player.sendMessage(Message.NOTICE_CANNOT_ROLL_NO_CANDIDATE.getString());
                     return;
                 }
-                if (redTeamRollCount >= 3) {
+                if (redTeamRollCount >= Setting.getMaxRollCount()) {
                     player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
                     return;
                 }
@@ -946,7 +946,7 @@ public class Game {
                     player.sendMessage(Message.NOTICE_CANNOT_ROLL_NO_CANDIDATE.getString());
                     return;
                 }
-                if (blueTeamRollCount >= 3) {
+                if (blueTeamRollCount >= Setting.getMaxRollCount()) {
                     player.sendMessage(Message.NOTICE_CANNOT_ROLL.getString());
                     return;
                 }

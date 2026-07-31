@@ -118,9 +118,19 @@ menu:
     team-chest-count-lore:
       - "&eClick here to change the number of shared team chests"
       - "&eTakes effect when the next game starts"
+    waypoint-count: "&eWaypoint Count: %count%"
+    waypoint-count-lore:
+      - "&eClick here to change the number of waypoints per team"
+      - "&eTakes effect when the next game starts"
+    roll-count: "&eRolls Per Game: %count%"
+    roll-count-lore:
+      - "&eClick here to change how many times each team"
+      - "&ecan reroll target blocks per game"
+      - "&eEnter 0 to disable rolling"
     select-team: "&aSelect Team"
     block-setting: "&aBlock Setting"
     select-mode: "&aMode Selection"
+    game-setting: "&aGame Settings"
     ready-and-start: "&aReady and Start Game"
     random-team: "&dRandom Teams"
     random-team-lore:
@@ -261,6 +271,12 @@ notice:
   set-team-chest-count: "&ePlease directly send the number of shared team chests per team (1-53), send 'quit' to cancel input"
   set-team-chest-count-success: "&aChanged the team chest count to: %count%"
   set-team-chest-count-error: "&cPlease enter a valid number! Range 1-53; send 'quit' to exit input mode."
+  set-waypoint-count: "&ePlease directly send the number of waypoints per team (1-53), send 'quit' to cancel input"
+  set-waypoint-count-success: "&aChanged the waypoint count to: %count%"
+  set-waypoint-count-error: "&cPlease enter a valid number! Range 1-53; send 'quit' to exit input mode."
+  set-roll-count: "&ePlease directly send the number of rerolls per team per game (0-100, 0 disables), send 'quit' to cancel input"
+  set-roll-count-success: "&aChanged the roll count to: %count%"
+  set-roll-count-error: "&cPlease enter a valid number! Range 0-100; send 'quit' to exit input mode."
   spawn-protect-notice: "&8[&bTip&8] &7Spawn is protected. Move away before placing or breaking blocks."
   exist-error-block: "&4Item named %s does not exist! Check the configuration file!"
   not-enough-score: "&cInsufficient points!"

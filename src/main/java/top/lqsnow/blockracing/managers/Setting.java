@@ -486,6 +486,18 @@ public class Setting {
         persistConfigNow();
     }
 
+    public static void setMaxTeamWaypointNum(int waypointNum) {
+        Setting.maxTeamWaypointNum = Math.max(1, Math.min(53, waypointNum));
+        Config.MAX_TEAM_WAYPOINT_NUM.setInt(Setting.maxTeamWaypointNum);
+        persistConfigNow();
+    }
+
+    public static void setMaxRollCount(int rollCount) {
+        int clamped = Math.max(0, Math.min(100, rollCount));
+        Config.MAX_ROLL_COUNT.setInt(clamped);
+        persistConfigNow();
+    }
+
     public static void setSpeedMode(boolean speedMode) {
         Setting.speedMode = speedMode;
         Config.SPEED_MODE.setBoolean(speedMode);

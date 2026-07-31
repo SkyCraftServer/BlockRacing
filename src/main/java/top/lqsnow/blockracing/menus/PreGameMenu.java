@@ -23,13 +23,13 @@ import static top.lqsnow.blockracing.listeners.BasicListener.EditType;
 import static top.lqsnow.blockracing.managers.Gui.updateMenu;
 import static top.lqsnow.blockracing.scoreboard.Scoreboard.updateScoreboard;
 import static top.lqsnow.blockracing.managers.Team.redTeam;
+import static top.lqsnow.blockracing.utils.ColorUtil.t;
 
 public final class PreGameMenu extends MenuView {
     private static final Set<Integer> GREEN_BACKGROUND = Set.of(
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44,
-            45, 46, 47, 48, 49, 50, 51, 52, 53
+            45, 49, 50, 51, 52, 53
     );
-    private static final Set<Integer> BLUE_BACKGROUND = Set.of(13, 14, 15, 31, 32, 40, 41, 42);
 
     public PreGameMenu() {
         super(54, player -> Message.MENU_PREGAME_TITLE.getString(player));
@@ -72,55 +72,8 @@ public final class PreGameMenu extends MenuView {
                 }
         ));
 
-        // Speed mode (slot 14) - ELYTRA
+        // Team chest count (slot 14) - TRAPPED_CHEST
         setButton(14, MenuButton.of(
-                player -> {
-                    ItemBuilder builder = ItemBuilder.of(Material.ELYTRA)
-                            .name(Setting.isSpeedMode()
-                                    ? Message.MENU_SPEED_MODE_ENABLED.getString(player)
-                                    : Message.MENU_SPEED_MODE_DISABLED.getString(player))
-                            .lore(Message.MENU_SPEED_MODE_LORE.getStringList(player));
-                    if (Setting.isSpeedMode()) {
-                        builder.flags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-                    }
-                    return builder.build();
-                },
-                (player, click) -> {
-                    Setting.toggleSpeedMode();
-                    refreshSettings();
-                }
-        ));
-
-        // Change block amount / time mode duration (slot 15)
-        setButton(15, MenuButton.of(
-                player -> {
-                    if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
-                        int minutes = Math.max(1, Setting.getTimeModeDurationMinutes());
-                        return ItemBuilder.of(Material.NAME_TAG)
-                                .name(Message.MENU_TIME_MODE_DURATION.getString(player)
-                                        .replace("%minutes%", String.valueOf(minutes)))
-                                .lore(Message.MENU_TIME_MODE_DURATION_LORE.getStringList(player))
-                                .build();
-                    }
-                    return ItemBuilder.of(Material.NAME_TAG)
-                            .name(Message.MENU_BLOCK_AMOUNT.getString(player) + Setting.getBlockAmount())
-                            .lore(Message.MENU_BLOCK_AMOUNT_LORE.getStringList(player))
-                            .build();
-                },
-                (player, click) -> {
-                    player.closeInventory();
-                    if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
-                        editAmountPlayer.put(player.getName(), EditType.TIME_MODE_MINUTES);
-                        player.sendMessage(Message.NOTICE_SET_TIME_MODE_MINUTES.getString(player));
-                    } else {
-                        editAmountPlayer.put(player.getName(), EditType.BLOCK_AMOUNT);
-                        player.sendMessage(Message.NOTICE_SET_BLOCKS.getString(player));
-                    }
-                }
-        ));
-
-        // Team chest count (slot 16) - TRAPPED_CHEST
-        setButton(16, MenuButton.of(
                 player -> ItemBuilder.of(Material.TRAPPED_CHEST)
                         .name(Message.MENU_TEAM_CHEST_COUNT.getString(player)
                                 .replace("%count%", String.valueOf(Setting.getMaxTeamChestNum())))
@@ -130,6 +83,34 @@ public final class PreGameMenu extends MenuView {
                     player.closeInventory();
                     editAmountPlayer.put(player.getName(), EditType.TEAM_CHEST_COUNT);
                     player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_COUNT.getString(player));
+                }
+        ));
+
+        // Waypoint count (slot 15) - FILLED_MAP
+        setButton(15, MenuButton.of(
+                player -> ItemBuilder.of(Material.FILLED_MAP)
+                        .name(Message.MENU_WAYPOINT_COUNT.getString(player)
+                                .replace("%count%", String.valueOf(Setting.getMaxTeamWaypointNum())))
+                        .lore(Message.MENU_WAYPOINT_COUNT_LORE.getStringList(player))
+                        .build(),
+                (player, click) -> {
+                    player.closeInventory();
+                    editAmountPlayer.put(player.getName(), EditType.WAYPOINT_COUNT);
+                    player.sendMessage(Message.NOTICE_SET_WAYPOINT_COUNT.getString(player));
+                }
+        ));
+
+        // Roll count (slot 16) - CLOCK
+        setButton(16, MenuButton.of(
+                player -> ItemBuilder.of(Material.CLOCK)
+                        .name(Message.MENU_ROLL_COUNT.getString(player)
+                                .replace("%count%", String.valueOf(Setting.getMaxRollCount())))
+                        .lore(Message.MENU_ROLL_COUNT_LORE.getStringList(player))
+                        .build(),
+                (player, click) -> {
+                    player.closeInventory();
+                    editAmountPlayer.put(player.getName(), EditType.ROLL_COUNT);
+                    player.sendMessage(Message.NOTICE_SET_ROLL_COUNT.getString(player));
                 }
         ));
 
@@ -217,32 +198,50 @@ public final class PreGameMenu extends MenuView {
                 }
         ));
 
-        // Ready (slot 38)
+        // Speed mode (slot 38) - ELYTRA
         setButton(38, MenuButton.of(
-                player -> ItemBuilder.of(Material.EMERALD)
-                        .name(Message.MENU_READY.getString(player))
-                        .lore(Message.MENU_READY_LORE.getStringList(player))
-                        .build(),
-                (player, click) -> Game.playerReady(player)
+                player -> {
+                    ItemBuilder builder = ItemBuilder.of(Material.ELYTRA)
+                            .name(Setting.isSpeedMode()
+                                    ? Message.MENU_SPEED_MODE_ENABLED.getString(player)
+                                    : Message.MENU_SPEED_MODE_DISABLED.getString(player))
+                            .lore(Message.MENU_SPEED_MODE_LORE.getStringList(player));
+                    if (Setting.isSpeedMode()) {
+                        builder.flags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+                    }
+                    return builder.build();
+                },
+                (player, click) -> {
+                    Setting.toggleSpeedMode();
+                    refreshSettings();
+                }
         ));
-        // Start (slot 39)
+
+        // Change block amount / time mode duration (slot 39)
         setButton(39, MenuButton.of(
                 player -> {
-                    List<String> lore = new ArrayList<>(Message.MENU_START_LORE.getStringList(player));
-                    if (player.isOp()) {
-                        lore.add(Message.MENU_START_FORCE_SHIFT_LORE.getString(player));
+                    if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
+                        int minutes = Math.max(1, Setting.getTimeModeDurationMinutes());
+                        return ItemBuilder.of(Material.NAME_TAG)
+                                .name(Message.MENU_TIME_MODE_DURATION.getString(player)
+                                        .replace("%minutes%", String.valueOf(minutes)))
+                                .lore(Message.MENU_TIME_MODE_DURATION_LORE.getStringList(player))
+                                .build();
                     }
-                    return ItemBuilder.of(Material.DIAMOND)
-                            .name(Message.MENU_START.getString(player))
-                            .lore(lore)
+                    return ItemBuilder.of(Material.NAME_TAG)
+                            .name(Message.MENU_BLOCK_AMOUNT.getString(player) + Setting.getBlockAmount())
+                            .lore(Message.MENU_BLOCK_AMOUNT_LORE.getStringList(player))
                             .build();
                 },
                 (player, click) -> {
-                    if (player.isOp() && click.isShiftClick()) {
-                        Game.forceStart(player);
-                        return;
+                    player.closeInventory();
+                    if (Setting.getCurrentGameMode().equals(Setting.GameMode.TIME)) {
+                        editAmountPlayer.put(player.getName(), EditType.TIME_MODE_MINUTES);
+                        player.sendMessage(Message.NOTICE_SET_TIME_MODE_MINUTES.getString(player));
+                    } else {
+                        editAmountPlayer.put(player.getName(), EditType.BLOCK_AMOUNT);
+                        player.sendMessage(Message.NOTICE_SET_BLOCKS.getString(player));
                     }
-                    Game.checkStartDemands(player);
                 }
         ));
 
@@ -310,6 +309,35 @@ public final class PreGameMenu extends MenuView {
                         .build(),
                 (player, click) -> {}
         ));
+
+        // Ready (slot 47)
+        setButton(47, MenuButton.of(
+                player -> ItemBuilder.of(Material.EMERALD)
+                        .name(Message.MENU_READY.getString(player))
+                        .lore(Message.MENU_READY_LORE.getStringList(player))
+                        .build(),
+                (player, click) -> Game.playerReady(player)
+        ));
+        // Start (slot 48)
+        setButton(48, MenuButton.of(
+                player -> {
+                    List<String> lore = new ArrayList<>(Message.MENU_START_LORE.getStringList(player));
+                    if (player.isOp()) {
+                        lore.add(Message.MENU_START_FORCE_SHIFT_LORE.getString(player));
+                    }
+                    return ItemBuilder.of(Material.DIAMOND)
+                            .name(Message.MENU_START.getString(player))
+                            .lore(lore)
+                            .build();
+                },
+                (player, click) -> {
+                    if (player.isOp() && click.isShiftClick()) {
+                        Game.forceStart(player);
+                        return;
+                    }
+                    Game.checkStartDemands(player);
+                }
+        ));
     }
 
     @Override
@@ -317,14 +345,7 @@ public final class PreGameMenu extends MenuView {
         if (GREEN_BACKGROUND.contains(slot)) {
             return item(Material.LIME_STAINED_GLASS_PANE, " ");
         }
-        if (BLUE_BACKGROUND.contains(slot)) {
-            // Slots 13-14 have game option buttons, slots 40-42 have settings buttons
-            if (slot == 13 || slot == 14 || slot == 40 || slot == 41 || slot == 42) {
-                return null;
-            }
-            return item(Material.LIGHT_BLUE_STAINED_GLASS_PANE, " ");
-        }
-        if (slot == 10 || slot == 16) {
+        if (slot == 10) {
             return item(Material.YELLOW_STAINED_GLASS_PANE, Message.MENU_SELECT_TEAM.getString(player));
         }
         if (slot == 19 || slot == 25) {
@@ -333,7 +354,10 @@ public final class PreGameMenu extends MenuView {
         if (slot == 28 || slot == 34) {
             return item(Material.YELLOW_STAINED_GLASS_PANE, Message.MENU_SELECT_MODE.getString(player));
         }
-        if (slot == 37 || slot == 43) {
+        if (slot == 37) {
+            return item(Material.YELLOW_STAINED_GLASS_PANE, Message.MENU_GAME_SETTING.getString(player));
+        }
+        if (slot == 46) {
             return item(Material.YELLOW_STAINED_GLASS_PANE, Message.MENU_READY_AND_START.getString(player));
         }
         if (slot == 24 && !Setting.isAddonAvailable()) {
@@ -391,9 +415,9 @@ public final class PreGameMenu extends MenuView {
     }
 
     private static java.util.List<String> replaceInfoPlaceholders(java.util.List<String> lore) {
-        String sharedSpawn = Setting.isSharedTeamSpawn() ? "&a✓" : "&c✗";
-        String teamChestGift = Setting.isTeamChestGift() ? "&a✓" : "&c✗";
-        String endPortalBroadcast = Setting.isEndPortalCoordinateBroadcast() ? "&a✓" : "&c✗";
+        String sharedSpawn = t(Setting.isSharedTeamSpawn() ? "&a✓" : "&c✗");
+        String teamChestGift = t(Setting.isTeamChestGift() ? "&a✓" : "&c✗");
+        String endPortalBroadcast = t(Setting.isEndPortalCoordinateBroadcast() ? "&a✓" : "&c✗");
         String comebackThreshold = String.valueOf(Setting.getComebackBuffThresholdPoints());
         return lore.stream()
                 .map(line -> line

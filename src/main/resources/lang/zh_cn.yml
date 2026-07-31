@@ -183,6 +183,14 @@ menu:
     team-chest-count-lore:
       - "&e点击此处更改每队可使用的队伍箱子数量"
       - "&e将在下一局游戏开始时生效"
+    waypoint-count: "&e记录点数量：%count% 个"
+    waypoint-count-lore:
+      - "&e点击此处更改每队可使用的记录点数量"
+      - "&e将在下一局游戏开始时生效"
+    roll-count: "&e每局轮换次数：%count% 次"
+    roll-count-lore:
+      - "&e点击此处更改每队每局可轮换目标方块的次数"
+      - "&e输入0可禁用轮换"
     nether-mode-lore:
       - "&a开启<gradient:#fa0000:#ff3434>下界模式</gradient>&a后，"
       - "&e将仅使用下界方块库 ，不加载其他方块库"
@@ -205,6 +213,7 @@ menu:
     select-team: "&a选队"
     block-setting: "&a方块设置"
     select-mode: "&a模式选择"
+    game-setting: "&a游戏设置"
     ready-and-start: "&a准备和开始游戏"
     random-team: "&d随机组队"
     random-team-lore:
@@ -351,6 +360,12 @@ notice:
   set-team-chest-count: "&e请直接发送每队队伍箱子的数量（1-53），发送quit取消输入"
   set-team-chest-count-success: "&a队伍箱子数量更改为：%count% 个"
   set-team-chest-count-error: "&c请输入正确数字！范围1-53；发送quit退出输入模式"
+  set-waypoint-count: "&e请直接发送每队记录点的数量（1-53），发送quit取消输入"
+  set-waypoint-count-success: "&a记录点数量更改为：%count% 个"
+  set-waypoint-count-error: "&c请输入正确数字！范围1-53；发送quit退出输入模式"
+  set-roll-count: "&e请直接发送每局每队的轮换次数（0-100，0禁用），发送quit取消输入"
+  set-roll-count-success: "&a每局每队轮换次数更改为：%count% 次"
+  set-roll-count-error: "&c请输入正确数字！范围0-100；发送quit退出输入模式"
   set-team-chest-name: "&e请输入队伍箱子%index%的名称，发送reset恢复默认，发送quit取消"
   set-waypoint-name: "&e请输入记录点%index%的名称，发送reset恢复默认，发送quit取消"
   set-custom-name-quit: "&a已取消重命名"

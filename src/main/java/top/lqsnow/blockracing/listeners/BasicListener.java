@@ -45,7 +45,9 @@ public class BasicListener implements Listener {
         TIME_MODE_MINUTES,
         COMEBACK_THRESHOLD,
         TEAM_CHEST_GIFT_AMOUNT,
-        TEAM_CHEST_COUNT
+        TEAM_CHEST_COUNT,
+        WAYPOINT_COUNT,
+        ROLL_COUNT
     }
 
     public static Map<String, EditType> editAmountPlayer = new ConcurrentHashMap<>();
@@ -112,6 +114,10 @@ public class BasicListener implements Listener {
                     player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_GIFT_AMOUNT_ERROR.getString());
                 } else if (editType == EditType.TEAM_CHEST_COUNT) {
                     player.sendMessage(Message.NOTICE_SET_TEAM_CHEST_COUNT_ERROR.getString());
+                } else if (editType == EditType.WAYPOINT_COUNT) {
+                    player.sendMessage(Message.NOTICE_SET_WAYPOINT_COUNT_ERROR.getString());
+                } else if (editType == EditType.ROLL_COUNT) {
+                    player.sendMessage(Message.NOTICE_SET_ROLL_COUNT_ERROR.getString());
                 } else {
                     player.sendMessage(Message.NOTICE_SET_BLOCKS_ERROR.getString());
                 }
@@ -128,6 +134,10 @@ public class BasicListener implements Listener {
                     setTeamChestGiftAmount(blockAmount, true);
                 } else if (editType == EditType.TEAM_CHEST_COUNT) {
                     setMaxTeamChestNum(blockAmount, true);
+                } else if (editType == EditType.WAYPOINT_COUNT) {
+                    setMaxTeamWaypointNum(blockAmount, true);
+                } else if (editType == EditType.ROLL_COUNT) {
+                    setMaxRollCount(blockAmount, true);
                 } else {
                     setBlockAmount(blockAmount, true);
                 }
@@ -502,6 +512,32 @@ public class BasicListener implements Listener {
         }
 
         Setting.setMaxTeamChestNum(finalChestNum);
+        updateMenu(new PreGameMenu());
+        updateScoreboard();
+    }
+
+    public static void setMaxTeamWaypointNum(int waypointNum, Boolean sendMessage) {
+        int finalWaypointNum = Math.max(1, Math.min(53, waypointNum));
+
+        if (sendMessage) {
+            sendAll(Message.NOTICE_SET_WAYPOINT_COUNT_SUCCESS.getString()
+                    .replace("%count%", String.valueOf(finalWaypointNum)));
+        }
+
+        Setting.setMaxTeamWaypointNum(finalWaypointNum);
+        updateMenu(new PreGameMenu());
+        updateScoreboard();
+    }
+
+    public static void setMaxRollCount(int rollCount, Boolean sendMessage) {
+        int finalRollCount = Math.max(0, Math.min(100, rollCount));
+
+        if (sendMessage) {
+            sendAll(Message.NOTICE_SET_ROLL_COUNT_SUCCESS.getString()
+                    .replace("%count%", String.valueOf(finalRollCount)));
+        }
+
+        Setting.setMaxRollCount(finalRollCount);
         updateMenu(new PreGameMenu());
         updateScoreboard();
     }

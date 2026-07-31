@@ -405,11 +405,11 @@ public final class GameMenu extends MenuView {
     }
 
     private static List<String> replaceInfoPlaceholders(List<String> lore, Player player) {
-        String endPortalBroadcast = Setting.isEndPortalCoordinateBroadcast() ? "&a✓" : "&c✗";
+        String endPortalBroadcast = ColorUtil.t(Setting.isEndPortalCoordinateBroadcast() ? "&a✓" : "&c✗");
         String comebackThreshold = String.valueOf(Setting.getComebackBuffThresholdPoints());
-        String netherMode = Setting.isNetherMode() ? "&a✓" : "&c✗";
-        String speedMode = Setting.isSpeedMode() ? "&a✓" : "&c✗";
-        String teamChestGift = Setting.isTeamChestGift() ? "&a✓" : "&c✗";
+        String netherMode = ColorUtil.t(Setting.isNetherMode() ? "&a✓" : "&c✗");
+        String speedMode = ColorUtil.t(Setting.isSpeedMode() ? "&a✓" : "&c✗");
+        String teamChestGift = ColorUtil.t(Setting.isTeamChestGift() ? "&a✓" : "&c✗");
         String gameMode = resolveDisplayedGameMode(player);
         String blockAmount = String.valueOf(Setting.getBlockAmount());
         String maxRollCount = String.valueOf(Setting.getMaxRollCount());
